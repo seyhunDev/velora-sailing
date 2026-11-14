@@ -46,6 +46,6 @@ Canlı site: https://velora-sailing.netlify.app (main'e push → GitHub Actions 
 - `src/js/track.js` ziyaret/olay kaydı · `src/js/access.js` giriş ekranı, roller, kilitler (her sayfada uygulama betiğinden önce) · `src/js/velora-auth.js` Velora hesabıyla giriş (Firebase, modül) · `src/ziyaret.html` ziyaret kayıtları (sahip)
 - `src/js/report.js` Bildir düğmesi (sahip): not + işlemler + durum → GitHub konusu "Bildirim: …" · `scripts/report.mjs` bildirimi çözer, yarışı yeniden kurar, hata avcısı · `tests/bildirimler/` bildirim testleri · `npm run smoke` tarayıcı + rastgele tıklama testi (Playwright varsa)
 - `src/js/online.js` online yarış (şifreli oda, Firebase Realtime Database; `?net=yerel` ile sahte veritabanı) · `src/css/online.css`
-- `src/js/gorev.js` görevler: antrenör yarışı → sporcular yarışır, gönderir → sıralama, İzle (Firestore `sailChallenges`; `?net=yerel` sahte) · `src/css/gorev.css` · yarış akışı (zamanlı rüzgar dönüşü / inen sağanak) `sim-core` → `runPlan`
+- `src/js/gorev.js` antrenör yarışları ("Yarışlar"; kodda görev/task): antrenör yarışı → sporcular yarışır, gönderir → sıralama, İzle (Firestore `sailChallenges`; `?net=yerel` sahte) · `src/js/gorev-data.js` ortak veri · `src/havuz.html` + `src/js/havuz.js` yarış havuzu · `src/css/gorev.css` · yarış akışı (zamanlı rüzgar dönüşü / inen sağanak) `sim-core` → `runPlan`
 - `scripts/build.mjs` derleme · `.github/workflows/deploy.yml` yayın
 - `KONULAR.md` müfredat ve durumları · `NOTLAR.md` sohbetler arası hafıza · `README.md` kullanım ve geliştirme

@@ -515,10 +515,12 @@
     drawWind(w, st.mode === 'setup' ? performance.now() / 1000 : v.t);
     drawGusts(v); drawCourse(v); drawBounds();
     const bl = $('boatLayer'); bl.innerHTML = '';
-    const order = v.boats.filter(b => !b.gone).sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0));
+    // hayalet karşılaştırmada filo gizli (her sporcunun filosu kendi yarışına tepki verdi, farklı): yalnız sporcuların tekneleri
+    const order = st.ghosts && !st.ghostFleet ? [] : v.boats.filter(b => !b.gone).sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0));
     if (st.show.shadow && st.mode !== 'setup') drawShadows(bl, order, w);
     drawRoute(bl, v);
     for (const b of order) drawBoat(bl, b, w, v.t, st.sel === b.id, (v.boat || st.boat).cls);
+    if (st.ghosts) for (const g of st.ghosts) drawBoat(bl, ghostAt(g, v.t), w, v.t, false, (v.boat || st.boat).cls);
     drawNotes(bl, order, v.t);
     drawHud(v);
     updateBar(v);
@@ -790,7 +792,7 @@
   // Şu anki kareden başlayarak değişikliği uygula ve yarışı ileriye yeniden hesapla.
   // op: { k: 'wind' | 'cmd' | ... } (kayda girer). Eski tarz fonksiyon da olur: o zaman kayda o karenin kopyası yazılır.
   function applyChange(op) {
-    if (taskLocked()) { toast('Görevde rüzgar ve ayarlar antrenörün kurduğu gibi kalır'); return; }
+    if (taskLocked()) { toast('Antrenör yarışında rüzgar ve ayarlar antrenörün kurduğu gibi kalır'); return; }
     if (st.drive && st.drive.s) {                        // elle sürerken: donmuş ana uygula, Otomatik'te ileri hesaplanır (kayda çıkışta girer)
       if (typeof op === 'function') op(st.drive.s); else OPS[op.k](st.drive.s, op);
       updatePanel(true); return;
@@ -858,6 +860,7 @@
     windPend = 0; clearTimeout(windTimer); st.reHand = false;
     if (st.drive) { st.drive = null; if (st.camPrev) Object.assign(st.cam, st.camPrev); st.camPrev = null; st.cam.follow = false; st.cam.panAt = null; applyCam(); }
     if (st.mode !== 'setup' && !quiet) toast('Yarış sıfırlandı · tekneler start öncesi yerlerinde, ▶ ile yeniden başlat');
+    st.ghosts = null;
     st.mode = 'setup'; st.sim = null; st.frames = []; updatePanel(true); }
   // Tahmini sonuç: hesaplanmış yarışın son karesi
   function predicted() { return st.frames.length ? st.frames[st.frames.length - 1] : null; }
@@ -906,7 +909,7 @@
   }
   // Ayar kurulumda geçerliyse: yarışı bırak, ayarı uygula, yeni yarışı elle sürüşle başlat
   function reconf(fn, msg) {
-    if (taskLocked()) { toast('Görevde ayarlar antrenörün kurduğu gibi kalır'); updatePanel(true); return; }
+    if (taskLocked()) { toast('Antrenör yarışında ayarlar antrenörün kurduğu gibi kalır'); updatePanel(true); return; }
     const live = st.mode !== 'setup' || !!st.drive;
     if (live) backToSetup(true);
     fn();
@@ -1046,7 +1049,7 @@
   }
   function drivePause() {
     const d = st.drive; if (!d || d.net) return;         // online yarışta zaman durmaz
-    if (taskLocked()) { toast('Görevde saat durmaz'); return; }
+    if (taskLocked()) { toast('Antrenör yarışında saat durmaz'); return; }
     if (!d.live) { exitDrive(true, true); return; }      // kurulumda: Start ▶ (elle sürmeye yarışta devam)
     d.paused = !d.paused; d.acc = 0;
     if (d.paused) { d.keyRud = 0; d.touchRud = 0; }
@@ -1720,7 +1723,7 @@
   const SPEEDS = [0.5, 1, 2, 5, 10], spTxt = v => (v === 0.5 ? '½' : v) + '×';
   const DRIVE_SPEEDS = [0.5, 1, 2, 5];                    // elle sürerken daha hızlısı dümeni zorlaştırır
   function setSpeed(v) {
-    if (st.task && st.drive && v !== 1) { toast('Görevde saat gerçek zamanda akar'); v = 1; }
+    if (st.task && st.drive && v !== 1) { toast('Antrenör yarışında saat gerçek zamanda akar'); v = 1; }
     st.speed = v; [...$('speedSeg').children].forEach(x => x.classList.toggle('on', +x.dataset.v === v));
     [...$('dbSpeedSeg').children].forEach(x => x.classList.toggle('on', +x.dataset.v === v));
     const x = $('dbSpeed'); x.textContent = spTxt(v); x.classList.toggle('changed', v !== 1);
@@ -2015,7 +2018,7 @@
     if (!taskPrev) taskPrev = jcopy({ fleet: st.fleet, wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, speed: st.speed });
     st.task = { ...task, watch: null, ended: false };
     document.body.classList.add('task-on'); document.body.classList.remove('task-watch');
-    newHandRace(task.msg || 'Görev başladı · yelken boş, İskota Çek ile doldur, ◀ ▶ dümen');
+    newHandRace(task.msg || 'Yarış başladı · yelken boş, İskota Çek ile doldur, ◀ ▶ dümen');
     return true;
   }
   function taskStop() {
@@ -2023,7 +2026,7 @@
     st.task = null; document.body.classList.remove('task-on', 'task-watch');
     backToSetup(true);
     if (taskPrev) { const p = taskPrev; taskPrev = null; st.fleet = p.fleet; st.wind = p.wind; st.gusts = p.gusts; st.course = p.course; st.sea = p.sea; setBoatCfg(p.boat); st.speed = p.speed; S.setCourse(st.course); }
-    newHandRace('Görevden çıktın · kendi yarışın baştan başladı');
+    newHandRace('Antrenör yarışından çıktın · kendi yarışın baştan başladı');
   }
   // Gönderilmiş bir yarışı izle (kurulum görevden, işlemler kayıttan)
   function taskWatch(task, ops, label) {
@@ -2035,6 +2038,7 @@
       document.body.classList.add('task-on');
     }
     const setup = st.task.setup;
+    st.ghosts = null;
     if (st.drive) { st.drive = null; st.camPrev = null; }
     st.reHand = false;
     const su = jcopy(setup);
@@ -2049,6 +2053,54 @@
     toast(`${label || 'Yarış'} · tekrar oynuyor (hızı alttan değiştirebilirsin)`);
     return true;
   }
+  // ---------- Hayalet karşılaştırma: aynı görevin 2-4 yarışı üst üste (ortak saat) ----------
+  // Her yarış kendi kaydından yeniden hesaplanır; yalnız sporcunun teknesi (iz) tutulur. Ana kareler en uzun yarışınki.
+  function ghostOf(frames, label, color) {
+    const tr = [], splits = [];
+    let ph = null;
+    for (const f of frames) {
+      const b = f.boats.find(o => o.mine); if (!b) continue;
+      tr.push({ t: f.t, x: b.x, y: b.y, h: b.h, v: b.v, phase: b.phase, doneAt: b.doneAt, inGust: b.inGust, sheetOff: b.sheetOff, back: b.back, penalties: b.penalties || 0 });
+      if (b.phase === 'round' && ph !== 'round') splits.push({ t: f.t, rt: (f.t - f.startAt) * S.CLOCK_SCALE, mk: b.rMk || 'Ş' });
+      if (b.phase === 'done' && ph !== 'done') splits.push({ t: f.t, rt: b.finishT != null ? b.finishT * S.CLOCK_SCALE : (f.t - f.startAt) * S.CLOCK_SCALE, mk: 'Finiş', fin: b.finish, dsq: b.dsq });
+      ph = b.phase;
+    }
+    return { label, color, tr, splits };
+  }
+  function ghostAt(g, t) {
+    const a = g.tr; let lo = 0, hi = a.length - 1;
+    if (t >= a[hi].t) { const p = a[hi]; return { ...p, id: g.label, color: g.color, mine: false }; }
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (a[m].t <= t) lo = m; else hi = m; }
+    const p = a[lo], q = a[hi], k = q.t > p.t ? Math.max(0, Math.min(1, (t - p.t) / (q.t - p.t))) : 0;
+    return { ...p, x: p.x + (q.x - p.x) * k, y: p.y + (q.y - p.y) * k, h: E.lerpAngle(p.h, q.h, k), id: g.label, color: g.color, mine: false };
+  }
+  function taskCompare(task, runs) {
+    if (st.drive && st.drive.net) return false;
+    if (st.drawMode) endDraw(false);
+    if (!st.task) {
+      if (!taskPrev) taskPrev = jcopy({ fleet: st.fleet, wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, speed: st.speed });
+      st.task = { ...task };
+      document.body.classList.add('task-on');
+    }
+    if (st.drive) { st.drive = null; st.camPrev = null; }
+    st.reHand = false;
+    const su = jcopy(st.task.setup);
+    useSetup(su);
+    const all = runs.map(r => ({ r, fr: replay({ setup: su, ops: r.ops }) }));
+    const main = all.reduce((a, b) => (b.fr[b.fr.length - 1].t > a.fr[a.fr.length - 1].t ? b : a));
+    st.task.watch = 'Karşılaştırma'; st.task.ended = true;
+    document.body.classList.add('task-watch');
+    st.ghosts = all.map(({ r, fr }) => ghostOf(fr, r.label, r.color));
+    st.ghostFleet = false;
+    st.frames = main.fr; st.playT = 0; st.sim = viewAt(0); st.mode = 'run'; st.ended = false;
+    st.rec = Object.assign(Rec.begin(su), { ops: jcopy(main.r.ops), rev: 0, savedRev: 0, asked: 0 });
+    camFit();
+    // telefonda parkurun tamamı sığınca tekneler okunmuyor: en uzun yarışın teknesini yakından izle (kaydırınca bırakır)
+    if (matchMedia('(max-height: 500px), (max-width: 640px)').matches) { st.cam.follow = true; st.cam.panAt = null; st.cam.z = 2; applyCam(); }
+    updatePanel(true);
+    toast(`${runs.length} yarış üst üste · ortak saat, filo gizli`);
+    return true;
+  }
   // Şu anki kurulum (görev olarak gönderilecek): yarış başındaki hali
   function currentSetup() {
     const su = st.rec && st.rec.setup ? jcopy(st.rec.setup) : { fleet: jcopy(st.fleet), wind: st.wind, gusts: jcopy(st.gusts), course: { ...st.course }, sea: { ...st.sea }, boat: { ...st.boat } };
@@ -2057,7 +2109,7 @@
   }
 
   window.SimApi = {
-    S, st, toast, taskStart, taskStop, taskWatch, currentSetup, taskResult,
+    S, st, toast, taskStart, taskStop, taskWatch, taskCompare, currentSetup, taskResult,
     replay: rec => replay(rec),
     netStart(setup, net) {
       if (st.drawMode) endDraw(false);

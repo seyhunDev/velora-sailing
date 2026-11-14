@@ -77,3 +77,27 @@ body.task-on:not(.task-watch) #speedSeg { display: none !important; }
 @media (max-width: 760px), (max-height: 500px) { .task-form .dlg-actions { margin: 4px -14px 0; padding: 8px 14px 10px; } }
 .task-dlg .dlg-actions { align-items: center; }
 .task-dlg .dlg-actions .tb { height: 40px; min-height: 40px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+/* karşılaştırma: seçim kutusu ve sahnedeki gösterge */
+.task-board .tb-sel { width: 28px; text-align: center; padding-right: 0; }
+.task-board .tb-sel input { width: 17px; height: 17px; accent-color: #fb923c; vertical-align: middle; }
+.tb-cmp[disabled] { opacity: .5; }
+.task-cmp-note { margin: -2px 0 2px; }
+.ghost-legend { position: absolute; left: calc(12px + var(--sal)); top: calc(12px + var(--sat)); z-index: 14; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; border-radius: 12px;
+  background: var(--float-bg, rgba(11,23,36,.78)); border: 1px solid var(--border); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); font-size: 12.5px; min-width: 190px; }
+.ghost-legend.hidden { display: none; }
+.gl-row { display: flex; align-items: center; gap: 7px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gl-row i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid #fff; flex: 0 0 auto; }
+.gl-row b { color: var(--text); font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.gl-row span:last-child { margin-left: auto; color: var(--text2); padding-left: 8px; }
+.gl-no { width: 14px; font-weight: 800; color: var(--muted); text-align: center; }
+@media (max-height: 500px) { .ghost-legend { top: calc(52px + var(--sat)); font-size: 11.5px; min-width: 160px; padding: 6px 8px; } }
+.task-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.task-links a.tb, .task-go a.tb { text-decoration: none; display: inline-flex; align-items: center; color: var(--text); }
+.task-links .task-setup-link { margin-top: 0; }
+/* yarışı / denemeyi sil (antrenör): iki dokunuş */
+.task-li { display: flex; gap: 6px; align-items: stretch; }
+.task-li > button[data-code] { flex: 1 1 auto; min-width: 0; }
+.tb.task-del, .tb.hv-del { color: #fca5a5; border-color: rgba(248,113,113,.35); }
+.tb.task-del.armed, .tb.hv-del.armed { background: #7f1d1d; color: #fff; border-color: #f87171; }
+.task-li .task-del { flex: 0 0 auto; height: auto; min-height: 0; padding: 0 12px; font-size: 13px; }
+.task-board .tb-acts { display: flex; gap: 6px; align-items: center; }

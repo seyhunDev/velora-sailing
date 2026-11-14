@@ -1,0 +1,51 @@
+/* Görev havuzu (havuz.html): antrenörün görevleri, katılımcılar, sonuçlar. Tablo ve çipler gorev.css'ten. */
+html, body.havuz { overflow: auto; height: auto; min-height: 100%; background: var(--bg); }
+body.havuz { display: block; background: var(--bg); }
+.havuz .topbar { position: sticky; top: 0; z-index: 5; }
+.havuz a.tool, .havuz a.tb { text-decoration: none; }
+.back-btn { border-color: var(--border); background: var(--raised); color: var(--text); padding: 0 14px 0 10px; }
+.hv-h1 { margin: 0; font-size: 17px; font-weight: 700; white-space: nowrap; }
+.hidden { display: none !important; }
+.hv-main { max-width: 1180px; margin: 0 auto; padding: 18px calc(16px + var(--sar)) calc(40px + var(--sab)) calc(16px + var(--sal)); display: grid; gap: 14px; }
+.hv-code { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center; padding: 14px 16px; border-radius: 14px; background: var(--panel-solid); border: 1px solid var(--border); }
+.hv-code h2 { margin: 0 0 2px; font-size: 15px; }
+.hv-code p { margin: 0; font-size: 13px; color: var(--text2); }
+.hv-code-row { display: flex; gap: 8px; align-items: center; }
+.hv-code-row .dlg-in { width: 150px; height: 40px; margin: 0; }
+.hv-code-row .tb { height: 40px; }
+.hv-code .net-err { grid-column: 1 / -1; margin: 0; }
+.hv-code .net-err:empty { display: none; }
+.hv-note { font-size: 13.5px; color: var(--text2); padding: 10px 14px; border-radius: 12px; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.3); }
+.hv-h2 { margin: 6px 0 0; font-size: 15px; } .hv-h2 small { color: var(--muted); font-weight: 600; margin-left: 6px; }
+.hv-list { display: grid; gap: 10px; }
+.hv-task { border-radius: 14px; background: var(--panel-solid); border: 1px solid var(--border); overflow: hidden; }
+.hv-task.open { border-color: rgba(251,191,36,.35); }
+.hv-head { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: none; border: 0; color: var(--text); text-align: left; cursor: pointer; }
+.hv-head:hover { background: var(--hover); }
+.hv-codebox { font-weight: 800; letter-spacing: 2px; color: #fbbf24; font-variant-numeric: tabular-nums; min-width: 84px; }
+.hv-title { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.hv-title b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hv-title small, .hv-stat small { font-size: 12px; color: var(--muted); }
+.hv-stat { display: flex; flex-direction: column; align-items: center; min-width: 56px; }
+.hv-stat b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.hv-best { min-width: 90px; } .hv-best small { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hv-chev { color: var(--muted); width: 14px; }
+.hv-body { padding: 4px 16px 16px; display: grid; gap: 10px; }
+.hv-body .rec-sum { display: flex; flex-wrap: wrap; gap: 6px; }
+.hv-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hv-actions .tb { height: 38px; min-height: 38px; display: inline-flex; align-items: center; gap: 6px; }
+.hv-actions .tb.disabled { color: var(--muted); background: transparent; border-style: dashed; font-size: 13px; }
+.task-board a.tb-watch { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+@media (max-width: 700px) {
+  .hv-code { grid-template-columns: 1fr; }
+  .hv-head { gap: 10px; padding: 10px 12px; }
+  .hv-codebox { min-width: 0; font-size: 13px; }
+  .hv-stat:not(.hv-best) { display: none; }
+}
+/* sim.css bu sayfada yok: kullanılan ortak parçalar */
+.havuz .ci { width: 15px; height: 15px; flex: 0 0 auto; }
+.havuz .name-in { height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--raised); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; box-sizing: border-box; }
+.havuz .rec-sum .rc { font-size: 12px; color: var(--text2); background: var(--raised); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.havuz .net-empty, .havuz .net-wait { color: var(--muted); font-size: 13.5px; margin: 4px 0; }
+.havuz .net-err { color: var(--hata); font-size: 13px; }
+.havuz .task-board .tb-watch { height: 30px; min-height: 30px; padding: 0 10px; font-size: 12.5px; }

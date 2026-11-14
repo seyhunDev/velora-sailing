@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1724">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Velora">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="robots" content="noindex">
+  <title>Velora Sailing · Yarış havuzu</title>
+  <link rel="icon" href="img/velora-mark.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/icon-180.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app-shell.js"></script>
+  <script src="js/datause.js"></script>
+  <link rel="stylesheet" href="css/gorev.css">
+  <link rel="stylesheet" href="css/havuz.css">
+</head>
+<body class="havuz" data-shell="page">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3c3 3.5 4 8 3.5 15h-7C8 11 9 6.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 21V4m0 1h10l-2 3.5L16 12H6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+  <header class="topbar">
+    <a class="tool back-btn" href="./" title="Senaryolara dön"><svg><use href="#i-back"/></svg><span class="lbl">Senaryolar</span></a>
+    <h1 class="hv-h1">Yarış havuzu</h1>
+    <div class="spacer"></div>
+    <div class="tool-group">
+      <a class="tool" id="hvSim" href="sim.html" title="Yarış simülatörü"><svg><use href="#i-boat"/></svg><span class="lbl">Simülatör</span></a>
+    </div>
+  </header>
+  <main class="hv-main" id="hvMain">
+    <section class="hv-code">
+      <div><h2>Yarış kodu</h2><p>Antrenörünün gönderdiği 6 harfli kodu yaz: yarışı, sıralamayı ve tekrarları gör.</p></div>
+      <div class="hv-code-row"><input id="hvCode" class="name-in dlg-in net-code" maxlength="6" autocomplete="off" spellcheck="false" placeholder="K7M2QX"><button class="tb primary" id="hvOpen">Aç</button></div>
+      <p class="net-err" id="hvErr"></p>
+    </section>
+    <div id="hvNote" class="hv-note hidden"></div>
+    <section id="hvList" class="hv-list"></section>
+  </main>
+  <script src="js/track.js"></script>
+  <script src="js/access.js"></script>
+  <script src="js/fullscreen.js"></script>
+  <script type="module" src="js/velora-auth.js"></script>
+  <script src="js/gorev-data.js"></script>
+  <script src="js/havuz.js"></script>
+</body>
+</html>
