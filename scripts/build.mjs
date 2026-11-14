@@ -32,8 +32,13 @@ let commit = 'local';
 try { commit = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
 const stamp = new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
 // Görünen sürüm numarası: v1.<main'deki commit sayısı>. Her main gönderimi (squash merge = 1 commit) bir artırır.
-// GitHub Actions'ta checkout fetch-depth: 0 olmalı (tüm geçmiş), yoksa sayı 1 çıkar.
+// Tüm geçmiş gerekir (GitHub Actions: fetch-depth: 0; Netlify: aşağıdaki unshallow), yoksa sayı küçük çıkar.
 let count = '';
+// Netlify depoyu sığ (shallow) çeker; o zaman sayı yanlış çıkar. Önce tüm geçmişi indirmeyi dene.
+try {
+  if (execSync('git rev-parse --is-shallow-repository', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim() === 'true')
+    execSync('git fetch --unshallow --quiet', { stdio: 'ignore', timeout: 60000 });
+} catch {}
 try { count = execSync('git rev-list --count HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
 const version = count ? `v1.${count}` : 'geliştirme';
 for (const page of readdirSync(DIST).filter(f => f.endsWith('.html'))) {

@@ -1,0 +1,15 @@
+# Netlify yayını (2026-11-14'ten itibaren; GitHub Pages yerine).
+# main'e her push → Netlify depoyu çeker → testler → derleme → dist/ yayında.
+# Testler kırılırsa derleme durur, site eski haliyle kalır (eski GitHub Actions akışıyla aynı).
+[build]
+  command = "npm run check && node scripts/build.mjs"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Hash'li dosyalar (app.3f9c1a.js gibi) hiç değişmez: uzun önbellek. HTML her seferinde tazelenir.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
