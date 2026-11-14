@@ -2,9 +2,8 @@
    (sim.html, sim.js ve online.js'ten sonra yüklenir; kullanıcı 2026-11-14).
 
    Akış
-   - Antrenör (Velora ile giren site sahibi): simülatörde filoyu, parkuru, rüzgarı, sınıfı, geri sayımı kurar → Görev →
-     "Bu kurulumdan görev": ad, sporcuya bilgi notu, yarış akışı (zamanlı rüzgar dönüşleri, şamandıranın arkasından inen
-     sağanaklar), deneme hakkı, son tarih, tekrarları kim görür. Görev 6 harfli kod + bağlantı alır: sim.html?gorev=KOD.
+   - Antrenör yarışı simülatörde DEĞİL, Yarışlar sayfasında (havuz.html → js/yaris-kur.js) oluşturur (kullanıcı 2026-11-14).
+     Yarış 6 harfli kod + bağlantı alır: sim.html?gorev=KOD. "Simülatörde dene" → sim.html?taslak=1 (gönderilmez).
    - Sporcu bağlantıyı açar: yarış kartı (bilgi, ipuçları) → Yarışa başla. Kurulum kilitli, saat gerçek zamanda, teknesini
      elle sürer. Teknesi bitirince sonuç → "Antrenörüme gönder". Velora hesabıyla girdiyse o hesapla, değilse adıyla
      (Firebase anonim giriş) gönderir.
@@ -20,14 +19,12 @@
   const S = api.S;
   const $ = id => document.getElementById(id);
   const D = window.SailTaskData;
-  const { esc, jcopy, acc, store, PROJECT, mode, isDenied, clock, parseClock, dateTxt, planLines, setupChips, resTxt, taskSetup, closed } = D;
+  const { esc, acc, store, PROJECT, mode, isDenied, clock, dateTxt, planLines, setupChips, resTxt, taskSetup, closed } = D;
   const html = s => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstChild; };
   const toast = m => api.toast(m);
   const track = (ev, data) => { try { if (window.SailTrack) SailTrack.log(ev, data); } catch (e) { /* yok */ } };
-  const NAME = 'ps.task.name', DRAFT = 'ps.task.draft';
+  const NAME = 'ps.task.name';
   const params = new URLSearchParams(location.search);
-  const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => ALPH[b % ALPH.length]).join('');
   const CODE_OK = D.CODE_OK;
 
   let be = null, beErr = '';
@@ -39,7 +36,7 @@
   }
   const isCoach = () => D.isCoach(be);
   // ---------- Durum ----------
-  const T = { view: 'home', code: '', task: null, runs: [], mine: [], list: null, err: '', busy: false, result: null, sent: false, open: {}, form: null, draft: false };
+  const T = { view: 'home', code: '', task: null, runs: [], err: '', busy: false, result: null, sent: false, open: {} };
   const GHOST = ['#fb923c', '#38bdf8', '#a78bfa', '#4ade80'];
   T.pick = [];
   const myRuns = () => (be ? T.runs.filter(r => r.uid === be.uid()) : []);
@@ -52,10 +49,8 @@
     <span class="tc-ic"><svg><use href="#i-flag"/></svg></span><span class="tc-txt" id="tcTxt">Yarış</span>
     <button class="tb tc-btn" id="tcOpen">Yarış</button>
     <button class="tb tc-btn tc-leave" id="tcLeave" title="Antrenör yarışından çık, kendi simülatörüne dön">Çık</button></div>`);
-  // telefonda elle sürerken üst çubuk gizli: Görev düğmesi sahnede (Online düğmesinin yanında)
-  const fab = html('<button id="taskFab" class="task-fab" title="Antrenör yarışları"><svg><use href="#i-flag"/></svg>Yarışlar</button>');
-  const stage = document.querySelector('.stage'); stage.appendChild(chip); stage.appendChild(fab);
-  fab.addEventListener('click', () => openDlg());
+  const stage = document.querySelector('.stage'); stage.appendChild(chip);
+  const hubUrl = extra => `havuz.html${extra || mode === 'yerel' ? '?' : ''}${[extra, mode === 'yerel' ? 'net=yerel' : ''].filter(Boolean).join('&')}`;
   const dlg = html(`<div id="taskDlg" class="picker dlg hidden net-dlg task-dlg" role="dialog" aria-modal="true" aria-labelledby="taskTitle">
     <div class="picker-panel dlg-panel wide">
       <div class="picker-head"><div><h2 id="taskTitle">Görevler</h2><div class="picker-sub" id="taskSub"></div></div>
@@ -71,13 +66,12 @@
     chipUpdate();
     if (!dlgOpen()) return;
     const v = T.view, t = T.task;
-    const titles = { home: 'Antrenör yarışları', new: 'Yarış oluştur', made: 'Yarış hazır', task: t ? t.name : 'Yarış', end: 'Yarış bitti', setup: 'Antrenör yarışları · kurulum', wait: 'Antrenör yarışları' };
+    const titles = { home: 'Antrenör yarışları', task: t ? t.name : 'Yarış', end: 'Yarış bitti', setup: 'Antrenör yarışları · kurulum', wait: 'Antrenör yarışları' };
     $('taskTitle').textContent = titles[v] || 'Görevler';
-    $('taskSub').textContent = v === 'task' || v === 'end' || v === 'made' ? (t ? `Kod ${t.code}${t.ownerName ? ' · antrenör ' + t.ownerName : ''}` : '')
-      : v === 'new' ? 'Simülatördeki kurulum + yarış akışı + bilgi notu' : 'Antrenörün gönderdiği yarışı koş, yarışını gönder, tekrarları izle';
+    $('taskSub').textContent = v === 'task' || v === 'end' ? (t ? `Kod ${t.code}${t.ownerName ? ' · antrenör ' + t.ownerName : ''}` : '')
+      : 'Antrenörün gönderdiği yarışı koş, yarışını gönder, tekrarları izle';
     body.innerHTML = v === 'wait' ? `<p class="net-wait">${esc(T.err || 'Yükleniyor…')}</p>`
-      : v === 'new' ? newHtml() : v === 'made' ? madeHtml() : v === 'task' ? taskHtml() : v === 'end' ? endHtml() : v === 'setup' ? setupHtml() : homeHtml();
-    if (v === 'new') formSync();
+      : v === 'task' ? taskHtml() : v === 'end' ? endHtml() : v === 'setup' ? setupHtml() : homeHtml();
   }
   function chipUpdate() {
     const st = api.st, on = !!st.task;
@@ -85,14 +79,14 @@
     btn.classList.toggle('on', on);
     if (!on) return;
     const w = st.task.watch;
-    $('tcTxt').textContent = w === 'Karşılaştırma' ? `Karşılaştırma · ${(st.ghosts || []).length} yarış` : w ? `Tekrar: ${w}` : st.task.preview ? 'Ön izleme: yarış taslağı' : `${st.task.code} · ${st.task.name || ''}`;
+    $('tcTxt').textContent = w === 'Karşılaştırma' ? `Karşılaştırma · ${(st.ghosts || []).length} yarış` : w ? `Tekrar: ${w}` : st.task.preview ? 'Deneme: yarış taslağı' : `${st.task.code} · ${st.task.name || ''}`;
     $('tcOpen').textContent = w ? 'Sıralama' : st.task.preview ? 'Forma dön' : 'Yarış';
+    $('tcLeave').classList.toggle('hidden', !!st.task.preview);
   }
 
   // giriş: görev kodu + (antrenör) görevlerim
   function homeHtml() {
     const coach = isCoach();
-    const list = T.list || [];
     return `<div class="net-cols"><div class="net-col">
         <div class="net-h">Yarış kodu</div>
         <p class="dlg-note">Antrenörünün gönderdiği bağlantıyı aç ya da 6 harfli kodu yaz.</p>
@@ -100,89 +94,13 @@
         <p class="net-err" id="taskErr">${esc(T.err)}</p>
         <button class="tb primary net-go" data-act="openCode" ${T.busy ? 'disabled' : ''}><svg class="ci"><use href="#i-check"/></svg>Yarışı aç</button>
       </div><div class="net-col">
-        ${coach ? `<div class="net-h">Yarışlarım</div>
-          <button class="tb primary" data-act="new"><svg class="ci"><use href="#i-plus"/></svg>Bu kurulumdan yarış oluştur</button>
-          ${T.list == null ? '<p class="net-wait">Yükleniyor…</p>' : list.length ? `<ul class="net-rooms task-list">${list.map(t => `<li class="task-li"><button data-code="${esc(t.id)}"><b>${esc(t.id)}</b><span>${esc(t.name || 'Yarış')}</span><small>${esc(dateTxt(t.at))}${closed(t) ? ' · kapalı' : ''}</small></button><button class="tb task-del" data-delcode="${esc(t.id)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button></li>`).join('')}</ul>`
-            : '<p class="net-empty">Henüz yarış yok. Simülatörde yarışı kur (filo, parkur, rüzgar), sonra <b>Bu kurulumdan yarış oluştur</b>.</p>'}
-          <div class="task-links"><a class="tb" href="havuz.html${mode === 'yerel' ? '?net=yerel' : ''}">Yarış havuzu: bütün yarışlar ve sonuçlar</a>
-          <button class="tb task-setup-link" data-act="setup">Firebase kurulumu</button></div>`
-        : `<div class="net-h">Antrenör yarışı nedir?</div><p class="dlg-note">Antrenörün bir yarış kurup sana gönderir: aynı filo, aynı rüzgar ve sağanaklar. Sen tekneni elle sürersin, yarışını gönderirsin; yarış sayfasında sıralamayı ve tekrarları görürsün.</p>
-          ${acc() && acc().role === 'sahip' && mode !== 'yerel' ? '<p class="dlg-note">Yarış oluşturmak için hesap menüsünden <b>Velora hesabıyla gir</b>.</p>' : ''}`}
+        <div class="net-h">${coach ? 'Yarışlarım' : 'Antrenör yarışı nedir?'}</div>
+        ${coach ? '<p class="dlg-note">Yarış oluşturma, bağlantı gönderme, sonuçlar ve silme <b>Yarışlar</b> sayfasında.</p>'
+          : '<p class="dlg-note">Antrenörün bir yarış kurup sana gönderir: aynı filo, aynı rüzgar ve sağanaklar. Sen tekneni elle sürersin, yarışını gönderirsin; yarış sayfasında sıralamayı ve tekrarları görürsün.</p>'}
+        <div class="task-links"><a class="tb" href="${hubUrl()}">Yarışlar sayfası</a>${coach ? `<a class="tb primary" href="${hubUrl('yeni=1')}">Yarış oluştur</a><button class="tb task-setup-link" data-act="setup">Firebase kurulumu</button>` : ''}</div>
       </div></div>`;
   }
 
-  // ---------- Yeni görev formu ----------
-  const TRIES = [[1, '1'], [3, '3'], [5, '5'], [0, 'Sınırsız']];
-  const VIS = [['all', 'Herkes'], ['after', 'Gönderen görür'], ['coach', 'Yalnız ben']];
-  const DUE = [[0, 'Yok'], [1, '1 gün'], [3, '3 gün'], [7, '1 hafta'], [14, '2 hafta']];
-  const DEG = [5, 10, 15, 20, 25, 30], HOLD = [[20, '20 sn'], [30, '30 sn'], [45, '45 sn'], [60, '1 dk'], [90, '1,5 dk'], [120, '2 dk'], [0, 'kalıcı']];
-  const POS = [[-0.8, 'Sol'], [-0.4, 'Orta-sol'], [0, 'Orta'], [0.4, 'Orta-sağ'], [0.8, 'Sağ']];
-  const PASS = [[60, 'Hızlı (1 dk)'], [90, 'Orta (1,5 dk)'], [150, 'Yavaş (2,5 dk)']];
-  const blankForm = () => ({ name: `${new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} antrenman yarışı`, note: '', hints: true, tries: 3, vis: 'all', due: 7, plan: [] });
-  function newHtml() {
-    const f = T.form, su = api.currentSetup();
-    const opt = (list, v) => list.map(([val, t]) => `<option value="${val}"${String(val) === String(v) ? ' selected' : ''}>${esc(t)}</option>`).join('');
-    const rows = f.plan.map((e, i) => `<li class="tp-row" data-i="${i}">
-        <input class="dlg-in tp-at" data-f="at" value="${esc(clock(e.at).replace('−', '-'))}" title="Start'a göre zaman (dk:sn, eksi = start'tan önce)" inputmode="text">
-        ${e.k === 'shift'
-          ? `<span class="tp-k wind">Rüzgar</span>
-             <select class="dlg-in" data-f="deg">${DEG.map(d => `<option value="${-d}"${e.deg === -d ? ' selected' : ''}>${d}° sola</option>`).reverse().join('')}${DEG.map(d => `<option value="${d}"${e.deg === d ? ' selected' : ''}>${d}° sağa</option>`).join('')}</select>
-             <select class="dlg-in" data-f="hold">${opt(HOLD, e.hold)}</select>`
-          : `<span class="tp-k gust">Sağanak</span>
-             <select class="dlg-in" data-f="pos">${opt(POS, e.pos)}</select>
-             <select class="dlg-in" data-f="size">${opt([['S', 'Küçük'], ['M', 'Orta'], ['L', 'Büyük']], e.size)}</select>
-             <select class="dlg-in" data-f="pass">${opt(PASS, e.pass)}</select>`}
-        <button class="icon sm" data-del="${i}" title="Sil"><svg><use href="#i-close"/></svg></button></li>`).join('');
-    return `<div class="net-form task-form">
-      <div class="rec-sum">${setupChips({ ...su, plan: f.plan })}</div>
-      <p class="dlg-note">Filo, parkur, başlangıç rüzgarı, sınıf ve geri sayım simülatördeki şu anki kurulumdan alınır (teknen dahil: herkes aynı yerden başlar). Değiştirmek için pencereyi kapat, ayarla, yeniden aç.</p>
-      <label class="dlg-lbl" for="tfName">Yarışın adı</label>
-      <input id="tfName" class="name-in dlg-in" maxlength="40" value="${esc(f.name)}">
-      <label class="dlg-lbl" for="tfNote">Sporcuya bilgi (yarış kartında görünür)</label>
-      <textarea id="tfNote" class="dlg-in task-note-in" maxlength="600" rows="3" placeholder="Ör. Sağ taraftan sağanaklar iniyor; rüzgar start'tan sonra sağa dönüp geri gelecek. Hattın hangi ucu avantajlı?">${esc(f.note)}</textarea>
-      <div class="net-h">Yarış akışı <small>zaman: start'a göre dk:sn (−0:30 = start'tan 30 sn önce)</small></div>
-      ${f.plan.length ? `<ul class="tp-list">${rows}</ul>` : '<p class="net-empty">Akış yok: rüzgar ve sağanaklar kurulumdaki gibi sabit kalır.</p>'}
-      <div class="tp-add">
-        <button class="tb" data-act="addShift"><svg class="ci"><use href="#i-wind"/></svg>Rüzgar dönüşü</button>
-        <button class="tb" data-act="addGust"><svg class="ci"><use href="#i-gust"/></svg>Sağanak</button>
-        <button class="tb" data-act="addOsc" title="Start'tan sonra rüzgar 30 sn aralıkla sağa-sola salınır">Örnek: salınım</button>
-      </div>
-      <label class="task-check"><input type="checkbox" id="tfHints"${f.hints ? ' checked' : ''}> Akışı sporcuya ipucu olarak göster</label>
-      ${FORM_SEGS.map(([k, lbl, list]) => `<div class="net-opt"><span class="net-ol">${lbl}</span><div class="seg" data-k="${k}">${list.map(([v, t]) => `<button data-v="${esc(v)}">${esc(t)}</button>`).join('')}</div></div>`).join('')}
-      <p class="net-err" id="taskErr">${esc(T.err)}</p>
-      <div class="dlg-actions">
-        <button class="tb" data-act="home">Vazgeç</button>
-        <button class="tb" data-act="preview" title="Akışı kendin dene (gönderilmez)"><svg class="ci"><use href="#i-play"/></svg>Kendin dene</button>
-        <button class="tb primary net-go" data-act="create" ${T.busy ? 'disabled' : ''}><svg class="ci"><use href="#i-check"/></svg>Yarışı oluştur</button>
-      </div></div>`;
-  }
-  const FORM_SEGS = [['tries', 'Deneme hakkı', TRIES], ['vis', 'Tekrarları kim görür', VIS], ['due', 'Son tarih', DUE]];
-  function formSync() {
-    const f = T.form;
-    body.querySelectorAll('.seg[data-k]').forEach(sg => [...sg.children].forEach(b => b.classList.toggle('on', b.dataset.v === String(f[sg.dataset.k]))));
-  }
-  function formRead() {
-    const f = T.form; if (!f) return;
-    if ($('tfName')) f.name = $('tfName').value.replace(/\s+/g, ' ').trim().slice(0, 40);
-    if ($('tfNote')) f.note = $('tfNote').value.trim().slice(0, 600);
-    if ($('tfHints')) f.hints = $('tfHints').checked;
-    store.set(DRAFT, f);
-  }
-  function addEv(e) { formRead(); T.form.plan.push(e); T.form.plan.sort((a, b) => a.at - b.at); store.set(DRAFT, T.form); render(); }
-  const lastAt = () => T.form.plan.length ? Math.max(...T.form.plan.map(e => e.at)) : 0;
-
-  function madeHtml() {
-    const t = T.task, link = taskLink(t.code);
-    return `<div class="task-made">
-      <div class="task-code">${esc(t.code)}</div>
-      <p>Sporcularına bu bağlantıyı gönder. Açınca yarış kartı çıkar, <b>Yarışa başla</b> ile aynı yarışı koşarlar.</p>
-      <div class="task-link"><code>${esc(link)}</code></div>
-      <div class="dlg-actions">
-        <button class="tb" data-act="copy">Bağlantıyı kopyala</button>
-        ${navigator.share ? '<button class="tb" data-act="share">Paylaş</button>' : ''}
-        <button class="tb primary" data-act="toTask">Yarış sayfası</button>
-      </div></div>`;
-  }
   const taskLink = code => D.taskLink(code);
 
   // ---------- Yarış sayfası: kart + sıralama ----------
@@ -209,7 +127,7 @@
         ${t.note ? `<p class="task-note">${esc(t.note)}</p>` : ''}
         ${hints.length ? `<div class="net-h">İpuçları</div><ul class="task-hints">${hints.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}
         <div class="dlg-actions task-go">
-          ${own ? `<a class="tb" href="havuz.html${mode === 'yerel' ? '?net=yerel' : ''}">Havuz</a><button class="tb" data-act="copy">Bağlantıyı kopyala</button><button class="tb" data-act="${t.state === 'closed' ? 'reopen' : 'close'}">${t.state === 'closed' ? 'Yeniden aç' : 'Yarışı kapat'}</button><button class="tb task-del" data-delcode="${esc(t.code)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button>` : ''}
+          ${own ? `<a class="tb" href="${hubUrl()}">Yarışlar</a><button class="tb" data-act="copy">Bağlantıyı kopyala</button><button class="tb" data-act="${t.state === 'closed' ? 'reopen' : 'close'}">${t.state === 'closed' ? 'Yeniden aç' : 'Yarışı kapat'}</button><button class="tb task-del" data-delcode="${esc(t.code)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button>` : ''}
           ${shut ? '' : left > 0 ? `<button class="tb primary net-go" data-act="start"><svg class="ci"><use href="#i-play"/></svg>${mine.length ? 'Yeniden dene' : 'Yarışa başla'}${Number.isFinite(left) ? ` <small>(${left} hak)</small>` : ''}</button>` : '<span class="dlg-note">Deneme hakkın bitti.</span>'}
         </div>
       </div>
@@ -231,7 +149,7 @@
     if (r.pen) chips.push(`${r.pen} ceza`); if (r.ocs) chips.push('OCS');
     return `<div class="task-end">
       <div class="rec-sum">${chips.map(c => `<span class="rc">${esc(c)}</span>`).join('')}</div>
-      ${preview ? '<p class="dlg-note">Ön izleme: bu yarış gönderilmez. Forma dönüp yarışı oluşturabilirsin.</p>'
+      ${preview ? '<p class="dlg-note">Deneme: bu yarış gönderilmez. Forma dönüp yarışı oluşturabilir ya da yeniden deneyebilirsin.</p>'
         : T.sent ? '<p class="dlg-note"><b>Gönderildi.</b> Yarış sayfasında sıralamayı görebilirsin.</p>'
         : left <= 0 ? '<p class="dlg-note">Deneme hakkın bitti; bu yarış gönderilemez.</p>'
         : closed(t) ? '<p class="dlg-note">Yarış kapandı; bu yarış gönderilemez.</p>'
@@ -239,7 +157,7 @@
         : `<label class="dlg-lbl" for="taskName">Adın (sıralamada görünür)</label><input id="taskName" class="name-in dlg-in" maxlength="24" autocomplete="off" value="${esc(nm)}">${Number.isFinite(left) ? `<p class="dlg-note">${left} hakkın var. Gönderdiğin her yarış saklanır, en iyisi sayılır.</p>` : ''}`}
       <p class="net-err" id="taskErr">${esc(T.err)}</p>
       <div class="dlg-actions">
-        ${preview ? '<button class="tb primary" data-act="backForm">Forma dön</button>'
+        ${preview ? '<button class="tb" data-act="previewAgain">Yeniden dene</button><button class="tb primary" data-act="backForm">Forma dön</button>'
           : `<button class="tb" data-act="again">${T.sent ? 'Yeniden dene' : 'Göndermeden yeniden dene'}</button>
              ${T.sent ? '<button class="tb primary" data-act="toTask">Sıralama</button>' : left > 0 && !closed(t) ? `<button class="tb primary net-go" data-act="send" ${T.busy ? 'disabled' : ''}><svg class="ci"><use href="#i-upload"/></svg>Antrenörüme gönder</button>` : '<button class="tb primary" data-act="toTask">Yarış sayfası</button>'}`}
       </div></div>`;
@@ -296,18 +214,12 @@
   }
   async function openDlg() {
     T.err = '';
-    if (api.st.task && api.st.task.preview) { T.view = 'new'; show(true); return; }
+    if (api.st.task && api.st.task.preview) { location.href = hubUrl('yeni=1'); return; }
     if (api.st.task && T.task) { T.view = 'task'; show(true); loadRuns(); return; }
     T.view = 'wait'; show(true);
     const b = await backend();
     if (!b) { T.view = 'home'; T.err = 'Bağlantı kurulamadı. İnternetini kontrol et.'; render(); return; }
     T.view = 'home'; render();
-    if (isCoach()) loadMine();
-  }
-  async function loadMine() {
-    try { const l = await be.listMine(be.uid()); T.list = l.sort((a, b) => (b.at || 0) - (a.at || 0)); }
-    catch (e) { T.list = []; if (isDenied(e)) { T.view = 'setup'; } else setErr('Yarışlar okunamadı.'); }
-    if (T.view === 'home' || T.view === 'setup') render();
   }
   async function openTask(code, quiet) {
     code = String(code || '').toUpperCase().trim();
@@ -376,39 +288,14 @@
         : isDenied(e) ? 'Gönderilemedi: yarış kapalı, süresi dolmuş ya da hakkın bitmiş olabilir.' : 'Gönderilemedi. İnternetini kontrol edip yeniden dene.');
     }
   }
-  async function create() {
-    formRead();
-    const f = T.form;
-    if (!f.name) { setErr('Yarışa bir ad ver.'); return; }
-    const su = api.currentSetup(); delete su.plan;
-    if (!su.fleet.some(b => b.mine)) { setErr('Kurulumda senin teknen yok (Filo → teknem).'); return; }
-    if (f.plan.length) su.plan = S.normPlan(f.plan);
-    busy(true); setErr('');
-    const b = await backend(); if (!b) { busy(false); setErr('Bağlantı kurulamadı.'); return; }
-    const a = acc() || {};
-    const data = { v: 1, name: f.name, note: f.note, hints: !!f.hints, owner: be.uid(), ownerName: (a.name || '').slice(0, 40),
-      due: f.due ? Date.now() + f.due * 86400e3 : 0, tries: f.tries, vis: f.vis, state: 'open',
-      cls: (su.boat || {}).cls || '', boats: su.fleet.length, windKn: (su.boat || {}).windKn || 0, setup: JSON.stringify(su) };
-    try {
-      let code = newCode();
-      for (let i = 0; i < 4 && await be.getTask(code).catch(() => null); i++) code = newCode();
-      await be.createTask(code, { ...data, code });
-      T.task = { ...data, code, id: code, at: Date.now() }; T.runs = []; T.code = code;
-      T.form = null; store.set(DRAFT, null);
-      busy(false); T.view = 'made'; render(); T.list = null; loadMine();
-      track('task_create', { code, boats: data.boats, plan: (su.plan || []).length });
-    } catch (e) {
-      busy(false);
-      if (isDenied(e)) { T.view = 'setup'; render(); } else setErr('Yarış oluşturulamadı. İnternetini kontrol et.');
-    }
-  }
+  // Yarışlar sayfasındaki formdan "Simülatörde dene": taslak localStorage'da (ps.task.preview), gönderilmez
   function preview() {
-    formRead();
-    const su = api.currentSetup(); delete su.plan;
-    if (T.form.plan.length) su.plan = S.normPlan(T.form.plan);
-    const ok = api.taskStart({ code: 'TASLAK', name: T.form.name, setup: su, preview: true, sailor: sailorName().slice(0, 18), onEnd: res => { T.result = res; T.view = 'end'; show(true); },
-      msg: 'Ön izleme: akışı dene · gönderilmez' });
-    if (ok) show(false);
+    const d = store.get('ps.task.preview', null);
+    if (!d || !d.setup || !Array.isArray(d.setup.fleet)) { toast('Denenecek yarış taslağı bulunamadı'); return; }
+    T.task = { code: 'TASLAK', name: d.name || 'Yarış taslağı', note: d.note, hints: d.hints, setup: d.setup, tries: 0, state: 'open' };
+    const ok = api.taskStart({ code: 'TASLAK', name: T.task.name, setup: d.setup, preview: true, sailor: sailorName().slice(0, 18), onEnd: res => { T.result = res; T.view = 'end'; show(true); },
+      msg: 'Deneme: yarışı kendin koş · gönderilmez' });
+    if (ok) { show(false); chipUpdate(); }
   }
   function compare() {
     const t = T.task, sel = T.pick.map(id => T.runs.find(x => x.id === id)).filter(Boolean).slice(0, 4);
@@ -451,7 +338,6 @@
     delArm = { code: '', at: 0 }; btnEl.disabled = true; btnEl.textContent = 'Siliniyor…';
     try {
       await be.deleteTask(code);
-      if (T.list) T.list = T.list.filter(t => t.id !== code);
       if (T.task && T.task.code === code) { T.task = null; T.runs = []; T.pick = []; T.view = 'home'; }
       if (api.st.task && api.st.task.code === code) leave();
       render(); toast(`${code} silindi`);
@@ -466,7 +352,7 @@
     const prev = api.st.task && api.st.task.preview;
     api.taskStop(); chipUpdate();
     if (params.has('gorev')) { params.delete('gorev'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '')); }
-    if (prev) { T.view = 'new'; show(true); }
+    if (prev) location.href = hubUrl('yeni=1');
   }
 
   // ---------- Olaylar ----------
@@ -476,21 +362,11 @@
     if (b.dataset.code) { openTask(b.dataset.code); return; }
     if (b.dataset.watch) { watch(b.dataset.watch); return; }
     if (b.dataset.exp) { T.open[b.dataset.exp] = !T.open[b.dataset.exp]; render(); return; }
-    if (b.dataset.del != null) { formRead(); T.form.plan.splice(+b.dataset.del, 1); store.set(DRAFT, T.form); render(); return; }
-    const sg = b.closest('.seg[data-k]');
-    if (sg && T.form) { const k = sg.dataset.k, v = b.dataset.v; T.form[k] = k === 'vis' ? v : +v; formRead(); formSync(); return; }
     const a = b.dataset.act; if (!a) return;
     if (a === 'openCode') openTask(($('taskCode') && $('taskCode').value) || '');
-    else if (a === 'new') { T.form = store.get(DRAFT, null) || blankForm(); if (!Array.isArray(T.form.plan)) T.form.plan = []; T.err = ''; T.view = 'new'; render(); }
-    else if (a === 'home') { T.view = 'home'; T.err = ''; render(); if (isCoach() && T.list == null) loadMine(); }
+    else if (a === 'home') { T.view = 'home'; T.err = ''; render(); }
     else if (a === 'setup') { T.view = 'setup'; render(); }
-    else if (a === 'addShift') { const at = T.form.plan.length ? lastAt() + 30 : 30; addEv({ k: 'shift', at, deg: 10, hold: 30 }); }
-    else if (a === 'addGust') { const at = T.form.plan.length ? lastAt() + 20 : 0; addEv({ k: 'gust', at, pos: 0.4, size: 'M', pass: 90 }); }
-    else if (a === 'addOsc') { const s0 = T.form.plan.length ? lastAt() + 30 : 20; [10, -10, 10, -10].forEach((d, i) => T.form.plan.push({ k: 'shift', at: s0 + i * 60, deg: d, hold: 30 })); addEv({ k: 'gust', at: s0 + 15, pos: -0.4, size: 'M', pass: 90 }); }
-    else if (a === 'create') create();
-    else if (a === 'preview') preview();
     else if (a === 'copy') copy(taskLink(T.task.code), 'Bağlantı kopyalandı');
-    else if (a === 'share') navigator.share({ title: T.task.name, text: `Yarış: ${T.task.name}`, url: taskLink(T.task.code) }).catch(() => {});
     else if (a === 'toTask') { T.view = 'task'; render(); loadRuns(); }
     else if (a === 'start') startTask();
     else if (a === 'again') { show(false); startTask(); }
@@ -500,6 +376,7 @@
     else if (a === 'close') setState('closed');
     else if (a === 'reopen') setState('open');
     else if (a === 'backForm') leave();
+    else if (a === 'previewAgain') { show(false); api.taskStop(); preview(); }
     else if (a === 'copyRules') copy($('taskRules').textContent, 'Kural kopyalandı: Firestore kurallarına yapıştır');
   });
   body.addEventListener('change', e => {
@@ -509,18 +386,13 @@
       if (!e.target.checked && i >= 0) T.pick.splice(i, 1);
       render(); return;
     }
-    const row = e.target.closest('.tp-row'); if (!row || !T.form) return;
-    const ev = T.form.plan[+row.dataset.i], f = e.target.dataset.f; if (!ev || !f) return;
-    if (f === 'at') { const v = parseClock(e.target.value); if (v == null) { e.target.value = clock(ev.at).replace('−', '-'); toast('Zamanı dk:sn yaz (ör. 1:30, −0:20)'); return; } ev.at = Math.max(-600, Math.min(3600, v)); }
-    else if (f === 'size') ev.size = e.target.value;
-    else ev[f] = +e.target.value;
-    formRead(); T.form.plan.sort((a, b) => a.at - b.at); store.set(DRAFT, T.form); render();
   });
   body.addEventListener('input', e => {
     if (e.target.id === 'taskCode') { const p = e.target.selectionStart; e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); try { e.target.setSelectionRange(p, p); } catch (x) { /* yok */ } }
   });
   body.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) { const g = body.querySelector('.net-go'); if (g) g.click(); } });
-  btn.addEventListener('click', () => openDlg());
+  // üst çubuk "Yarışlar": yarıştayken yarış penceresi, değilken Yarışlar sayfası (oluşturma orada)
+  btn.addEventListener('click', () => { if (api.st.task) openDlg(); else location.href = hubUrl(); });
   $('taskClose').addEventListener('click', () => show(false));
   $('tcOpen').addEventListener('click', () => openDlg());
   let leaveArm = 0;
@@ -529,11 +401,12 @@
     leave();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && dlgOpen()) { e.stopImmediatePropagation(); show(false); } }, true);
-  document.addEventListener('sail-access', () => { if (dlgOpen() && T.view === 'home') { render(); if (isCoach() && T.list == null) loadMine(); } });
+  document.addEventListener('sail-access', () => { if (dlgOpen() && T.view === 'home') render(); });
 
   // Bağlantıyla gelen: ?gorev=KOD → yarış kartı
   const fromLink = (params.get('gorev') || '').toUpperCase();
-  if (fromLink) {
+  if (params.has('taslak')) preview();
+  else if (fromLink) {
     T.code = fromLink; show(true);
     // havuz sayfasından: &izle=ID → o yarışı oynat · &kars=ID1,ID2 → üst üste karşılaştır
     const izle = params.get('izle'), kars = (params.get('kars') || '').split(',').filter(Boolean);

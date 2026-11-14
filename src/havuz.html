@@ -11,7 +11,7 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="robots" content="noindex">
-  <title>Velora Sailing · Yarış havuzu</title>
+  <title>Velora Sailing · Yarışlar</title>
   <link rel="icon" href="img/velora-mark.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="img/icon-180.png">
   <link rel="stylesheet" href="css/style.css">
@@ -27,16 +27,23 @@
     <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6 21V4m0 1h10l-2 3.5L16 12H6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-wind" viewBox="0 0 24 24"><path d="M12 3.5v15m-5.5-5.5L12 18.5l5.5-5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 3.5h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-gust" viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3M3 14h15a3 3 0 1 1-3 3M3 19h7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
   </svg>
   <header class="topbar">
     <a class="tool back-btn" href="./" title="Senaryolara dön"><svg><use href="#i-back"/></svg><span class="lbl">Senaryolar</span></a>
-    <h1 class="hv-h1">Yarış havuzu</h1>
+    <h1 class="hv-h1">Yarışlar</h1>
     <div class="spacer"></div>
     <div class="tool-group">
+      <button class="tool primary-tool hidden" id="hvNewBtn" title="Yeni antrenör yarışı oluştur"><svg><use href="#i-plus"/></svg><span class="lbl">Yarış oluştur</span></button>
       <a class="tool" id="hvSim" href="sim.html" title="Yarış simülatörü"><svg><use href="#i-boat"/></svg><span class="lbl">Simülatör</span></a>
     </div>
   </header>
   <main class="hv-main" id="hvMain">
+    <section id="hvNew" class="hv-new hidden"></section>
     <section class="hv-code">
       <div><h2>Yarış kodu</h2><p>Antrenörünün gönderdiği 6 harfli kodu yaz: yarışı, sıralamayı ve tekrarları gör.</p></div>
       <div class="hv-code-row"><input id="hvCode" class="name-in dlg-in net-code" maxlength="6" autocomplete="off" spellcheck="false" placeholder="K7M2QX"><button class="tb primary" id="hvOpen">Aç</button></div>
@@ -49,7 +56,11 @@
   <script src="js/access.js"></script>
   <script src="js/fullscreen.js"></script>
   <script type="module" src="js/velora-auth.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/sim-core.js"></script>
   <script src="js/gorev-data.js"></script>
+  <script src="js/yaris-kur.js"></script>
   <script src="js/havuz.js"></script>
 </body>
 </html>

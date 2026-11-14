@@ -164,7 +164,7 @@ for (const [pg, n] of [['sim.html', 400], ['index.html', 250]]) {
     if (rnd() < 0.2) { const k = keys[Math.floor(rnd() * keys.length)]; log.push('tuş ' + k); await p.keyboard.press(k); continue; }
     const cands = await p.$$eval('button:not([disabled]), [data-v], [data-cat], li[data-id]', els => els
       .filter(e => { const r = e.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return false; const s = getComputedStyle(e); if (s.visibility === 'hidden' || s.pointerEvents === 'none') return false;
-        const x = r.left + r.width / 2, y = r.top + r.height / 2, top = document.elementFromPoint(x, y); return top && (top === e || e.contains(top)) && !e.closest('a[href]') && e.id !== 'btnReport' && e.id !== 'btnFull' && !/^(gateOut|btnLogout|accOut)/.test(e.id); })
+        const x = r.left + r.width / 2, y = r.top + r.height / 2, top = document.elementFromPoint(x, y); return top && (top === e || e.contains(top)) && !e.closest('a[href]') && e.id !== 'btnReport' && e.id !== 'btnTask' && e.id !== 'btnFull' && !/^(gateOut|btnLogout|accOut)/.test(e.id); })
       .map(e => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, id: e.id || e.dataset.v || e.dataset.cat || e.dataset.id || e.textContent.trim().slice(0, 14) }; }));
     if (!cands.length) { await p.keyboard.press('Escape'); continue; }
     const c = cands[Math.floor(rnd() * cands.length)]; log.push(c.id);

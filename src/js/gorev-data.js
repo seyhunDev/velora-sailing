@@ -105,7 +105,7 @@
     const b = su.boat || {}, c = su.course || {}, out = [];
     out.push(`${clsName(b.cls)} · ${b.windKn || 8} kn`, `${(su.fleet || []).length} tekne`, `rüzgar ${Math.round(((su.wind || 0) + 360) % 360)}°`);
     out.push(`geri sayım ${Math.round((b.pre || 120) / 60)} dk`);
-    if (c.flag && c.flag !== 'P') out.push(`${c.flag === 'S' ? 'siyah' : c.flag} bayrağı`);
+    if (c.flag && c.flag !== 'P') out.push(`${c.flag === 'Siyah' ? 'siyah' : c.flag} bayrağı`);
     if ((su.gusts || []).length) out.push(`${su.gusts.length} sabit sağanak`);
     const sh = (su.plan || []).filter(e => e.k === 'shift').length, gu = (su.plan || []).filter(e => e.k === 'gust').length;
     if (sh) out.push(`${sh} rüzgar dönüşü`);

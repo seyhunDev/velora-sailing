@@ -62,15 +62,6 @@ body.task-on:not(.task-watch) #speedSeg { display: none !important; }
 .task-end .dlg-actions { flex-wrap: wrap; }
 .tp-row select.dlg-in, .tp-row input.dlg-in { background: var(--raised2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; color-scheme: dark; }
 .task-board .tb-watch, .task-end .tb, .task-go .tb { display: inline-flex; align-items: center; gap: 6px; }
-/* telefonda elle sürerken: Online ve Görev düğmeleri sahnenin üstünde ortada yan yana */
-.task-fab { display: none; }
-@media (max-height: 500px), (max-width: 640px) {
-  body.driving:not(.task-on):not(.net-on) .task-fab { display: inline-flex; align-items: center; gap: 6px; position: absolute; top: calc(10px + var(--sat)); left: calc(50% + 4px); z-index: 15;
-    height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(11,23,36,.72); border: 1px solid rgba(251,191,36,.45); color: #fde68a; font-size: 12.5px; font-weight: 700;
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  .task-fab svg { width: 15px; height: 15px; }
-  body.driving:not(.task-on) .net-fab:not(.hidden) { transform: translateX(calc(-100% - 4px)); }
-}
 .task-note-in { background: var(--raised2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; color-scheme: dark; }
 /* uzun formda düğmeler hep görünsün */
 .task-form .dlg-actions { position: sticky; bottom: 0; background: var(--panel-solid); margin: 4px -22px 0; padding: 10px 22px 14px; border-top: 1px solid var(--border); z-index: 2; }

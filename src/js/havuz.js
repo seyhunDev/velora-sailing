@@ -1,4 +1,5 @@
-/* Yarış havuzu (havuz.html, kullanıcı 2026-11-14): antrenörün bütün görevleri, katılımcılar, sonuçlar; her yarış İzle,
+/* Yarışlar sayfası (havuz.html, kullanıcı 2026-11-14): antrenör yarışı burada oluşturur (js/yaris-kur.js, "Yarış oluştur");
+   antrenörün bütün yarışları, katılımcılar, sonuçlar; her yarış İzle,
    2-4 yarış seçip Karşılaştır (simülatörde hayalet olarak üst üste). Sporcu kodla tek görevi açar.
    Veri: js/gorev-data.js (SailTaskData). İzleme simülatörde: sim.html?gorev=KOD&izle=ID · &kars=ID1,ID2 */
 (function () {
@@ -15,6 +16,13 @@
   }
   const coach = () => D.isCoach(H.be);
   if (D.mode === 'yerel') $('hvSim').href = 'sim.html?net=yerel';
+  const params = new URLSearchParams(location.search);
+  let wantNew = params.has('yeni');
+  function openNew() {
+    if (!window.SailRaceForm) return;
+    SailRaceForm.open($('hvNew'), H.be, t => { H.tasks = [t, ...H.tasks.filter(x => x.code !== t.code)]; H.runs[t.code] = []; H.err = ''; render(); });
+  }
+  $('hvNewBtn').addEventListener('click', openNew);
 
   async function load() {
     H.loading = true; render();
@@ -22,10 +30,11 @@
     if (!be) { H.loading = false; H.err = 'Bağlantı kurulamadı. İnternetini kontrol et.'; render(); return; }
     if (coach()) {
       try { H.tasks = (await be.listMine(be.uid())).sort((a, b) => (b.at || 0) - (a.at || 0)); }
-      catch (e) { H.tasks = []; H.err = isDenied(e) ? 'Yarışlar okunamadı: Firestore kuralı yayında mı? (Simülatör → Yarışlar → Firebase kurulumu)' : 'Yarışlar okunamadı.'; }
+      catch (e) { H.tasks = []; H.err = isDenied(e) ? 'Yarışlar okunamadı: Firestore kuralı yayında mı?' : 'Yarışlar okunamadı.'; }
       await Promise.all(H.tasks.map(t => loadRuns(t.code)));
     }
     H.loading = false; render();
+    if (wantNew && coach()) { wantNew = false; openNew(); if (params.has('yeni')) { params.delete('yeni'); history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '')); } }
   }
   async function loadRuns(code) {
     try { H.runs[code] = await H.be.listRuns(code); }
@@ -87,11 +96,12 @@
   function render() {
     const note = $('hvNote'), list = $('hvList');
     const c = coach();
+    $('hvNewBtn').classList.toggle('hidden', !c);
     if (H.err) { note.className = 'hv-note'; note.innerHTML = esc(H.err); }
     else if (!H.loading && !c && !H.tasks.length) { note.className = 'hv-note'; note.innerHTML = window.SailAccess && SailAccess.role() === 'sahip' && D.mode === 'firebase' ? 'Bütün yarışlarını görmek için hesap menüsünden <b>Velora hesabıyla gir</b>.' : 'Antrenörünün gönderdiği bağlantıyı açabilir ya da kodu yukarıya yazabilirsin.'; }
     else note.className = 'hv-note hidden';
     list.innerHTML = H.loading ? '<p class="net-wait">Yükleniyor…</p>'
-      : (c ? `<h2 class="hv-h2">Yarışlarım <small>${H.tasks.length}</small></h2>` : '') + (H.tasks.length ? H.tasks.map(taskCard).join('') : c ? '<p class="net-empty">Henüz yarış yok. Simülatörde yarışı kur, sonra <b>Yarışlar → Bu kurulumdan yarış oluştur</b>.</p>' : '');
+      : (c ? `<h2 class="hv-h2">Yarışlarım <small>${H.tasks.length}</small></h2>` : '') + (H.tasks.length ? H.tasks.map(taskCard).join('') : c ? '<p class="net-empty">Henüz yarış yok. Sağ üstteki <b>Yarış oluştur</b> ile ilk yarışını kur.</p>' : '');
   }
 
   $('hvList').addEventListener('click', async e => {
