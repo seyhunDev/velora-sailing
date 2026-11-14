@@ -588,6 +588,9 @@
     try { d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch (e) { d = null; }
     if (!d || d.v !== 1 || !Array.isArray(d.fleet) || d.fleet.length < 2) return false;
     const c = d.course || {};
+    // eski varsayılan parkur (400/650) kayıtlıysa yeni varsayılana geç ve filoyu yeni hatta diz (kullanıcı 2026-11-14)
+    const oldDef = (+c.lineLen === 400 && +c.markDist === 650) || (!c.lineLen && !c.markDist);
+    if (oldDef) { c.lineLen = S.COURSE_DEFAULT.lineLen; c.markDist = S.COURSE_DEFAULT.markDist; }
     st.course = { ...S.COURSE_DEFAULT, ...(c.lineLen ? { lineLen: +c.lineLen } : {}), ...(c.markDist ? { markDist: +c.markDist } : {}) }; S.setCourse(st.course);   // bayrak hep P
     const vis = d.vis != null ? d.vis : d.boat && d.boat.vis;   // eski kayıt: yalnız ekranda hız tercihi alınır
     if (vis != null) setBoatCfg({ ...BOAT_DEF, vis });
@@ -606,6 +609,7 @@
     const below = Math.min(...st.fleet.map(b => b.y - S.LINE.pin.y));
     if (below > 5 * S.HULL) { const dy = below - 58; for (const b of st.fleet) { b.y -= dy; b.route = null; } }
     renumber();
+    if (oldDef) setFleetSize(st.fleet.length);
     return true;
   }
   // Tümünü sıfırla (kullanıcı 2026-11-13: eklenen sağanak, akıntı vb. her açılışta geri geliyordu): kayıtlı kurulumu siler,
@@ -848,6 +852,12 @@
   function placeMine() {
     const m = st.fleet.find(b => b.mine); if (!m) return;
     const P = S.LINE.pin, Q = S.LINE.boat, others = st.fleet.filter(b => !b.mine);
+    // teknen varsayılan ön sıradan geldiyse ön sırada boşluk kalmasın: kalan ön sırayı yeniden diz (ortası kalabalık)
+    const frontRow = b => Math.abs(b.y - (P.y + 58)) < 4;
+    if (frontRow(m)) {
+      const fr = others.filter(frontRow).sort((a, b) => a.x - b.x);
+      fr.forEach((b, k) => { const u = S.frontU(k, fr.length); b.x = P.x + (Q.x - P.x) * u + 58; b.y = P.y + (Q.y - P.y) * u + 58; });
+    }
     let best = null;
     const hr = (st.wind - 45) * Math.PI / 180, hx = Math.sin(hr), hy = -Math.cos(hr);
     // hattın ortasına yakın, filonun hemen arkasında boş su: en az ~1,6 boy açıklık (dümen çevirecek alan), hatta olabildiğince yakın
@@ -1089,7 +1099,7 @@
     const trimTxt = abs < 30 ? 'Rüzgara karşı: yelken boş' : dlt > 8 ? 'Fazla salık: pırpırlıyor' : dlt < -8 ? 'Fazla çekik: boğuluyor' : 'İskota iyi';
     const rem = (v.startAt - v.t) * S.CLOCK_SCALE, tTxt = !d.live ? 'Kurulum' : rem > 0 ? `Start'a ${S.fmt(rem / S.CLOCK_SCALE)}` : `Yarış ${S.fmt(-rem / S.CLOCK_SCALE)}`;
     const sk = sheetState(m, v.wind, d.autoTrim);
-    const key = [d.live, d.paused, d.hold, d.back, sk.st, Math.round(abs), Math.round(sheet), Math.round(eff * 100), stb, m.v.toFixed(1), d.autoTrim, m.phase, tTxt].join('|');
+    const key = [d.live, d.paused, d.hold, d.back, sk.st, Math.round((m.shadow || 0) * 20), Math.round(abs), Math.round(sheet), Math.round(eff * 100), stb, m.v.toFixed(1), d.autoTrim, m.phase, tTxt].join('|');
     if (key === lastHelmKey) return; lastHelmKey = key;
     $('hpSpeed').textContent = m.v < -0.5 ? `${S.knots(-m.v).toFixed(1).replace('.', ',')} kn geri` : `${S.knots(Math.max(0, m.v)).toFixed(1).replace('.', ',')} kn`;
     $('hpBack').classList.toggle('on', !!d.back); $('hpBack').setAttribute('aria-pressed', !!d.back);
@@ -1099,7 +1109,7 @@
     const tg = $('hpGauge'), pct = x => `${Math.max(0, Math.min(100, x / 90 * 100)).toFixed(1)}%`;
     tg.querySelector('.tg-ideal').style.left = pct(ideal); tg.querySelector('.tg-knob').style.left = pct(sheet);
     tg.className = 'trim-gauge ' + (abs < 30 ? 'off' : Math.abs(dlt) <= 8 ? 'ok' : Math.abs(dlt) <= 20 ? 'meh' : 'bad');
-    $('hpTrimTxt').textContent = d.back ? (m.v < -0.5 ? 'Yelken ters: geri gidiyor (dümen ters)' : m.v > 0.5 ? 'Yelken ters: frenliyor' : 'Yelken ters: durdu') : `${trimTxt} · güç %${Math.round(eff * 100)}`;
+    $('hpTrimTxt').textContent = d.back ? (m.v < -0.5 ? 'Yelken ters: geri gidiyor (dümen ters)' : m.v > 0.5 ? 'Yelken ters: frenliyor' : 'Yelken ters: durdu') : `${trimTxt} · güç %${Math.round(eff * 100)}` + (m.shadow > 0.05 && abs >= 30 ? ` · pis rüzgar −%${Math.round(E.SHADOW.loss * m.shadow * 100)}` : '');
     $('hpVmg').classList.toggle('on', d.hold === 'orsa'); $('hpVmg').setAttribute('aria-pressed', d.hold === 'orsa');
     const sb = $('hpSheet');
     sb.className = 'hp-sheetbtn ' + sk.st;

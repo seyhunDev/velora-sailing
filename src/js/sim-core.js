@@ -10,7 +10,7 @@
   const WORLD = { w: 1000, h: 900 };
   // Parkur: start hattı boyu ve orsa şamandırasının hatta uzaklığı ayarlanabilir (setCourse).
   // Nesneler yerinde güncellenir; arayüz aynı nesneleri (S.LINE, S.MARK, S.WORLD) okur.
-  const COURSE_DEFAULT = { lineLen: 400, markDist: 650, flag: 'P' };   // flag: hazırlık bayrağı (P, I, Z, U, Siyah)
+  const COURSE_DEFAULT = { lineLen: 550, markDist: 950, flag: 'P' };   // 2026-11-14 (kullanıcı): hat 8→11 boy, şamandıra 13→19 boy (eski 400/650)   // flag: hazırlık bayrağı (P, I, Z, U, Siyah)
   const LINE = { pin: { x: 300, y: 740 }, boat: { x: 700, y: 740 } };
   const MARK = { x: 500, y: 90, label: 'Orsa şamandırası' };
   const BASE = 55, TAU = 1.2, HOLD_V = BASE * 0.04;
@@ -214,13 +214,16 @@
   }
 
   // Varsayılan kalabalık: hattın 1-1.5 boy dibinde ön sıra + arkada 2. sıra
+  // ön sıradaki k. teknenin hat üstündeki yeri (0 = pin, 1 = hakem botu): ortası sık, uçlara doğru seyrek
+  function frontU(k, n) { const t = n > 1 ? -1 + (2 * k) / (n - 1) : 0; return 0.48 + 0.42 * Math.sign(t) * Math.pow(Math.abs(t), 1.2); }
   function defaultFleet(n) {
     n = n || 12;
     const front = Math.min(n, Math.ceil(n * 0.7)), back = n - front;
     const boats = [];
     const P = LINE.pin, Q = LINE.boat;
+    // ön sıra: ortası sık (kalabalık), uçlara doğru seyrek (kullanıcı 2026-11-14: hat uzadı, orta yine kalabalık kalsın)
     for (let k = 0; k < front; k++) {
-      const u = 0.1 + (0.76 * k) / Math.max(1, front - 1);
+      const u = frontU(k, front);
       boats.push({ x: P.x + (Q.x - P.x) * u + 58, y: P.y + 58 });   // sancak orsa rotası hattı u civarında keser
     }
     for (let k = 0; k < back; k++) {
@@ -421,7 +424,9 @@
     const w = s.wind, out = [];
     orientObs(w);
     const others = s.boats.filter(o => o !== b && !o.gone && o.phase !== 'done');
-    const casters = others.filter(o => o.phase !== 'wait').map(o => ({ x: o.x, y: o.y, v: o.v, ref: o }));   // simülatördeki gibi: bekleyen tekne gölge yapmaz
+    // elle sürülen tekne start öncesi de bekleyen teknelerin gölgesine girer (kullanıcı 2026-11-14: pis rüzgarda aynı hızla gidiyordu).
+    // Yelkeni boş bekleyen tekne zayıf gölge yapar (shadowStrength), doldurmuş olan tam.
+    const casters = others.map(o => ({ x: o.x, y: o.y, v: o.v, ref: o }));
     if (b.sheet == null) b.sheet = idealSheet(Math.abs(E.norm180(b.h - w)));
     const n = Math.max(1, Math.ceil(dt / DT - 1e-9)), H = dt / n;   // ekran karesi kadar (kesirli) adımlar
     for (let i = 0; i < n; i++) {
@@ -590,7 +595,8 @@
     for (const b of active) {
       const remain = s.startAt - t;
       b.inGust = gustAt(s.gusts, b, w);
-      const sh = b.phase === 'race' || b.phase === 'round' || b.phase === 'ocs' ? shadowAt(b, snap, w) : { k: 0, by: null };   // pis rüzgar seyreden tekneyi hep yavaşlatır (OCS dönüşü dahil; start öncesi bekleme ve ceza turu hariç)
+      const sh = b.hand ? { k: b.shadow || 0, by: b.shadowBy ? { id: b.shadowBy } : null }   // elle sürülen: gölge drive()'da (bekleyenler dahil)
+        : b.phase === 'race' || b.phase === 'round' || b.phase === 'ocs' ? shadowAt(b, snap, w) : { k: 0, by: null };   // pis rüzgar seyreden tekneyi hep yavaşlatır (OCS dönüşü dahil; start öncesi bekleme ve ceza turu hariç)
       if (b.mine && sh.k > 0.25 && !(b.shadow > 0.25) && t > s.startAt) log(s, `${b.id} pis rüzgarda kaldı (${sh.by.id} numaranın rüzgar gölgesi), yavaşladı`, 'bad', 'golge' + b.id);
       b.shadow = sh.k; b.shadowBy = sh.by ? sh.by.id : null;
       if (b.hand) { handPhase(b, s, t, w, remain); continue; }   // elle sürülen tekne: dümen/iskota kullanıcıda (drive), yalnız evre geçişleri
@@ -1040,6 +1046,6 @@
     runToEnd,
     DT, HULL, WORLD, LINE, MARK, BASE, CLASSES, BOAT_DEFAULT, WIND_KN, ACCEL_AT, PRE_SEC, VIS, setBoat, upwindKn, BOAT,
     get START_AT() { return START_AT; }, get CLOCK_SCALE() { return CLOCK_SCALE; }, MAN_MARGIN, bounds, PERSONAS, MINE_COLOR, OBSTACLES,
-    FLAG_RULE, signalState, inTriangle, zPoints, SHADOW_LEN, SEA, SEA_DEFAULT, knots, drive, steer, helmTurn, idealSheet, trimEff, SHEET_MAX, SHEET_OFF_MAX, defaultFleet, handStep, runHand, handRow, setCourse, COURSE_DEFAULT, makeBoat, newRace, step, command, standings, clone, waypoint, gustAt, fmt, lineSide
+    FLAG_RULE, signalState, inTriangle, zPoints, SHADOW_LEN, SEA, SEA_DEFAULT, knots, drive, steer, helmTurn, idealSheet, trimEff, SHEET_MAX, SHEET_OFF_MAX, defaultFleet, frontU, handStep, runHand, handRow, setCourse, COURSE_DEFAULT, makeBoat, newRace, step, command, standings, clone, waypoint, gustAt, fmt, lineSide
   };
 })(typeof window !== 'undefined' ? window : globalThis);
