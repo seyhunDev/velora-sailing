@@ -358,7 +358,57 @@
     const course = opts.course ? { ...COURSE_DEFAULT, type: 'orsa', ...opts.course } : { ...COURSE_DEFAULT }; setCourse(course);
     const sea = { ...SEA_DEFAULT, ...(opts.sea || {}) };
     const boat = { ...BOAT_DEFAULT, ...(opts.boat || {}) }; setBoat(boat);
-    return { t: 0, wind: w, gusts: (opts.gusts || []).map(g => ({ ...g })), boats, events: [], finished: 0, pairLog: {}, startAt: START_AT, course, sea, boat };
+    const plan = normPlan(opts.plan);
+    return { t: 0, wind: w, gusts: (opts.gusts || []).map(g => ({ ...g })), boats, events: [], finished: 0, pairLog: {}, startAt: START_AT, course, sea, boat,
+      ...(plan.length ? { plan, planOff: 0, planN: 0 } : {}) };
+  }
+
+  // ---------- Yarış akışı (antrenörün görevi, kullanıcı 2026-11-14) ----------
+  // Zamanlı olaylar; zaman = start'a göre GERÇEK saniye (eksi: start öncesi). Deterministik: tekrar oynatınca aynı yarış.
+  //   { k: 'shift', at, deg (+ sağa / − sola), hold (sn; 0 = kalıcı), ramp (dönüş süresi sn) } → rüzgar döner, bekler, eski yönüne döner
+  //   { k: 'gust', at, pos (−1 sol … 0 orta … 1 sağ), size: 'S'|'M'|'L', pass (şamandıradan hatta iniş, sn) }
+  //     → sağanak şamandıranın arkasından doğar, rüzgarla aşağı iner, hattı geçince kaybolur (içindeki tekne hızlanır: GUST_GAIN)
+  const GUST_SIZE = { S: 0.75, M: 1, L: 1.45 };
+  function normPlan(p) {
+    if (!Array.isArray(p)) return [];
+    const n = (v, d, a, b) => Math.max(a, Math.min(b, Number.isFinite(+v) ? +v : d));
+    return p.filter(e => e && (e.k === 'shift' || e.k === 'gust')).map(e => e.k === 'shift'
+      ? { k: 'shift', at: n(e.at, 0, -600, 3600), deg: n(e.deg, 10, -45, 45), hold: n(e.hold, 0, 0, 1800), ramp: n(e.ramp, 6, 1, 120) }
+      : { k: 'gust', at: n(e.at, 0, -600, 3600), pos: n(e.pos, 0, -1, 1), size: GUST_SIZE[e.size] ? e.size : 'M', pass: n(e.pass, 90, 20, 600) })
+      .sort((a, b) => a.at - b.at);
+  }
+  const shiftOff = (e, rt) => {
+    if (rt < e.at) return 0;
+    let u = Math.min(1, (rt - e.at) / e.ramp);
+    if (e.hold > 0 && rt > e.at + e.ramp + e.hold) u = 1 - Math.min(1, (rt - e.at - e.ramp - e.hold) / e.ramp);
+    return e.deg * u;
+  };
+  function runPlan(s) {
+    const P = s.plan; if (!P) return;
+    const rt = (s.t - s.startAt) * CLOCK_SCALE, prev = rt - DT * CLOCK_SCALE;
+    let off = 0;
+    for (const e of P) {
+      if (e.k !== 'shift') continue;
+      off += shiftOff(e, rt);
+      if (prev < e.at && rt >= e.at) log(s, `Rüzgar ${Math.abs(e.deg)}° ${e.deg > 0 ? 'sağa' : 'sola'} dönüyor${e.hold ? ` (${e.hold} sn sürecek)` : ''}`, 'wind');
+      const back = e.at + e.ramp + e.hold;
+      if (e.hold > 0 && prev < back && rt >= back) log(s, 'Rüzgar eski yönüne dönüyor', 'wind');
+    }
+    if (off !== s.planOff) { s.wind = E.norm180(s.wind + off - s.planOff); s.planOff = off; }
+    const gusts = P.filter(e => e.k === 'gust');
+    while (s.planN < gusts.length && gusts[s.planN].at <= rt) {
+      const e = gusts[s.planN++], f = GUST_SIZE[e.size], rx = GUST_BASE.rx * f, ry = GUST_BASE.ry * f;
+      const up = E.fwd(s.wind), right = E.fwd(s.wind + 90), half = Math.abs(LINE.boat.x - LINE.pin.x) * 0.6;
+      const ox = MARK.x + up.x * (ry + 30) + right.x * e.pos * half, oy = MARK.y + up.y * (ry + 30) + right.y * e.pos * half;
+      const sp = (LINE.pin.y - MARK.y + 2 * ry) / (e.pass / CLOCK_SCALE);
+      s.gusts.push({ x: ox, y: oy, rx, ry, vx: -up.x * sp, vy: -up.y * sp, flow: 1 });
+      log(s, `${e.pos < -0.3 ? 'Sol' : e.pos > 0.3 ? 'Sağ' : 'Orta'} taraftan sağanak geliyor`, 'wind');
+    }
+    if (s.gusts.some(g => g.flow)) {
+      for (const g of s.gusts) if (g.flow) { g.x += g.vx * DT; g.y += g.vy * DT; }
+      const out = LINE.pin.y + 260;
+      s.gusts = s.gusts.filter(g => !g.flow || g.y - g.ry < out);
+    }
   }
 
   // ---------- Strateji: hangi kontrada olmak istiyor? ----------
@@ -697,6 +747,7 @@
   function step(s) {
     if (s.course) setCourse(s.course);                      // parkur bu yarışınki (değişmediyse işlem yok)
     setBoat(s.boat || BOAT_DEFAULT);                         // tekne sınıfı / rüzgar hızı / hızlanma anı
+    if (s.plan) runPlan(s);                                  // görevin yarış akışı: rüzgar dönüşleri, inen sağanaklar
     // b.remote: online yarışta başka cihazdan sürülen tekne (js/online.js). Konumu ve evresi ağdan gelir: burada hareket
     // ettirilmez, evresi değişmez; yalnız öbür teknelerin kaçınma, gölge ve temas hesabında yer alır.
     const all = s.boats.filter(b => !b.gone), w = s.wind, t = s.t, active = all.filter(b => !b.remote);
@@ -1220,6 +1271,6 @@
     runToEnd,
     DT, HULL, WORLD, LINE, MARK, M2, G3S, G3P, FIN, CRS, aimOf, legOf, BASE, CLASSES, BOAT_DEFAULT, WIND_KN, ACCEL_AT, PRE_SEC, VIS, setBoat, upwindKn, BOAT,
     get START_AT() { return START_AT; }, get CLOCK_SCALE() { return CLOCK_SCALE; }, MAN_MARGIN, bounds, PERSONAS, MINE_COLOR, OBSTACLES,
-    FLAG_RULE, signalState, inTriangle, zPoints, SHADOW_LEN, SEA, SEA_DEFAULT, knots, drive, steer, helmTurn, idealSheet, trimEff, SHEET_MAX, SHEET_OFF_MAX, defaultFleet, frontU, handStep, runHand, handRow, setCourse, COURSE_DEFAULT, makeBoat, newRace, step, command, standings, clone, waypoint, gustAt, fmt, lineSide
+    FLAG_RULE, normPlan, signalState, inTriangle, zPoints, SHADOW_LEN, SEA, SEA_DEFAULT, knots, drive, steer, helmTurn, idealSheet, trimEff, SHEET_MAX, SHEET_OFF_MAX, defaultFleet, frontU, handStep, runHand, handRow, setCourse, COURSE_DEFAULT, makeBoat, newRace, step, command, standings, clone, waypoint, gustAt, fmt, lineSide
   };
 })(typeof window !== 'undefined' ? window : globalThis);

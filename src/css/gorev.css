@@ -1,0 +1,79 @@
+/* Görevler (js/gorev.js): üst çubuk düğmesi, sahnedeki görev çipi, görev penceresi (online.css'in .net-* düzenini kullanır).
+   Görevde (body.task-on) kurulum ayarları, saat hızı, durdurma ve Otomatik kapalı: herkes aynı yarışı gerçek zamanda koşar.
+   Tekrar izlerken (body.task-watch) oynatma denetimleri açık, ayarlar yine kapalı. */
+.task-tool.on { color: #fbbf24; }
+.task-chip { position: absolute; top: calc(10px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 15; max-width: min(560px, calc(100% - 24px));
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 3px 4px 3px 8px; border-radius: 999px;
+  background: rgba(48,32,4,.84); border: 1px solid rgba(251,191,36,.5); font-size: 12.5px; font-weight: 600; color: #fde68a;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+.task-chip.hidden { display: none; }
+.tc-ic svg { width: 16px; height: 16px; display: block; color: #fbbf24; }
+.tc-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task-chip .tb.tc-btn { min-height: 28px; height: 28px; padding: 0 10px; font-size: 12px; border-radius: 999px; flex: 0 0 auto; }
+.task-chip .tc-leave { color: #fecaca; border-color: rgba(248,113,113,.45); }
+@media (max-width: 760px), (max-height: 500px) { .task-chip .tc-txt { max-width: 34vw; } }
+
+body.task-on #btnNet, body.task-on #netFab, body.task-on #countBar, body.task-on #btnRecs, body.task-on #btnResetSet, body.task-on #btnResetAll,
+body.task-on #catRail [data-cat="mine"], body.task-on #catRail [data-cat="wind"], body.task-on #catRail [data-cat="gust"],
+body.task-on #catRail [data-cat="sea"], body.task-on #catRail [data-cat="fleet"], body.task-on #catRail [data-cat="course"],
+body.task-on #hpPlay, body.task-on #dbSpeedSeg, body.task-on #dbSpeed, body.task-on #hpGo, body.task-on #btnDrive, body.task-on #btnTack { display: none !important; }
+body.task-on:not(.task-watch) #speedSeg { display: none !important; }
+
+/* pencere */
+.task-list { margin-top: 8px; max-height: 300px; overflow-y: auto; }
+.task-setup-link { align-self: flex-start; margin-top: 8px; min-height: 30px; font-size: 12.5px; color: var(--muted); }
+.task-form .rec-sum, .task-card .rec-sum { display: flex; flex-wrap: wrap; gap: 6px; }
+.rec-sum .rc.bad { color: #fecaca; border-color: rgba(248,113,113,.45); }
+.task-note-in { width: 100%; resize: vertical; min-height: 64px; font: inherit; font-size: 14px; line-height: 1.45; padding: 8px 10px; }
+.task-check { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text2); margin: 6px 0 2px; }
+.task-check input { width: 18px; height: 18px; accent-color: #fbbf24; }
+.tp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tp-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 6px 6px 8px; background: var(--raised); border: 1px solid var(--border); border-radius: 10px; }
+.tp-row .dlg-in { height: 34px; min-height: 34px; margin: 0; padding: 0 8px; font-size: 13.5px; width: auto; }
+.tp-row .tp-at { width: 72px; text-align: center; font-variant-numeric: tabular-nums; }
+.tp-row .icon.sm { width: 30px; height: 30px; margin-left: auto; }
+.tp-k { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; padding: 3px 8px; border-radius: 6px; }
+.tp-k.wind { background: rgba(56,189,248,.16); color: #7dd3fc; }
+.tp-k.gust { background: rgba(148,163,184,.18); color: #cbd5e1; }
+.tp-add { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tp-add .tb { min-height: 34px; font-size: 13px; }
+
+.task-made { text-align: center; padding: 6px 0; }
+.task-code { font-size: 40px; font-weight: 800; letter-spacing: 8px; color: #fbbf24; font-variant-numeric: tabular-nums; margin: 6px 0; }
+.task-made p { color: var(--text2); font-size: 14px; }
+.task-link code { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 8px 12px; border-radius: 10px; background: #06111c; border: 1px solid var(--border); font-size: 12.5px; color: #cbd5e1; }
+.task-made .dlg-actions { justify-content: center; }
+
+.task-note { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.3); font-size: 14px; line-height: 1.5; color: var(--text); white-space: pre-wrap; }
+.task-hints { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; line-height: 1.45; color: var(--text2); }
+.task-go { padding: 10px 0 2px !important; }
+.tb-reload { min-height: 26px; height: 26px; font-size: 11.5px; padding: 0 8px; margin-left: 6px; text-transform: none; letter-spacing: 0; vertical-align: middle; }
+.task-board-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 12px; }
+.task-board { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.task-board th { text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); padding: 8px 8px; background: var(--raised); white-space: nowrap; }
+.task-board td { padding: 6px 8px; border-top: 1px solid var(--border); white-space: nowrap; color: var(--text2); }
+.task-board tr.me td { background: rgba(251,146,60,.08); }
+.task-board tr.sub td { background: rgba(255,255,255,.02); }
+.task-board .tb-no { width: 26px; font-weight: 800; color: var(--text); text-align: center; }
+.task-board .tb-name b { color: var(--text); }
+.tb-exp { background: none; border: 0; color: var(--muted); padding: 0 4px 0 0; font-size: 12px; cursor: pointer; }
+.tb-v { margin-left: 6px; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); }
+.task-board .tb-watch { min-height: 30px; height: 30px; font-size: 12.5px; padding: 0 10px; }
+.task-end .dlg-actions { flex-wrap: wrap; }
+.tp-row select.dlg-in, .tp-row input.dlg-in { background: var(--raised2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; color-scheme: dark; }
+.task-board .tb-watch, .task-end .tb, .task-go .tb { display: inline-flex; align-items: center; gap: 6px; }
+/* telefonda elle sürerken: Online ve Görev düğmeleri sahnenin üstünde ortada yan yana */
+.task-fab { display: none; }
+@media (max-height: 500px), (max-width: 640px) {
+  body.driving:not(.task-on):not(.net-on) .task-fab { display: inline-flex; align-items: center; gap: 6px; position: absolute; top: calc(10px + var(--sat)); left: calc(50% + 4px); z-index: 15;
+    height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(11,23,36,.72); border: 1px solid rgba(251,191,36,.45); color: #fde68a; font-size: 12.5px; font-weight: 700;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .task-fab svg { width: 15px; height: 15px; }
+  body.driving:not(.task-on) .net-fab:not(.hidden) { transform: translateX(calc(-100% - 4px)); }
+}
+.task-note-in { background: var(--raised2); color: var(--text); border: 1px solid var(--border); border-radius: 10px; color-scheme: dark; }
+/* uzun formda düğmeler hep görünsün */
+.task-form .dlg-actions { position: sticky; bottom: 0; background: var(--panel-solid); margin: 4px -22px 0; padding: 10px 22px 14px; border-top: 1px solid var(--border); z-index: 2; }
+@media (max-width: 760px), (max-height: 500px) { .task-form .dlg-actions { margin: 4px -14px 0; padding: 8px 14px 10px; } }
+.task-dlg .dlg-actions { align-items: center; }
+.task-dlg .dlg-actions .tb { height: 40px; min-height: 40px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }

@@ -376,5 +376,26 @@ for (const cls of ['optimist', 'ilca7']) {
   console.log(`• Trapez parkur: ${bad.length ? 'SORUN' : `12 tekne 1-2-kapı-finiş, kapı 3S ${gate['3S']} / 3P ${gate['3P']}, elle sürülen ${m.finish}. bitirdi`}`);
   if (bad.length) { problems++; console.log('  ⚠ Trapez:', bad.join(', ')); }
 }
+// Görev yarış akışı (sim-core runPlan): rüzgar zamanında döner ve geri gelir, sağanak şamandıranın arkasından doğup
+// aşağı iner ve hattı geçince kaybolur; aynı kurulum iki kez aynı yarışı verir (tekrar oynatma deterministik)
+{
+  const bad = [];
+  S.setCourse(S.COURSE_DEFAULT); S.setBoat(S.BOAT_DEFAULT);
+  const plan = [{ k: 'shift', at: 20, deg: 15, hold: 30, ramp: 5 }, { k: 'gust', at: 0, pos: 0.5, size: 'M', pass: 60 }];
+  const run = () => S.runToEnd(S.newRace(S.defaultFleet(8), { wind: 0, plan }));
+  const fr = run(), fr2 = run(), CS = S.CLOCK_SCALE;
+  const at = rt => fr.find(f => (f.t - f.startAt) * CS >= rt) || fr[fr.length - 1];
+  const w = rt => Math.round(at(rt).wind);
+  if (w(10) !== 0 || w(30) !== 15 || w(70) !== 0) bad.push(`rüzgar 10 sn ${w(10)}°, 30 sn ${w(30)}°, 70 sn ${w(70)}° (beklenen 0/15/0)`);
+  const g1 = at(2).gusts.find(g => g.flow), g2 = at(30).gusts.find(g => g.flow);
+  if (!g1 || !g2 || !(g2.y > g1.y + 100) || !(g1.y < S.MARK.y)) bad.push(`sağanak: ${g1 ? Math.round(g1.y) : '-'} → ${g2 ? Math.round(g2.y) : '-'}`);
+  if (at(200).gusts.some(g => g.flow)) bad.push('sağanak hattı geçince kaybolmadı');
+  const a = fr[fr.length - 1], b = fr2[fr2.length - 1];
+  if (a.boats.some((o, i) => o.finishT !== b.boats[i].finishT)) bad.push('aynı kurulum farklı sonuç verdi');
+  const rp = S.replayRecord({ setup: { fleet: S.defaultFleet(8), wind: 0, plan }, ops: [] }), c = rp[rp.length - 1];
+  if (c.boats.some((o, i) => o.finishT !== a.boats[i].finishT)) bad.push('tekrar oynatma farklı sonuç verdi');
+  console.log(`• Görev yarış akışı: ${bad.length ? 'SORUN' : 'rüzgar döner/geri gelir, sağanak yukarıdan iner ve kaybolur, tekrar aynı'}`);
+  if (bad.length) { problems++; console.log('  ⚠ Yarış akışı:', bad.join(', ')); }
+}
 console.log(problems ? `\n${problems} uyarı` : '\nSimülatör temiz ✔');
 process.exit(problems ? 1 : 0);

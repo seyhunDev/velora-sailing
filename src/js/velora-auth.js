@@ -94,6 +94,15 @@ async function start() {
     }));
   }
   window.VeloraAuth.uid = () => (auth.currentUser ? auth.currentUser.uid : null);
+  // Görevler (js/gorev.js): Firestore modülü + veritabanı. Hesabı olmayan sporcu yarışını adıyla gönderir:
+  // Firebase anonim girişi (konsolda Authentication → Sign-in method → Anonymous açık olmalı). Anonim oturum siteye "giriş" sayılmaz.
+  window.VeloraAuth.firestore = () => ({ fs, db });
+  window.VeloraAuth.isAnon = () => !!(auth.currentUser && auth.currentUser.isAnonymous);
+  window.VeloraAuth.anon = async () => {
+    await auth.authStateReady().catch(() => {});
+    if (auth.currentUser) return auth.currentUser.uid;
+    return (await au.signInAnonymously(auth)).user.uid;
+  };
   window.VeloraAuth.ready = () => auth.authStateReady();
   // Yalnız sahip (kural): son `max` belgeyi okuyup olaylara açar; her olaya belgenin adı ve Velora uid'i eklenir
   window.VeloraAuth.listEvents = async (max = 400) => {
@@ -117,7 +126,7 @@ async function start() {
   const un = au.onAuthStateChanged(auth, user => {
     un();
     const acc = A()?.account();
-    if (user && (!acc || (acc.via === 'velora' && acc.uid !== user.uid) || acc.role === 'misafir')) adopt(user, 'velora-oturum');
+    if (user && !user.isAnonymous && (!acc || (acc.via === 'velora' && acc.uid !== user.uid) || acc.role === 'misafir')) adopt(user, 'velora-oturum');
   });
 }
 
