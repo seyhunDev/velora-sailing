@@ -43,7 +43,7 @@ try { count = execSync('git rev-list --count HEAD', { stdio: ['ignore', 'pipe', 
 const version = count ? `v1.${count}` : 'geliştirme';
 for (const page of readdirSync(DIST).filter(f => f.endsWith('.html'))) {
   let html = readFileSync(join(DIST, page), 'utf8');
-  for (const [from, to] of hashed) html = html.replaceAll(`"${from}"`, `"${to}"`);
+  for (const [from, to] of hashed) html = html.replaceAll(`"${from}"`, `"${to}"`).replaceAll(`"./${from}"`, `"./${to}"`);   // ./ : import map adresleri
   html = html.replace(/<body([^>]*)>/, `<body$1 data-version="${commit}" data-built="${stamp}" data-ver="${version}">`);
   // her sayfada sağ alt köşede sürüm etiketi (stil: style.css → .ver-badge)
   html = html.replace('</body>', `<div class="ver-badge" title="Sürüm ${version} · ${commit} · ${stamp}">${version}</div>\n</body>`);

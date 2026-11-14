@@ -147,13 +147,13 @@
     custom: (saved.custom && typeof saved.custom === 'object') ? saved.custom : {},   // custom['marka|hava|deniz'] = tüm değerler (kişisel)
     manual: (saved.manual && typeof saved.manual === 'object') ? saved.manual : {},   // manual[marka][hava][alan] = elle girilmiş orijinal (ortak)
     customAt: saved.customAt || 0, manualAt: saved.manualAt || 0,
-    editOrig: false,
+    editOrig: false, view: saved.view === '2d' ? '2d' : '3d',
     val: null, target: null, active: null, focusTie: -1, trial: null,
   };
   function persist(what) {
     if (what === 'custom') st.customAt = Date.now();
     if (what === 'manual') st.manualAt = Date.now();
-    try { localStorage.setItem(KEY, JSON.stringify({ wind: st.wind, sea: st.sea, brand: st.brand, mode: st.mode, custom: st.custom, manual: st.manual, customAt: st.customAt, manualAt: st.manualAt })); } catch (e) { /* yok */ }
+    try { localStorage.setItem(KEY, JSON.stringify({ view: st.view, wind: st.wind, sea: st.sea, brand: st.brand, mode: st.mode, custom: st.custom, manual: st.manual, customAt: st.customAt, manualAt: st.manualAt })); } catch (e) { /* yok */ }
     if (what) Cloud.save(what);
   }
   const ckey = () => `${st.brand}|${st.wind}|${st.sea}`;
@@ -294,6 +294,14 @@
     persist('manual'); choose();
   });
   document.addEventListener('sail-access', () => { syncTop(); refresh(); });
+  // görünüm: 3D (ayar3d.js) ya da yandan 2D çizim
+  function setView(v) {
+    st.view = v; document.body.dataset.view = v;
+    setSeg('segView', v);
+  }
+  $('segView').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; setView(b.dataset.v); persist(); });
+  window.addEventListener('trim-no3d', () => setView('2d'));
+  setView(document.body.classList.contains('no3d') ? '2d' : st.view);
 
   function refresh() {
     const o = original(st.brand, st.wind, st.sea);
@@ -924,10 +932,14 @@
     const ov = original(st.brand, st.wind, st.sea).v;
     const differs = st.mode === 'ozel' && !!st.custom[ckey()] && JSON.stringify(ov) !== JSON.stringify(st.custom[ckey()]);
     const gsh = differs ? shape(ov, windNow, waveNow) : null;
-    drawEnv(dt, windNow, waveNow, time);
-    gHull.setAttribute('transform', `rotate(${pitch.toFixed(2)} ${STEP.x} ${STEP.y}) translate(0 ${bob.toFixed(2)})`);
-    const k = drawRig(st.val, sh, pitch, differs ? ov : null, gsh);
-    drawCallouts(k);
+    window.TrimState = { v: st.val, sh, w: windNow, wave: waveNow, pitch, bob, rakeDeg: rakeDeg(st.val.rake), res: RES,
+      active: st.active, focusTie: st.focusTie, ghost: differs ? { v: ov, sh: gsh } : null };
+    if (st.view === '2d') {
+      drawEnv(dt, windNow, waveNow, time);
+      gHull.setAttribute('transform', `rotate(${pitch.toFixed(2)} ${STEP.x} ${STEP.y}) translate(0 ${bob.toFixed(2)})`);
+      const k = drawRig(st.val, sh, pitch, differs ? ov : null, gsh);
+      drawCallouts(k);
+    }
     $('legend').hidden = !differs;
     const key = JSON.stringify(st.val) + st.active + st.wind + st.sea + st.focusTie + differs + Math.round(windNow * 50) + Math.round(waveNow * 50);
     if (key !== lastKey) { drawSections(sh, gsh); drawTiesZoom(st.val, differs ? ov : null); warnings(st.val, sh); fullness(sh); drawGauges(); lastKey = key; }
