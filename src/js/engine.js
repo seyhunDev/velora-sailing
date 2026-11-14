@@ -84,10 +84,57 @@
 
   // ---------- Engel kaçınma ----------
   // Senaryodaki şamandıralar, pin ve hakem botu: [{x,y,r}]
-  function obstaclesOf(scn) {
+  /* Hakem botu artık bir daire değil, çizimdeki gövdenin biçimi: gövde (drawCommitteeBoat, yerel koordinat
+     x 0..24, y -32..+30) baş-kıç doğrusu boyunca bir kapsülle (iki uçlu yuvarlak çubuk) kaplanır. Eskiden hat ucunu
+     merkez alan 38 px'lik daire (+16 pay) hat tarafına ~2 tekne genişliği taşıyordu: hakem botuyla başka tekne
+     arasındaki gerçek boşluğa girilemiyordu (kullanıcı 2026-11-14). Bot rüzgara baş verdiği için kapsül rüzgarla döner. */
+  const CB_HULL = { x: 12, y0: -20, y1: 18, r: 12 };
+  // hakem botu engelini rüzgara göre yerleştir (o.x, o.y = gövde ortası; a/b = kapsül doğrusunun uçları)
+  function orientObstacle(o, w) {
+    if (!o.hull || o.w === w) return o;
+    const f = fwd(w), r = { x: Math.cos(w * DEG), y: Math.sin(w * DEG) };
+    const P = (lx, ly) => ({ x: o.ax + r.x * lx - f.x * ly, y: o.ay + r.y * lx - f.y * ly });
+    o.w = w; o.a = P(CB_HULL.x, CB_HULL.y0); o.b = P(CB_HULL.x, CB_HULL.y1);
+    o.x = (o.a.x + o.b.x) / 2; o.y = (o.a.y + o.b.y) / 2;
+    return o;
+  }
+  // engelin (x,y) noktasına en yakın merkezi: daire için kendisi, hakem botu için kapsül doğrusunun en yakın noktası
+  function obstacleNear(o, x, y) {
+    if (!o.hull) return o;
+    const dx = o.b.x - o.a.x, dy = o.b.y - o.a.y, L2 = dx * dx + dy * dy;
+    const k = L2 > 0 ? Math.max(0, Math.min(1, ((x - o.a.x) * dx + (y - o.a.y) * dy) / L2)) : 0;
+    return { x: o.a.x + dx * k, y: o.a.y + dy * k };
+  }
+  // (x,y) noktasının engelin kenarına uzaklığı (içerideyse < 0)
+  function obstacleGap(o, x, y) { const c = obstacleNear(o, x, y); return Math.hypot(x - c.x, y - c.y) - o.r; }
+  // Tekne gövdesinin (baş-kıç doğrusu ±half px) engelin kenarına en kısa uzaklığı
+  function hullObstacleGap(o, x, y, h, half) {
+    const f = fwd(h), L = half == null ? 19 : half;
+    if (!o.hull) return segPointDist(x - f.x * L, y - f.y * L, x + f.x * L, y + f.y * L, o.x, o.y) - (o.rDraw || o.r);
+    return segSegDist(x - f.x * L, y - f.y * L, x + f.x * L, y + f.y * L, o.a.x, o.a.y, o.b.x, o.b.y) - o.r;
+  }
+  function segPointDist(ax, ay, bx, by, px, py) {
+    const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+    const k = L2 > 0 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2)) : 0;
+    return Math.hypot(px - ax - dx * k, py - ay - dy * k);
+  }
+  function segSegDist(ax, ay, bx, by, cx, cy, dx, dy) {
+    // kesişiyorsa 0
+    const cr = (px, py, qx, qy, rx, ry) => (qx - px) * (ry - py) - (qy - py) * (rx - px);
+    const d1 = cr(ax, ay, bx, by, cx, cy), d2 = cr(ax, ay, bx, by, dx, dy), d3 = cr(cx, cy, dx, dy, ax, ay), d4 = cr(cx, cy, dx, dy, bx, by);
+    if (d1 * d2 < 0 && d3 * d4 < 0) return 0;
+    return Math.min(segPointDist(ax, ay, bx, by, cx, cy), segPointDist(ax, ay, bx, by, dx, dy),
+      segPointDist(cx, cy, dx, dy, ax, ay), segPointDist(cx, cy, dx, dy, bx, by));
+  }
+  // Senaryodaki şamandıralar, pin ve hakem botu: [{x,y,r}] (hakem botu: {hull:true, ax, ay, a, b, r}; w = rüzgar)
+  function obstaclesOf(scn, w) {
     const o = [];
-    for (const m of scn.marks || []) o.push({ x: m.x, y: m.y, r: 14 });
-    if (scn.line) { o.push({ x: scn.line.pin.x, y: scn.line.pin.y, r: 14 }); o.push({ x: scn.line.boat.x, y: scn.line.boat.y - 4, r: 38 }); }
+    for (const m of scn.marks || []) o.push({ x: m.x, y: m.y, r: 14, rDraw: 9 });
+    if (scn.line) {
+      o.push({ x: scn.line.pin.x, y: scn.line.pin.y, r: 14, rDraw: 7 });
+      const wd = w != null ? w : (scn.wind != null ? windAt(scn.wind, 0) : 0);
+      o.push(orientObstacle({ hull: true, ax: scn.line.boat.x, ay: scn.line.boat.y, r: CB_HULL.r, w: null }, wd));
+    }
     return o;
   }
   // Önümüzde engel varsa kaçınma yönü: +1 sağa dön, -1 sola dön, 0 yok
@@ -96,7 +143,7 @@
     const look = 40 + Math.max(0, v || 0) * 1.2;                              // ileri bakış (px)
     let best = 0, bestAlong = 1e9;
     for (const o of obstacles || []) {
-      const dx = o.x - x, dy = o.y - y;
+      const c = obstacleNear(o, x, y), dx = c.x - x, dy = c.y - y;
       const along = dx * f.x + dy * f.y, across = dx * r.x + dy * r.y;
       const margin = o.r + 16;
       if (along > -10 && along < look && Math.abs(across) < margin && along < bestAlong) {
@@ -119,7 +166,8 @@
     const pad = opts.pad != null ? opts.pad : 16, mem = opts.mem;
     let best = null;
     (obstacles || []).forEach((o, i) => {
-      const dx = o.x - x, dy = o.y - y, d = Math.hypot(dx, dy) || 0.01;
+      const c = obstacleNear(o, x, y);                         // hakem botu: gövdenin en yakın noktası
+      const dx = c.x - x, dy = c.y - y, d = Math.hypot(dx, dy) || 0.01;
       const along = dx * f.x + dy * f.y, across = dx * r.x + dy * r.y, R = o.r + pad;
       const gap = d - R;                                       // çembere uzaklık
       if (along < -R * 0.6 || gap > look || Math.abs(across) >= R) return;
@@ -169,6 +217,7 @@
       const tEnd = t + seg.dur;
       while (t < tEnd - 1e-9) {
         const w = windAt(scn.wind, t);
+        for (const o of obstacles) if (o.hull) orientObstacle(o, w);   // hakem botu rüzgarla döner
         let target;
         if (seg.mode === 'closehauled') target = tackHeading(w, seg.tack, seg.angle);
         else if (seg.mode === 'run') target = runHeading(w, seg.tack, seg.angle);
@@ -405,7 +454,7 @@
     sailPose, sailShape, seedOf, drawCommitteeBoat, committeeBoatTransform, drawStartLaylines,
     SHADOW, shadowStrength, shadowOf, shadowK, shadowPolygon,
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
-    windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, avoidDir, steerAround,
+    windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,
     CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -803,8 +803,8 @@
           { mode: 'heading', h: 212, dur: 3.4, turn: 1.4, speed: 0.5, note: 'Boşluk açılacak: yavaşça botun kıçına' },
           { mode: 'heading', h: 285, dur: 2.7, turn: 1.0, speed: 0.55, note: 'Açılan boşluğa giriyor' },
           { mode: 'heading', h: 335, dur: 1.1, turn: 0.8, speed: 0.4, note: 'Açılan boşluğa giriyor' },
-          { mode: 'hold', h: 325, dur: 1.0, speed: 0.01, turn: 0.8, note: 'Botun dibinde: yer benim' },
-          { mode: 'closehauled', tack: 'starboard', dur: 11, turn: 0.8 }
+          { mode: 'hold', h: 325, dur: 1.5, speed: 0.01, turn: 0.8, note: 'Botun dibinde: yer benim' },
+          { mode: 'closehauled', tack: 'starboard', dur: 10.5, turn: 0.8 }
         ] },
       { id: 'Y', name: 'Erken park edip kayan', role: 'hata', color: '#e76f51',
         start: { x: 893, y: 660, h: 320 }, v0: 30,

@@ -296,6 +296,27 @@ for (const wind of [-12, 0, 12]) {
   console.log(`• Elle sürme durma / tersleme: ${bad.length ? 'SORUN' : `yelken boşken ${tStop.toFixed(1)} sim. sn'de durdu · tersleyince ${tZero.toFixed(1)} sn'de durdu, geri ${S.knots(-vMin).toFixed(1)} kn`}`);
   if (bad.length) { problems++; console.log('  ⚠ Durma:', bad.join(', ')); }
 }
+// Hakem botu gövde biçimiyle çarpışır (daire değil): yanından 3 px boşlukla geçen tekne takılmaz, gövdeye giden tekne
+// kenarında durur (kullanıcı 2026-11-14: hakem botuyla rakip tekne arasındaki boşluğa girilemiyordu)
+{
+  S.setCourse(S.COURSE_DEFAULT);
+  const f = S.defaultFleet(2), me = f.find(b => b.mine), bad = [], A = S.LINE.boat;
+  const ctx = { t: 0, wind: 90, gusts: [], boats: [me], sea: { current: 0, waves: 0 } };
+  // rüzgar 90: bot başı sağa, gövde yatay (x A-30..A+32, y A..A+24)
+  const run = x => { Object.assign(me, { x, y: A.y + 110, h: 0, v: 40, manual: true, sheetOff: 0 }); let hit = false;
+    for (let i = 0; i < 160; i++) { if (S.drive(ctx, me, { autoTrim: true }, 0.05).includes('hit')) hit = true; } return hit; };
+  if (run(A.x + 42)) bad.push('yanından 3 px boşlukla geçerken takıldı');
+  if (!(me.y < A.y - 60)) bad.push(`yanından geçemedi (y=${me.y.toFixed(0)})`);
+  const hit = run(A.x + 5), gap = me.y - (A.y + 24) - 19;
+  if (!hit) bad.push('gövdeye giden tekne durmadı');
+  if (!(gap > -2 && gap < 12)) bad.push(`gövdeye ${gap.toFixed(0)} px kala durdu (beklenen ~6)`);
+  // şamandıranın yanından (çizilen daireye 4 px) geçen tekne takılmaz
+  const M = S.MARK; Object.assign(me, { x: M.x + 9 + 6.5 + 4, y: M.y + 110, h: 0, v: 40, sheetOff: 0 }); let mh = false;
+  for (let i = 0; i < 160; i++) if (S.drive(ctx, me, { autoTrim: true }, 0.05).includes('hit')) mh = true;
+  if (mh) bad.push('şamandıranın yanından geçerken takıldı');
+  console.log(`• Hakem botu / şamandıra gövde çarpışması: ${bad.length ? 'SORUN' : `yanından yakın geçiliyor, gövdeye giden ${gap.toFixed(0)} px kala duruyor`}`);
+  if (bad.length) { problems++; console.log('  ⚠ Gövde çarpışması:', bad.join(', ')); }
+}
 // Akıntı yönü: arkadan gelen tekneyi ileri (yukarı), karşıdan gelen aşağı, sağdan gelen sola, sağ üstten gelen sol aşağı taşır
 {
   const bad = [], b = { drift: 0 }, want = { 180: [0, -1], 0: [0, 1], 90: [-1, 0], 270: [1, 0], 45: [-1, 1], null: [0, 1] };

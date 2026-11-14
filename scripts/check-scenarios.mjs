@@ -23,10 +23,11 @@ for (const scn of globalThis.SCENARIOS) {
   const obs = E.obstaclesOf(scn);
   const minPair = {}; const minObs = {};
   for (let t = 0; t <= scn.duration; t += 0.1) {
+    for (const o of obs) if (o.hull) E.orientObstacle(o, E.windAt(scn.wind, t));
     const pos = tracks.map(b => ({ id: b.id, ...E.sampleTrack(b.track, t) }));
     for (const p of pos) {
       if (t < scn.duration - 1 && (p.x < -60 || p.x > 1060 || p.y < -60 || p.y > 740)) { warn(scn, `${p.id} t=${t.toFixed(1)} alan dışında (${p.x.toFixed(0)},${p.y.toFixed(0)})`); break; }
-      for (const o of obs) { const d = Math.hypot(p.x - o.x, p.y - o.y) - o.r; if (!(p.id in minObs) || d < minObs[p.id]) minObs[p.id] = d; }
+      for (const o of obs) { const d = E.obstacleGap(o, p.x, p.y); if (!(p.id in minObs) || d < minObs[p.id]) minObs[p.id] = d; }
     }
     for (let i = 0; i < pos.length; i++) for (let j = i + 1; j < pos.length; j++) {
       const k = pos[i].id + '-' + pos[j].id, d = Math.hypot(pos[i].x - pos[j].x, pos[i].y - pos[j].y);

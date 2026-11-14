@@ -89,6 +89,8 @@
     refill(AVOID_OBS, [...LINE_OBS, MARK_OBS[0]]);
   }
   setCourse(COURSE_DEFAULT);
+  // hakem botu engeli (gövde biçimi) rüzgarla döner: çizimdeki gibi başı rüzgara
+  function orientObs(w) { for (const o of OBSTACLES) if (o.hull) E.orientObstacle(o, w); for (const o of LINE_OBS) if (o.hull) E.orientObstacle(o, w); }
 
   const PERSONAS = {
     sol: 'Sol taraf', orta: 'Orta', sag: 'Sağ taraf', saganak: 'Sağanak avcısı', manuel: 'Senin kararın'
@@ -415,6 +417,7 @@
     setBoat(s.boat || BOAT_DEFAULT);
     inp = inp || {};
     const w = s.wind, out = [];
+    orientObs(w);
     const others = s.boats.filter(o => o !== b && !o.gone && o.phase !== 'done');
     const casters = others.filter(o => o.phase !== 'wait').map(o => ({ x: o.x, y: o.y, v: o.v, ref: o }));   // simülatördeki gibi: bekleyen tekne gölge yapmaz
     if (b.sheet == null) b.sheet = idealSheet(Math.abs(E.norm180(b.h - w)));
@@ -452,8 +455,11 @@
       b.x += (f.x * b.v + dv.x) * H; b.y += (f.y * b.v + dv.y) * H;
       // şamandıra, pin, hakem botu ve duran teknelerin içine giremez: yaklaşan adım geri alınır, tekne durur
       // (eskiden dışarı itiliyordu: tekne öbürünün kenarı boyunca yan yan kayıyordu)
-      const blocked = (o, R0) => { const d1 = Math.hypot(b.x - o.x, b.y - o.y); return d1 < R0 && d1 < Math.hypot(x0 - o.x, y0 - o.y); };
-      for (const o of OBSTACLES) if (blocked(o, o.r + 16)) { b.x = x0; b.y = y0; b.v *= 0.3; if (!out.includes('hit')) out.push('hit'); }
+      // Gövde biçimiyle: teknenin baş-kıç doğrusu (±19 px, yarı genişlik ~6,5 px) şamandıranın/pin'in çizilen dairesine ya da
+      // hakem botunun gövdesine değince durur (eskiden tekne merkezi 30-54 px'lik daireye giremiyordu: yanından geçerken
+      // gövdeler arasında boşluk varken takılıyordu, kullanıcı 2026-11-14).
+      const blocked = o => { const g1 = E.hullObstacleGap(o, b.x, b.y, b.h, 19); return g1 < OBS_GAP && g1 < E.hullObstacleGap(o, x0, y0, h0, 19); };
+      for (const o of OBSTACLES) if (blocked(o)) { b.x = x0; b.y = y0; b.h = h0; b.v *= 0.3; if (!out.includes('hit')) out.push('hit'); }
       // teknelerde gövde biçimi (uzun, dar): yan yana ya da kıç kıça yakın geçilebilir, gövdeler değince durur
       for (const o of others) {
         const g1 = hullGap(b, o);
@@ -469,6 +475,7 @@
   }
   // İki teknenin gövdeleri (baş-kıç doğrusu, ±19 px) arasındaki en kısa uzaklık; HULL_GAP altı = temas (gövde genişliği ~14 px)
   const HULL_GAP = 13;
+  const OBS_GAP = 6.5;   // tekne gövdesinin yarı genişliği: engelin kenarına bundan yakın = temas
   function hullGap(a, c) {
     const A = E.fwd(a.h), C = E.fwd(c.h), L = 19;
     const p1 = { x: a.x - A.x * L, y: a.y - A.y * L }, d1 = { x: A.x * 2 * L, y: A.y * 2 * L };
@@ -570,6 +577,7 @@
     if (s.course) setCourse(s.course);                      // parkur bu yarışınki (değişmediyse işlem yok)
     setBoat(s.boat || BOAT_DEFAULT);                         // tekne sınıfı / rüzgar hızı / hızlanma anı
     const w = s.wind, t = s.t, active = s.boats.filter(b => !b.gone);
+    orientObs(w);
     const racing = b => b.phase === 'race' || b.phase === 'ocs' || b.phase === 'round';
     const snap = active.filter(b => b.phase !== 'done').map(b => ({ ref: b, x: b.x, y: b.y, h: b.h, v: b.v }));
     const rulesOn = t >= s.startAt + 0.5;
@@ -769,7 +777,7 @@
             if (o === MARK_OBS[0]) return 1;                     // şamandıra hep iskelede (solda) kalsın
             let sd = def;
             // kaçış rüzgara doğru (yelken boşa) götürecekse öbür taraftan, bordalayarak dolaş
-            if (b.phase !== 'wait' && into(b.h + sd * 20, 38)) sd = -sd;
+            if (b.phase !== 'wait' && (b.started ? into(sd > 0 ? hR : hL, 38) : true) && into(b.h + sd * 20, 38)) sd = -sd;
             // start etmemiş tekne pin'i hattın içinden (pin solunda kalacak şekilde) geçmeye çalışır
             if (o === LINE_OBS[0] && !b.started && Math.hypot(b.x - LINE.pin.x, b.y - LINE.pin.y) < 90 && !into(b.h + 20, 32)) sd = 1;
             return sd;

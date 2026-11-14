@@ -208,6 +208,7 @@
     let t = 0;
     while (t < scn.duration) {
       const w = E.windAt(scn.wind, t);
+      for (const o of obstacles) if (o.hull) E.orientObstacle(o, w);   // hakem botu rüzgarla döner
       const scriptedNow = scripted.map((b, i) => {
         const s = E.sampleTrack(b.track, t), r = sRef[i], tk = tackOf(s.h, w);
         if (r.tack && tk !== r.tack && Math.abs(E.norm180(s.h - w)) < 60) r.lastTack = t;

@@ -1407,7 +1407,7 @@
   // Bırakılan tekne başka bir teknenin, pin'in ya da hakem botunun üstüne düştüyse en yakın boş yere kaydır
   function settleBoat(b) {
     const blocked = p => st.fleet.some(o => o !== b && Math.hypot(o.x - p.x, o.y - p.y) < 34) ||
-      S.OBSTACLES.some(o => Math.hypot(o.x - p.x, o.y - p.y) < o.r + 22);
+      S.OBSTACLES.some(o => E.obstacleGap(o, p.x, p.y) < 22);
     if (!blocked(b)) return;
     for (let r = 10; r < 200; r += 8) for (let a = 0; a < 360; a += 30) {
       const p = { x: b.x + Math.sin(a * E.DEG) * r, y: b.y + Math.cos(a * E.DEG) * r };
