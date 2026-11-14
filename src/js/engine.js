@@ -61,6 +61,41 @@
     ilca6: { name: 'ILCA 6', acc: 5, up: [[3, 2.1], [4, 2.8], [6, 3.7], [8, 4.4], [10, 4.8], [12, 5.1], [14, 5.2], [16, 5.3], [20, 5.3], [25, 5.1]] },
     ilca7: { name: 'ILCA 7', acc: 5.5, up: [[3, 2.1], [4, 2.8], [6, 3.8], [8, 4.5], [10, 5.0], [12, 5.3], [14, 5.5], [16, 5.6], [20, 5.7], [25, 5.6]] }
   };
+  // ---------- Tekne modelleri: sınıfa göre gövde ve donanım ölçüleri (mm) ----------
+  // Üstten 2D çizim (boat-draw.js), elle sürmede çarpışma (hullOf) ve ileride 3D / tekne içinden görünüş aynı ölçüleri kullanır.
+  // Ekranda her sınıf 1 tekne boyu = 50 px çizilir (kurallardaki mesafeler tekne boyuyla ölçülür: zone 3 boy); bu yüzden
+  // ILCA gerçekte Optimist'in 1,8 katı uzun olsa da ekranda aynı boyda, ama kendi oranında (dar, sivri) görünür.
+  // plan: [baştan uzaklık, yarı genişlik] istasyonları (güverte hattı). Ölçüler sınıf kuralları / yaygın ölçülerden, yaklaşık.
+  const BOAT_LEN_PX = 50;
+  const BOAT_MODELS = {
+    optimist: {
+      name: 'Optimist', loa: 2310, beam: 1130, bow: 'pram',                       // baş da kıç gibi düz ayna (pram)
+      plan: [[0, 300], [180, 410], [600, 520], [1150, 565], [1700, 550], [2310, 470]],
+      mast: 400, mastH: 2350, boom: 2010, rig: 'sprit',                            // gırcala yelkeni (sprit): tepe köşesi gırcalayla kaldırılır
+      sail: { luff: 1730, head: 1240, leech: 2800, foot: 1900, sprit: 2286, area: 3.3 },
+      board: { at: 980, len: 300, w: 28 }, rudder: { tiller: 820 },
+      bags: [[120, 330, 0.8], [1250, 1900, 0.42]]                                   // yüzdürme torbaları: [baştan, bitiş, genişlik oranı]
+    },
+    ilca: {
+      name: 'ILCA', loa: 4230, beam: 1370, bow: 'pointed',
+      plan: [[0, 0], [260, 170], [750, 400], [1450, 580], [2350, 675], [3200, 680], [4230, 560]],
+      mast: 1000, boom: 2740, rig: 'bermuda',
+      cockpit: { from: 2380, to: 3800, w: 330 },                                    // yarı genişlik
+      board: { at: 2180, len: 330, w: 30 }, rudder: { tiller: 1050 }
+    }
+  };
+  // ILCA 4 / 6 / 7: aynı gövde, farklı direk alt parçası ve yelken (m²); direk boyu 3D için yaklaşık
+  const RIGS = { ilca4: { sailArea: 4.7, mastH: 5500 }, ilca6: { sailArea: 5.76, mastH: 5900 }, ilca7: { sailArea: 7.06, mastH: 6430 } };
+  function boatModel(cls) {
+    if (cls && cls.startsWith('ilca')) return Object.assign({}, BOAT_MODELS.ilca, RIGS[cls] || RIGS.ilca7, { cls, name: (BOAT_CLASSES[cls] || {}).name || 'ILCA' });
+    return Object.assign({ cls: 'optimist' }, BOAT_MODELS.optimist);
+  }
+  // Elle sürmede çarpışma için gövde kapsülü (px): baş-kıç doğrusu ±half, yarıçap r. Çizilen gövdenin en geniş yerinin %90'ı.
+  function hullOf(cls) {
+    const m = boatModel(cls), K = BOAT_LEN_PX / m.loa;
+    const r = Math.round(Math.max(...m.plan.map(p => p[1])) * K * 0.9 * 10) / 10;
+    return { r, half: BOAT_LEN_PX / 2 - r };
+  }
   function upwindKn(cls, wind) {
     const t = (BOAT_CLASSES[cls] || BOAT_CLASSES.optimist).up;
     if (wind <= t[0][0]) return t[0][1];
@@ -455,6 +490,7 @@
     SHADOW, shadowStrength, shadowOf, shadowK, shadowPolygon,
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
     windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,
-    CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU
+    CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU,
+    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -298,14 +298,9 @@
   function drawBoat(parent, b, s, w) {
     const sail = E.sailState(s.h, w);
     const g = el('g', { transform: `translate(${s.x.toFixed(1)},${s.y.toFixed(1)}) rotate(${s.h.toFixed(1)})` }, parent);
-    el('path', { d: 'M0,-25 C 9,-16 11,2 9,22 L -9,22 C -11,2 -9,-16 0,-25 Z', fill: b.color, stroke: '#fff', 'stroke-width': 1.5 }, g);
-    el('path', { d: 'M0,-20 C 6,-13 7,2 6,18 L -6,18 C -7,2 -6,-13 0,-20 Z', fill: 'rgba(255,255,255,0.18)' }, g);
-    const my = -6, seed = E.seedOf(b.id);
+    const seed = E.seedOf(b.id);
     const pose = E.sailPose(s.h, w, { v: s.v, base: state.scn.baseSpeed || 55, t: state.t, seed, back: !!s.back });
-    const sh = E.sailShape(pose, state.t, seed, 27, my);
-    el('path', { d: sh.d, fill: 'rgba(255,255,255,0.85)', stroke: '#fff', 'stroke-width': 1 }, g);
-    el('line', { x1: 0, y1: my, x2: sh.tip.x.toFixed(1), y2: sh.tip.y.toFixed(1), stroke: '#222', 'stroke-width': 1.5 }, g);
-    el('circle', { cx: 0, cy: my, r: 1.8, fill: '#222' }, g);
+    BoatDraw.draw(g, state.scn.boatClass || 'optimist', { color: b.color, pose, t: state.t, seed });   // sınıfa göre gövde ve donanım
     if (state.show.labels) drawLabel(parent, b, s, sail);
     if (s.note) frameNotes.push({ x: s.x, y: s.y, text: s.note, color: b.color });
     const shk = state.shadowed && state.shadowed.get(b.id);

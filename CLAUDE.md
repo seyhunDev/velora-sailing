@@ -41,7 +41,7 @@ Canlı site: https://velora-sailing.netlify.app (main'e push → GitHub Actions 
 - Eski depo `seyhunDev/python_deneme` kullanılmaz. Depo 2026-11-13’te `professional-sailing` → `velora-sailing` oldu; dosya biçimlerindeki `app:'professional-sailing'` kimliği eski kayıtlar uyumlu kalsın diye değişmez.
 
 ## Dosya haritası
-- `src/index.html` arayüz · `src/css/style.css` · `src/js/engine.js` motor · `src/js/rules.js` kural motoru (ek tekneler) · `src/js/scenarios.js` senaryolar · `src/js/app.js` arayüz mantığı · `src/js/thumbs.js` seçici küçük resimleri · `src/img/velora-mark.svg` logo
+- `src/index.html` arayüz · `src/css/style.css` · `src/js/engine.js` motor (+ `BOAT_MODELS` tekne ölçüleri) · `src/js/boat-draw.js` sınıfa göre tekne çizimi · `src/js/rules.js` kural motoru (ek tekneler) · `src/js/scenarios.js` senaryolar · `src/js/app.js` arayüz mantığı · `src/js/thumbs.js` seçici küçük resimleri · `src/img/velora-mark.svg` logo
 - `src/js/app-shell.js` uygulama kabuğu (kaymaz, büyümez, telefonda yatay zorunlu; her sayfada ilk betik) · `src/manifest.webmanifest` ana ekrana ekleme
 - `src/js/track.js` ziyaret/olay kaydı · `src/js/access.js` giriş ekranı, roller, kilitler (her sayfada uygulama betiğinden önce) · `src/js/velora-auth.js` Velora hesabıyla giriş (Firebase, modül) · `src/ziyaret.html` ziyaret kayıtları (sahip)
 - `src/js/report.js` Bildir düğmesi (sahip): not + işlemler + durum → GitHub konusu "Bildirim: …" · `scripts/report.mjs` bildirimi çözer, yarışı yeniden kurar, hata avcısı · `tests/bildirimler/` bildirim testleri · `npm run smoke` tarayıcı + rastgele tıklama testi (Playwright varsa)

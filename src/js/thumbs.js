@@ -5,7 +5,6 @@
   const E = SailEngine, NS = 'http://www.w3.org/2000/svg';
   const LOOP = 7, HOLD = 1;          // bir tur 7 sn, sonda 1 sn bekleme
   const CROWD = 'rgba(200,214,227,.75)';
-  const HULL = 'M0,-25 C 9,-16 11,2 9,22 L -9,22 C -11,2 -9,-16 0,-25 Z';
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const cache = new Map();           // senaryo id → { boats, vb }
   const live = new Set();            // ekranda görünen ve çizilmiş küçük resimler
@@ -57,7 +56,7 @@
     for (const m of scn.marks || []) el('circle', { cx: m.x, cy: m.y, r: 4 * k, fill: '#ff8c42', stroke: '#fff', 'stroke-width': k }, svg);
     th.nodes = p.boats.map(bt => {
       const g = el('g', {}, svg);
-      el('path', { d: HULL, transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
+      el('path', { d: BoatDraw.hullPath(scn.boatClass), transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
       return { g, track: bt.track };
     });
     th.box.appendChild(svg);

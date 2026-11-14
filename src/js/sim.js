@@ -334,7 +334,7 @@
   }
 
   const boomSm = { beta: null, ts: 0, k: 0.45 };          // derece / ms
-  function drawBoat(parent, b, w, t, sel) {
+  function drawBoat(parent, b, w, t, sel, cls) {
     const sail = E.sailState(b.h, w);
     const op = b.phase === 'done' ? Math.max(0.15, 1 - (t - b.doneAt) / 5) : 1;
     const wrap = el('g', { opacity: op.toFixed(2), 'data-boat': b.id, class: 'boat' }, parent);
@@ -347,9 +347,7 @@
     if (b.phase === 'penalty') el('circle', { cx: b.x.toFixed(1), cy: b.y.toFixed(1), r: 29, fill: 'none', stroke: '#f87171', 'stroke-width': 2, 'stroke-dasharray': '6 4' }, wrap);
     if (b.inGust > 0.2 && b.phase !== 'wait') el('circle', { cx: b.x.toFixed(1), cy: b.y.toFixed(1), r: 26, fill: 'none', stroke: 'rgba(125,211,252,.6)', 'stroke-width': 1.5 }, wrap);
     const g = el('g', { transform: `translate(${b.x.toFixed(1)},${b.y.toFixed(1)}) rotate(${b.h.toFixed(1)})` }, wrap);
-    el('path', { d: 'M0,-25 C 9,-16 11,2 9,22 L -9,22 C -11,2 -9,-16 0,-25 Z', fill: b.color, stroke: '#fff', 'stroke-width': 1.5 }, g);
-    el('path', { d: 'M0,-20 C 6,-13 7,2 6,18 L -6,18 C -7,2 -6,-13 0,-20 Z', fill: 'rgba(255,255,255,0.18)' }, g);
-    const my = -6, seed = E.seedOf(b.id);
+    const seed = E.seedOf(b.id);
     // elle sürerken yelken iskotaya göre (fazla salıksa pırpırlar); yarışta iskota salınmışsa da öyle
     const drv = !!(st.drive && b.mine), tt = drv ? performance.now() / 1000 : t;
     const sheet = drv ? b.sheet : b.sheetOff ? E.sailState(b.h, w).boom + b.sheetOff : null;
@@ -359,9 +357,7 @@
       if (p.beta != null && now - p.ts < 300) pose.beta = p.beta + Math.max(-p.k * (now - p.ts), Math.min(p.k * (now - p.ts), pose.beta - p.beta));
       p.beta = pose.beta; p.ts = now;
     }
-    const sh = E.sailShape(pose, tt, seed, 27, my);
-    el('path', { d: sh.d, fill: 'rgba(255,255,255,0.85)', stroke: '#fff', 'stroke-width': 1 }, g);
-    el('line', { x1: 0, y1: my, x2: sh.tip.x.toFixed(1), y2: sh.tip.y.toFixed(1), stroke: '#222', 'stroke-width': 1.5 }, g);
+    BoatDraw.draw(g, cls || st.boat.cls, { color: b.color, pose, t: tt, seed });   // sınıfa göre gövde ve donanım (boat-draw.js)
     // etiket
     const tk = sail.tack === 'starboard' ? 'S' : 'İ';
     const lab = el('g', { transform: `translate(${b.x.toFixed(1)},${(b.y + 36).toFixed(1)})` }, wrap);
@@ -510,7 +506,7 @@
     const order = v.boats.filter(b => !b.gone).sort((a, b) => (a.mine ? 1 : 0) - (b.mine ? 1 : 0));
     if (st.show.shadow && st.mode !== 'setup') drawShadows(bl, order, w);
     drawRoute(bl, v);
-    for (const b of order) drawBoat(bl, b, w, v.t, st.sel === b.id);
+    for (const b of order) drawBoat(bl, b, w, v.t, st.sel === b.id, (v.boat || st.boat).cls);
     drawNotes(bl, order, v.t);
     drawHud(v);
     updateBar(v);

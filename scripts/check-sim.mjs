@@ -298,23 +298,25 @@ for (const wind of [-12, 0, 12]) {
 }
 // Hakem botu gövde biçimiyle çarpışır (daire değil): yanından 3 px boşlukla geçen tekne takılmaz, gövdeye giden tekne
 // kenarında durur (kullanıcı 2026-11-14: hakem botuyla rakip tekne arasındaki boşluğa girilemiyordu)
-{
+// Gövde sınıfa göre (engine.hullOf, çizilen gövdeyle aynı): Optimist geniş (yarıçap 11), ILCA dar (7,2); ikisi de denenir.
+for (const cls of ['optimist', 'ilca7']) {
   S.setCourse(S.COURSE_DEFAULT);
+  const H = globalThis.SailEngine.hullOf(cls);
   const f = S.defaultFleet(2), me = f.find(b => b.mine), bad = [], A = S.LINE.boat;
-  const ctx = { t: 0, wind: 90, gusts: [], boats: [me], sea: { current: 0, waves: 0 } };
+  const ctx = { t: 0, wind: 90, gusts: [], boats: [me], sea: { current: 0, waves: 0 }, boat: { ...S.BOAT_DEFAULT, cls } };
   // rüzgar 90: bot başı sağa, gövde yatay (x A-30..A+32, y A..A+24)
   const run = x => { Object.assign(me, { x, y: A.y + 110, h: 0, v: 40, manual: true, sheetOff: 0 }); let hit = false;
     for (let i = 0; i < 160; i++) { if (S.drive(ctx, me, { autoTrim: true }, 0.05).includes('hit')) hit = true; } return hit; };
-  if (run(A.x + 42)) bad.push('yanından 3 px boşlukla geçerken takıldı');
+  if (run(A.x + 32 + H.r + 3.5)) bad.push('yanından 3 px boşlukla geçerken takıldı');
   if (!(me.y < A.y - 60)) bad.push(`yanından geçemedi (y=${me.y.toFixed(0)})`);
-  const hit = run(A.x + 5), gap = me.y - (A.y + 24) - 19;
+  const hit = run(A.x + 5), gap = me.y - (A.y + 24) - H.half - H.r;   // baş ucundan bot gövdesine kalan boşluk
   if (!hit) bad.push('gövdeye giden tekne durmadı');
-  if (!(gap > -2 && gap < 12)) bad.push(`gövdeye ${gap.toFixed(0)} px kala durdu (beklenen ~6)`);
+  if (!(gap > -2 && gap < 6)) bad.push(`baş gövdeye ${gap.toFixed(0)} px kala durdu (beklenen ~0)`);
   // şamandıranın yanından (çizilen daireye 4 px) geçen tekne takılmaz
-  const M = S.MARK; Object.assign(me, { x: M.x + 9 + 6.5 + 4, y: M.y + 110, h: 0, v: 40, sheetOff: 0 }); let mh = false;
+  const M = S.MARK; Object.assign(me, { x: M.x + 9 + H.r + 4, y: M.y + 110, h: 0, v: 40, sheetOff: 0 }); let mh = false;
   for (let i = 0; i < 160; i++) if (S.drive(ctx, me, { autoTrim: true }, 0.05).includes('hit')) mh = true;
   if (mh) bad.push('şamandıranın yanından geçerken takıldı');
-  console.log(`• Hakem botu / şamandıra gövde çarpışması: ${bad.length ? 'SORUN' : `yanından yakın geçiliyor, gövdeye giden ${gap.toFixed(0)} px kala duruyor`}`);
+  console.log(`• Hakem botu / şamandıra gövde çarpışması (${cls}): ${bad.length ? 'SORUN' : `yanından yakın geçiliyor, baş gövdeye ${gap.toFixed(0)} px kala duruyor`}`);
   if (bad.length) { problems++; console.log('  ⚠ Gövde çarpışması:', bad.join(', ')); }
 }
 // Akıntı yönü: arkadan gelen tekneyi ileri (yukarı), karşıdan gelen aşağı, sağdan gelen sola, sağ üstten gelen sol aşağı taşır

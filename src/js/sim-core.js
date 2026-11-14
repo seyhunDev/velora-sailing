@@ -125,13 +125,14 @@
   const upwindKn = E.upwindKn;
   let TAU_START = 4 / CLOCK_SCALE, CREEP_T = 240 / CLOCK_SCALE, ACCEL = [0], boatKey = '';
   const BOAT = { ...BOAT_DEFAULT };
+  let HULLC = E.hullOf(BOAT_DEFAULT.cls);   // elle sürmede çarpışan gövde (çizilen gövdeyle aynı ölçü)
   function setBoat(c) {
     const cls = CLASSES[c && c.cls] ? c.cls : BOAT_DEFAULT.cls;
     const windKn = clamp(+(c && c.windKn) || BOAT_DEFAULT.windKn, 2, 30), accelAt = clamp(+(c && c.accelAt) || BOAT_DEFAULT.accelAt, 5, 120);
     const pre = clamp(+(c && c.pre) || BOAT_DEFAULT.pre, 60, 600);
     const vis = VIS[c && c.vis] ? c.vis : 'eski';   // alanı olmayan (eski) kayıt eski ölçekte
     const key = cls + '|' + windKn + '|' + accelAt + '|' + pre + '|' + vis; if (key === boatKey) return; boatKey = key;
-    Object.assign(BOAT, { cls, windKn, accelAt, pre, vis }); CLOCK_REF = VIS[vis];
+    Object.assign(BOAT, { cls, windKn, accelAt, pre, vis }); CLOCK_REF = VIS[vis]; HULLC = E.hullOf(cls);
     SPD = upwindKn(cls, windKn) / 3.5; CLOCK_SCALE = CLOCK_REF / SPD; START_AT = pre / CLOCK_SCALE;
     CREEP_T = Math.min(240, pre - 20) / CLOCK_SCALE;     // hızlanmadan önceki son 4 dk: yelken yarı boş, hızlanma noktasına yavaşça sokulur
     GUST_GAIN = clamp(upwindKn(cls, windKn + 5) / upwindKn(cls, windKn) - 1, 0.06, 0.25);
@@ -458,14 +459,15 @@
       // Gövde biçimiyle: teknenin baş-kıç doğrusu (±19 px, yarı genişlik ~6,5 px) şamandıranın/pin'in çizilen dairesine ya da
       // hakem botunun gövdesine değince durur (eskiden tekne merkezi 30-54 px'lik daireye giremiyordu: yanından geçerken
       // gövdeler arasında boşluk varken takılıyordu, kullanıcı 2026-11-14).
-      const blocked = o => { const g1 = E.hullObstacleGap(o, b.x, b.y, b.h, 19); return g1 < OBS_GAP && g1 < E.hullObstacleGap(o, x0, y0, h0, 19); };
+      // Gövde ölçüsü sınıfa göre (engine.hullOf: çizilen gövdenin kapsülü; Optimist geniş ve kısa uçlu, ILCA dar ve uzun).
+      const HL = HULLC.half, blocked = o => { const g1 = E.hullObstacleGap(o, b.x, b.y, b.h, HL); return g1 < HULLC.r && g1 < E.hullObstacleGap(o, x0, y0, h0, HL); };
       for (const o of OBSTACLES) if (blocked(o)) { b.x = x0; b.y = y0; b.h = h0; b.v *= 0.3; if (!out.includes('hit')) out.push('hit'); }
       // teknelerde gövde biçimi (uzun, dar): yan yana ya da kıç kıça yakın geçilebilir, gövdeler değince durur
       for (const o of others) {
         const g1 = hullGap(b, o);
         // zaten iç içeyse (öbür tekne senin üstüne geldiyse) engelleme: yoksa her yön gövdeyi 'yaklaştırır', tekne sonsuza dek takılır
         const g0 = hullGap({ x: x0, y: y0, h: h0 }, o);
-        if (g1 < HULL_GAP && g1 < g0 && g0 >= HULL_GAP - 0.5) { b.x = x0; b.y = y0; b.h = h0; b.v *= 0.3; if (!out.includes('contact:' + o.id)) out.push('contact:' + o.id); }
+        if (g1 < 2 * HULLC.r && g1 < g0 && g0 >= 2 * HULLC.r - 0.5) { b.x = x0; b.y = y0; b.h = h0; b.v *= 0.3; if (!out.includes('contact:' + o.id)) out.push('contact:' + o.id); }
       }
       const Bd = bounds(), bx = clamp(b.x, Bd.x0, Bd.x1), by = clamp(b.y, Bd.y0, Bd.y1);
       if (bx !== b.x || by !== b.y) { b.x = bx; b.y = by; b.v *= 0.5; if (!out.includes('edge')) out.push('edge'); }
@@ -473,11 +475,10 @@
     b.drv = true;
     return out;
   }
-  // İki teknenin gövdeleri (baş-kıç doğrusu, ±19 px) arasındaki en kısa uzaklık; HULL_GAP altı = temas (gövde genişliği ~14 px)
-  const HULL_GAP = 13;
-  const OBS_GAP = 6.5;   // tekne gövdesinin yarı genişliği: engelin kenarına bundan yakın = temas
+  // İki teknenin gövdeleri (baş-kıç doğrusu, ±HULLC.half px) arasındaki en kısa uzaklık; 2·HULLC.r altı = temas.
+  // HULLC: sınıfın gövde kapsülü (setBoat): Optimist r 11 / ±14 (geniş kutu), ILCA r 7,2 / ±17,8. Eskiden her sınıfta ±19 / 6,5.
   function hullGap(a, c) {
-    const A = E.fwd(a.h), C = E.fwd(c.h), L = 19;
+    const A = E.fwd(a.h), C = E.fwd(c.h), L = HULLC.half;
     const p1 = { x: a.x - A.x * L, y: a.y - A.y * L }, d1 = { x: A.x * 2 * L, y: A.y * 2 * L };
     const p2 = { x: c.x - C.x * L, y: c.y - C.y * L }, d2 = { x: C.x * 2 * L, y: C.y * 2 * L };
     const r = { x: p1.x - p2.x, y: p1.y - p2.y }, aa = dot(d1, d1), ee = dot(d2, d2), f = dot(d2, r), cc = dot(d1, r), bb = dot(d1, d2), den = aa * ee - bb * bb;
