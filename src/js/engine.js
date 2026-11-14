@@ -129,7 +129,8 @@
     if (!o.hull || o.w === w) return o;
     const f = fwd(w), r = { x: Math.cos(w * DEG), y: Math.sin(w * DEG) };
     const P = (lx, ly) => ({ x: o.ax + r.x * lx - f.x * ly, y: o.ay + r.y * lx - f.y * ly });
-    o.w = w; o.a = P(CB_HULL.x, CB_HULL.y0); o.b = P(CB_HULL.x, CB_HULL.y1);
+    const hx = o.flip ? -CB_HULL.x : CB_HULL.x;   // flip: ayna (finiş hakem botu hattın solunda)
+    o.w = w; o.a = P(hx, CB_HULL.y0); o.b = P(hx, CB_HULL.y1);
     o.x = (o.a.x + o.b.x) / 2; o.y = (o.a.y + o.b.y) / 2;
     return o;
   }
@@ -491,6 +492,6 @@
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
     windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,
     CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU,
-    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf
+    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf, CB_HULL
   };
 })(typeof window !== 'undefined' ? window : globalThis);

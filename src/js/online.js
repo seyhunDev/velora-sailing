@@ -120,7 +120,7 @@
   const newCode = () => { const A = 'ABCDEFGHJKLMNPRSTUVYZ23456789'; let s = ''; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 
   // ---------- Oda ayarları ----------
-  const CFG0 = { max: 8, cls: 'optimist', windKn: 8, pre: 180, flag: 'P', line: 400, mark: 650, bias: 0,
+  const CFG0 = { max: 8, cls: 'optimist', windKn: 8, pre: 180, flag: 'P', line: 400, mark: 650, course: 'trapez', bias: 0,
     shiftDir: 0, shiftDeg: 10, shiftAt: 2, shiftRamp: 40, osc: 0, oscPer: 2, gust: 'yok', cur: 0 };
   // seçenekler: [anahtar, başlık, [[değer, yazı], …]]
   const FORM = [
@@ -131,6 +131,7 @@
       ['flag', 'Hazırlık bayrağı', [['P', 'P'], ['I', 'I'], ['Z', 'Z'], ['U', 'U'], ['Siyah', 'Siyah']]]
     ]],
     ['Parkur', [
+      ['course', 'Parkur', [['trapez', 'Trapez (1-2-kapı-finiş)'], ['orsa', 'Yalnız orsa']]],
       ['line', 'Start hattı boyu', [[300, '6 boy'], [400, '8 boy'], [500, '10 boy'], [600, '12 boy']]],
       ['mark', 'Orsa şamandırası uzaklığı', [[450, '9 boy'], [650, '13 boy'], [850, '17 boy'], [1100, '22 boy']]]
     ]],
@@ -151,7 +152,7 @@
   ];
   const optTxt = (k, v) => { for (const [, rows] of FORM) for (const r of rows) if (r[0] === k) { const o = r[2].find(x => x[0] === v); return o ? o[1] : String(v); } return String(v); };
   function cfgSummary(c) {
-    const out = [`${optTxt('cls', c.cls)}`, `${c.windKn} kn`, optTxt('bias', c.bias), `geri sayım ${optTxt('pre', c.pre)}`, `${c.flag === 'Siyah' ? 'siyah' : c.flag} bayrağı`, `hat ${optTxt('line', c.line)}`, `şamandıra ${optTxt('mark', c.mark)}`];
+    const out = [`${optTxt('cls', c.cls)}`, `${c.windKn} kn`, optTxt('bias', c.bias), `geri sayım ${optTxt('pre', c.pre)}`, `${c.flag === 'Siyah' ? 'siyah' : c.flag} bayrağı`, `${optTxt('course', c.course || 'trapez').replace(/ \(.*\)/, '').toLowerCase()} parkur`, `hat ${optTxt('line', c.line)}`, `şamandıra ${optTxt('mark', c.mark)}`];
     if (c.shiftDir) out.push(`start'tan ${c.shiftAt ? c.shiftAt + ' dk sonra' : 'hemen sonra'} ${c.shiftDeg}° ${c.shiftDir > 0 ? 'sağa' : 'sola'} döner${c.shiftRamp > 60 ? ' (yavaş)' : ''}`);
     if (c.osc) out.push(`±${c.osc}° salınım (${c.oscPer} dk)`);
     if (c.gust !== 'yok') out.push(`sağanak: ${optTxt('gust', c.gust).toLowerCase()}`);
@@ -168,7 +169,7 @@
   }
   // Oyuncular → tekneler (herkeste aynı sıra: meta.order). Yerler simülatörün varsayılan start kalabalığı.
   function buildSetup(c, order, myPid) {
-    const course = { lineLen: c.line, markDist: c.mark, flag: c.flag };
+    const course = { lineLen: c.line, markDist: c.mark, flag: c.flag, type: c.course === 'orsa' ? 'orsa' : 'trapez' };
     S.setCourse(course);
     const pos = S.defaultFleet(order.length);
     const fleet = order.map((o, i) => {
@@ -310,7 +311,7 @@
   function resHtml() {
     const rs = results(), host = isHost(), done = N.meta && N.meta.state === 'done';
     return `<ol class="net-res">${rs.map(({ b, status }) => `<li class="${b.mine ? 'me' : ''}"><span class="nr-no">${b.finish && !b.dsq ? b.finish : '–'}</span><i style="background:${b.color}"></i><b>${esc(b.sailor || b.name)}</b><span class="nr-st">${esc(status)}</span></li>`).join('')}</ol>
-      <p class="dlg-note">${done ? 'Yarış bitti.' : 'Yarış sürüyor: sıralama canlı güncellenir.'} Süre start'tan şamandırayı dönüşe kadar; cezalar (iki tur) süreye zaten eklenmiş olur.</p>
+      <p class="dlg-note">${done ? 'Yarış bitti.' : 'Yarış sürüyor: sıralama canlı güncellenir.'} Süre start'tan finişe kadar (yalnız orsada şamandırayı dönüşe kadar); cezalar (iki tur) süreye zaten eklenmiş olur.</p>
       <div class="dlg-actions">
         ${host && !done ? '<button class="tb" data-act="end">Yarışı bitir</button>' : ''}
         ${host ? '<button class="tb primary" data-act="again">Yeni yarış (aynı oda)</button>' : ''}
@@ -571,6 +572,7 @@
       if (Math.hypot(px - b.x, py - b.y) > 60 || !b.netSeen) { b.x = px; b.y = py; b.h = p.h; }
       else { b.x += (px - b.x) * 0.35; b.y += (py - b.y) * 0.35; b.h = E.lerpAngle(b.h, p.h, 0.5); }
       b.netSeen = true; b.v = p.v; b.tack = p.tk ? 'port' : 'starboard'; b.phase = p.ph; b.started = !!p.st; b.penalties = p.pn || 0;
+      b.leg = p.lg || 0; b.rMk = p.rm || null;
       b.finishT = p.fT == null ? null : p.fT; b.doneAt = p.dA == null ? null : p.dA; b.dsq = p.dq || undefined;
       b.sheetOff = p.so || 0; b.sheet = p.sh == null ? null : p.sh; b.back = !!p.bk; b.hand = true; b.remote = true;
       if (p.nt) { b.note = p.nt; b.noteKind = p.nk || ''; b.noteUntil = s.t + 0.6; }
@@ -599,7 +601,7 @@
     const r = (v, k) => (v == null || !isFinite(v) ? null : +(+v).toFixed(k));
     be.set(`${base()}/boats/${N.pid}`, {
       x: r(m.x, 1), y: r(m.y, 1), h: r(m.h, 1), v: r(m.v, 2), tk: m.tack === 'port' ? 1 : 0, ph: m.phase, st: m.started ? 1 : 0, pn: m.penalties || 0,
-      so: r(m.sheetOff || 0, 1), sh: r(m.sheet, 1), bk: m.back ? 1 : 0, fT: r(m.finishT, 2), dA: r(m.doneAt, 2), dq: m.dsq || null,
+      so: r(m.sheetOff || 0, 1), sh: r(m.sheet, 1), bk: m.back ? 1 : 0, fT: r(m.finishT, 2), dA: r(m.doneAt, 2), dq: m.dsq || null, lg: m.leg || 0, rm: m.rMk || null,
       nt: m.note && m.noteUntil > s.t && m.noteKind === 'bad' ? String(m.note).slice(0, 40) : null, nk: m.noteKind || null, t: r(s.t, 3)
     }).catch(() => {});
   }
@@ -630,7 +632,8 @@
       N.resAuto = true;
       setTimeout(() => { if (!N.s) return; N.view = 'res'; N.resOpen = true; show(true); }, 1800);
     }
-    if (m.phase === 'round') toast('Şamandırayı dönüyorsun: dönüş otomatik');
+    if (m.phase === 'round') toast(`${m.rMk || 'Şamandıra'} dönüşü otomatik, bitince dümen yine sende`);
+    if (was === 'round' && m.phase === 'race') toast(`${S.CRS.legs[m.leg || 0] && S.CRS.legs[m.leg || 0].k === 'fin' ? 'Finişe' : 'Sonraki şamandıraya'}: dümen sende`);
     if (m.phase === 'penalty') toast('İki tur ceza: otomatik atılıyor, bitince dümen yine sende');
     if (was === 'penalty' && m.phase === 'race') toast('Ceza tamam: dümen sende');
   }

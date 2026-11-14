@@ -10,9 +10,18 @@
   const WORLD = { w: 1000, h: 900 };
   // Parkur: start hattı boyu ve orsa şamandırasının hatta uzaklığı ayarlanabilir (setCourse).
   // Nesneler yerinde güncellenir; arayüz aynı nesneleri (S.LINE, S.MARK, S.WORLD) okur.
-  const COURSE_DEFAULT = { lineLen: 550, markDist: 950, flag: 'P' };   // 2026-11-14 (kullanıcı): hat 8→11 boy, şamandıra 13→19 boy (eski 400/650)   // flag: hazırlık bayrağı (P, I, Z, U, Siyah)
+  // type: 'trapez' (kullanıcı 2026-11-14, Optimist varsayılanı: START-1-2-3S/3P-FİNİŞ, Velora rota kartı) | 'orsa' (eski: 1'i dönünce biter;
+  // alanı olmayan eski kayıtlar böyle oynar, bkz. newRace)
+  const COURSE_DEFAULT = { lineLen: 550, markDist: 950, flag: 'P', type: 'trapez' };   // 2026-11-14 (kullanıcı): hat 8→11 boy, şamandıra 13→19 boy (eski 400/650)   // flag: hazırlık bayrağı (P, I, Z, U, Siyah)
   const LINE = { pin: { x: 300, y: 740 }, boat: { x: 700, y: 740 } };
-  const MARK = { x: 500, y: 90, label: 'Orsa şamandırası' };
+  const MARK = { x: 500, y: 90, label: 'Orsa şamandırası', no: '1' };
+  // Trapez parkurun öbür işaretleri (yerinde güncellenir). Geometri Velora rota kartından (seyhunDev/sesliasistan
+  // src/lib/courseCard.js geom0, trapez): L = orsa ayağı, start ortasından; 2: 0,45L rüzgarüstü, 1,05L sol; 3 kapısı:
+  // 0,57L rüzgaraltı, 0,98L sol, yarı genişlik 0,11L; finiş: 0,39L rüzgarüstü, 0,86L sol, yarı boy 0,09L (hakem botu solda).
+  const M2 = { x: 0, y: 0, label: '2 numaralı şamandıra', no: '2' };
+  const G3S = { x: 0, y: 0, label: '3S kapı şamandırası', no: '3S' }, G3P = { x: 0, y: 0, label: '3P kapı şamandırası', no: '3P' };
+  const FIN = { pin: { x: 0, y: 0 }, boat: { x: 0, y: 0 } };   // finiş hattı: pin = sol uç (finiş hakem botu), boat = sağ uç (şamandıra); start hattıyla aynı yönde
+  const CRS = { type: 'orsa', legs: [], marks: [MARK] };
   const BASE = 55, TAU = 1.2, HOLD_V = BASE * 0.04;
   // Zaman ölçeği: 1 simülasyon saniyesi = CLOCK_SCALE gerçek saniye. Varsayılan parkurda (Optimist, 8 knot rüzgar)
   // start → orsa şamandırası ortalama ~15 dakika sürer; 1× oynatma gerçek zamandır (sim.js oynatırken CLOCK_SCALE'e böler).
@@ -77,20 +86,35 @@
   let courseKey = '';
   function setCourse(c) {
     const L = Math.round((c && c.lineLen) || COURSE_DEFAULT.lineLen), D = Math.round((c && c.markDist) || COURSE_DEFAULT.markDist);
-    const key = L + 'x' + D; if (key === courseKey) return; courseKey = key;
-    WORLD.w = Math.max(1000, L + 520); WORLD.h = 90 + D + 160;
-    const cx = WORLD.w / 2, ly = 90 + D;
+    const type = c && c.type === 'trapez' ? 'trapez' : 'orsa';
+    const key = L + 'x' + D + type; if (key === courseKey) return; courseKey = key;
+    const tz = type === 'trapez';
+    // trapez: 3S kapısı start ortasının 1,09L solunda → parkur ortası sağa kayar, alt kenar kapının altına iner
+    const cx = tz ? Math.round(D * 1.09 + 230) : Math.max(1000, L + 520) / 2, ly = 90 + D;
+    WORLD.w = tz ? cx + L / 2 + 260 : Math.max(1000, L + 520); WORLD.h = tz ? Math.round(ly + D * 0.57 + 170) : 90 + D + 160;
     LINE.pin.x = cx - L / 2; LINE.pin.y = ly; LINE.boat.x = cx + L / 2; LINE.boat.y = ly;
     MARK.x = cx; MARK.y = 90;
+    const at = (up, left) => ({ x: Math.round(cx - left * D), y: Math.round(ly - up * D) });
+    Object.assign(M2, at(0.45, 1.05));
+    const g3 = at(-0.57, 0.98), gw = Math.round(D * 0.11), fc = at(0.39, 0.86), fw = Math.round(D * 0.09);
+    Object.assign(G3S, { x: g3.x - gw, y: g3.y }); Object.assign(G3P, { x: g3.x + gw, y: g3.y });
+    Object.assign(FIN.pin, { x: fc.x - fw, y: fc.y }); Object.assign(FIN.boat, { x: fc.x + fw, y: fc.y });
+    // ayaklar: dir +1 = iskeleden (şamandıra solda, saat yönünün tersine), −1 = sancaktan
+    CRS.type = type;
+    CRS.legs = tz ? [{ k: 'mark', m: MARK, dir: 1, up: true }, { k: 'mark', m: M2, dir: 1, from: MARK }, { k: 'gate', ms: [G3S, G3P], from: M2 }, { k: 'fin', up: true }]
+      : [{ k: 'mark', m: MARK, dir: 1, up: true, last: true }];
+    CRS.marks = tz ? [MARK, M2, G3S, G3P] : [MARK];
+    G3S.dir = -1; G3P.dir = 1; M2.dir = 1; MARK.dir = 1;
     const refill = (a, b) => { a.length = 0; a.push(...b); };
-    refill(OBSTACLES, E.obstaclesOf({ marks: [MARK], line: LINE }));
+    const finObs = tz ? [{ x: FIN.boat.x, y: FIN.boat.y, r: 14, rDraw: 7, finEnd: -1 }, E.orientObstacle({ hull: true, flip: true, ax: FIN.pin.x, ay: FIN.pin.y, r: E.CB_HULL.r, w: null, finEnd: 1 }, 0)] : [];
+    refill(OBSTACLES, [...E.obstaclesOf({ marks: CRS.marks, line: LINE }), ...finObs]);
     refill(LINE_OBS, E.obstaclesOf({ line: LINE }));
-    refill(MARK_OBS, [{ x: MARK.x, y: MARK.y, r: 14 }]);
-    refill(AVOID_OBS, [...LINE_OBS, MARK_OBS[0]]);
+    refill(MARK_OBS, CRS.marks.map(m => ({ x: m.x, y: m.y, r: 14, isMark: true, mk: m })));
+    refill(AVOID_OBS, [...LINE_OBS, ...MARK_OBS, ...finObs]);
   }
   setCourse(COURSE_DEFAULT);
   // hakem botu engeli (gövde biçimi) rüzgarla döner: çizimdeki gibi başı rüzgara
-  function orientObs(w) { for (const o of OBSTACLES) if (o.hull) E.orientObstacle(o, w); for (const o of LINE_OBS) if (o.hull) E.orientObstacle(o, w); }
+  function orientObs(w) { for (const o of OBSTACLES) if (o.hull) E.orientObstacle(o, w); for (const o of LINE_OBS) if (o.hull) E.orientObstacle(o, w); for (const o of AVOID_OBS) if (o.hull) E.orientObstacle(o, w); }
 
   const PERSONAS = {
     sol: 'Sol taraf', orta: 'Orta', sag: 'Sağ taraf', saganak: 'Sağanak avcısı', manuel: 'Senin kararın'
@@ -112,6 +136,95 @@
   const markAngle = (b, w) => E.norm180(bearing(MARK, b) - w);
   function bearing(a, b) { return E.norm360(Math.atan2(b.x - a.x, -(b.y - a.y)) / E.DEG); }
   const lineSide = p => R.lineSide(LINE, p);     // +1: start tarafı (hattın altı)
+
+  // ---------- Parkur ayakları (trapez) ----------
+  // b.leg: teknenin gittiği ayak (0 = 1 numaralı şamandıra). Eski kayıtlarda alan yok → 0.
+  const legOf = b => CRS.legs[Math.min(b.leg || 0, CRS.legs.length - 1)];
+  const gateC = () => ({ x: (G3S.x + G3P.x) / 2, y: G3S.y });
+  const finMid = () => ({ x: (FIN.pin.x + FIN.boat.x) / 2, y: FIN.pin.y });
+  const markByNo = no => CRS.marks.find(m => m.no === no) || MARK;
+  const legIn = lg => bearing(lg.from || { x: MARK.x, y: LINE.pin.y }, lg.k === 'gate' ? gateC() : lg.m);   // ayağın geliş yönü
+  // dönüşe giriş noktası: şamandıranın dönüş tarafında, geliş yönüne dik (iskeleden dönülecekse şamandıra teknenin solunda)
+  function entryOf(m, dir, inB) { const f = E.fwd(inB + 90 * dir); return { x: m.x + f.x * R_ROUND, y: m.y + f.y * R_ROUND }; }
+  // kapı seçimi: sol taktikteki 3S'yi (sol), sağ taktikteki 3P'yi seçer; öbürleri yakın olanı. Kapıya ~6 boy kala kesinleşir.
+  function gateMark(b) {
+    if (b.gateMk) return b.gateMk === '3S' ? G3S : G3P;
+    let m;
+    if (b.persona === 'sol') m = G3S; else if (b.persona === 'sag') m = G3P;
+    else { const dS = Math.hypot(b.x - G3S.x, b.y - G3S.y), dP = Math.hypot(b.x - G3P.x, b.y - G3P.y); m = Math.abs(dS - dP) < 20 ? ((parseInt(b.id, 10) || 0) % 2 ? G3S : G3P) : dS < dP ? G3S : G3P; }
+    const c = gateC(); if (Math.hypot(b.x - c.x, b.y - c.y) < 300) b.gateMk = m.no;
+    return m;
+  }
+  // teknenin şu ayakta yöneldiği nokta (orsa ayağında layline'lar buna göre)
+  function aimOf(b, w) {
+    const i = b.leg || 0, lg = legOf(b);
+    if (i === 0 || CRS.type !== 'trapez') return waypoint(w);
+    if (lg.k === 'mark') return entryOf(lg.m, lg.dir, legIn(lg));
+    if (lg.k === 'gate') { const m = gateMark(b); return entryOf(m, m.dir, legIn(lg)); }
+    const f = finMid(); return { x: f.x, y: f.y - 12 };
+  }
+  // dönüş bitince gidilecek rota: bir sonraki ayağın hedefi; orsaya çıkıyorsa dönüş yönündeki kontranın orsa rotası
+  function exitHeading(b, m, w) {
+    const nx = CRS.legs[(b.leg || 0) + 1]; if (!nx) return w + 180;
+    const p = nx.k === 'mark' ? entryOf(nx.m, nx.dir, legIn(nx)) : nx.k === 'gate' ? gateC() : finMid();
+    let out = bearing(m, p);
+    if (Math.abs(E.norm180(out - w)) < 45) out = w + 45 * m.dir;
+    return out;
+  }
+  // en yakın şamandıra / finiş ucu (ceza turu bunlardan uzakta atılır)
+  function markNear(b) {
+    let d = 1e9; for (const m of CRS.marks) d = Math.min(d, Math.hypot(b.x - m.x, b.y - m.y));
+    if (CRS.type === 'trapez') for (const p of [FIN.pin, FIN.boat]) d = Math.min(d, Math.hypot(b.x - p.x, b.y - p.y));
+    return d;
+  }
+  // Kaçınmada şamandıranın hangi yanda bırakılacağı: +1 solda (iskele), −1 sağda; 0 = serbest
+  function keepSide(b, o) {
+    const lg = legOf(b), i = b.leg || 0;
+    if (o.mk) {
+      if (o.mk === MARK && i === 0) return 1;
+      if (lg.k === 'mark' && lg.m === o.mk) return lg.dir;
+      if (lg.k === 'gate' && (o.mk === G3S || o.mk === G3P)) return o.mk.dir;
+    }
+    if (o.finEnd && lg.k === 'fin') return o.finEnd;
+    return 0;
+  }
+  // K18 bölgesi (3 boy): teknenin şu ayaktaki şamandıranın bölgesine ilk girdiği an (rules.js classify kullanır)
+  function zoneUpd(b, t) {
+    if (b.phase === 'round') return;
+    const lg = legOf(b);
+    if (b.phase !== 'race' || !b.started || lg.k === 'fin') { b.zoneT = null; b.zoneLeg = null; return; }
+    const ms = lg.k === 'gate' ? lg.ms : [lg.m]; let m = ms[0], d = 1e9;
+    for (const x of ms) { const dd = Math.hypot(b.x - x.x, b.y - x.y); if (dd < d) { d = dd; m = x; } }
+    if (d < 3 * HULL) { if (b.zoneLeg !== (b.leg || 0) || b.zoneT == null) { b.zoneLeg = b.leg || 0; b.zoneT = t; b.zoneUp = !!lg.up; b.zoneX = m.x; b.zoneY = m.y; } }
+    else if (d > 4 * HULL) { b.zoneT = null; b.zoneLeg = null; }
+  }
+  function startRound(b, m, w, t) {
+    b.phase = 'round'; b.roundAt = t;
+    if (CRS.type !== 'trapez') return;
+    const out = exitHeading(b, m, w), dir = m.dir || 1;
+    let need = dir > 0 ? E.norm360(b.h - out) : E.norm360(out - b.h); if (need > 300) need = 0;
+    b.rMk = m.no; b.rDir = dir; b.rTurn = 0; b.rNeed = need;
+  }
+  // dönüş tamam: bir sonraki ayağa
+  function legDone(b, s, t, w) {
+    const i = b.leg || 0, m = markByNo(b.rMk);
+    b.leg = i + 1; b.phase = 'race'; b.tack = E.norm180(b.h - w) < 0 ? 'starboard' : 'port';
+    if (b.manual) b.manual = false;   // manuel (tramolaları sen at) yalnız ilk orsada: sonrası otomatik; elle sürmeye dönünce yine manuel olur
+    b.sideDone = false; b.gateMk = null; b.zoneT = null; b.zoneLeg = null; b.rMk = null; b.man = null; b.escH = null;
+    const n = (s.roundN && s.roundN[i] || 0) + 1; s.roundN = { ...(s.roundN || {}), [i]: n };
+    note(b, s, `${m.no} döndü`, 'good', 2);
+    if (b.mine || n === 1) log(s, `${b.id} ${m.no} numaralı şamandırayı ${n}. sırada döndü`, b.mine ? 'good' : '');
+  }
+  // finiş hattını rüzgaraltından geçti
+  function finishBoat(b, s, t) {
+    if (b.penaltyAt != null) {                                // cezası bekliyorsa önce cezasını atar, sonra bitirir
+      b.phase = 'penalty'; b.penWait = true; b.penTurn = 0; b.penaltyAt = null; b.man = null; b.penFinish = true; b.hand = false;
+      note(b, s, 'Önce cezasını atmalı', 'bad', 2.5); return;
+    }
+    b.phase = 'done'; b.finish = finishNo(b, s); b.finishT = t - s.startAt; b.doneAt = t; b.hand = false;
+    note(b, s, finNote(b), b.dsq ? 'bad' : 'good', 3);
+    log(s, b.dsq ? `${b.id} finişi geçti ama ${b.dsq} (diskalifiye), sıraya girmez` : `${b.id} finişi ${b.finish}. sırada geçti`, b.dsq ? '' : 'good');
+  }
 
   // ---------- Tekne sınıfı, rüzgar hızı, hızlanma anı ----------
   // Orsa tekne hızı (knot), rüzgar hızına (knot) göre. Kaynak: sınıfların bilinen ortalama orsa hızları
@@ -238,10 +351,11 @@
   function newRace(fleet, opts) {
     opts = opts || {};
     const w = opts.wind != null ? opts.wind : 0;
-    const boats = fleet.map(b => ({ ...b, phase: 'wait', go: false, man: null, manUntil: -1, note: '', noteUntil: -1,
+    const boats = fleet.map(b => ({ ...b, leg: 0, gybeLeg: null, gateMk: null, zoneT: null, zoneLeg: null, rMk: null, prevFin: null, phase: 'wait', go: false, man: null, manUntil: -1, note: '', noteUntil: -1,
       lastTack: -10, finish: null, finishT: null, gone: false, doneAt: null, ocsOnce: false, sideDone: false, started: false, outside: false, penalties: 0, penaltyAt: null, penTurn: 0, penWait: false, penAway: null, penFinish: false, routeIdx: 0, routeFrom: null, v: b.drv && b.v != null ? b.v : HOLD_V }));
     for (const b of boats) if (!b.drv) b.h = w + (b.tack === 'starboard' ? -25 : 25);   // elle sürülmüş tekne yönünü korur
-    const course = { ...COURSE_DEFAULT, ...(opts.course || {}) }; setCourse(course);
+    // parkur türü yazılmamış kurulum (eski kayıt, v1.138 ve öncesi) orsada biter: tekrar oynatma birebir aynı kalsın
+    const course = opts.course ? { ...COURSE_DEFAULT, type: 'orsa', ...opts.course } : { ...COURSE_DEFAULT }; setCourse(course);
     const sea = { ...SEA_DEFAULT, ...(opts.sea || {}) };
     const boat = { ...BOAT_DEFAULT, ...(opts.boat || {}) }; setBoat(boat);
     return { t: 0, wind: w, gusts: (opts.gusts || []).map(g => ({ ...g })), boats, events: [], finished: 0, pairLog: {}, startAt: START_AT, course, sea, boat };
@@ -249,7 +363,7 @@
 
   // ---------- Strateji: hangi kontrada olmak istiyor? ----------
   function wantedTack(b, s, w) {
-    const wp = waypoint(w), up = E.fwd(w), right = E.fwd(w + 90);
+    const wp = aimOf(b, w), up = E.fwd(w), right = E.fwd(w + 90);
     const rel = E.norm180(bearing(b, wp) - w);           // şamandıranın rüzgara göre kerterizi
     const along = dot({ x: wp.x - b.x, y: wp.y - b.y }, up);
     const lat = dot({ x: b.x - wp.x, y: b.y - wp.y }, right);   // + sağ taraf
@@ -333,7 +447,7 @@
     const routing = b.started && b.route && b.routeIdx < b.route.length;
     const sideLock = (b.persona === 'sol' && !b.sideDone && b.tack === 'starboard') || (b.persona === 'sag' && !b.sideDone && b.tack === 'port');
     const allowTack = b.phase === 'race' && !b.manual && t - b.lastTack > 1.5 && !routing && !sideLock;
-    return R.chooseEscape(b, others, w, target, t, g, { allowTack, marks: [MARK] });
+    return R.chooseEscape(b, others, w, target, t, g, { allowTack, marks: CRS.marks });
   }
   // Protesto: hak sahibi `by`, `b`'nin kural ihlali yüzünden rota değiştirmek zorunda kaldı ya da temas oldu → b iki tur ceza atar
   function protest(s, b, by, rule, why) {
@@ -599,6 +713,7 @@
         : b.phase === 'race' || b.phase === 'round' || b.phase === 'ocs' ? shadowAt(b, snap, w) : { k: 0, by: null };   // pis rüzgar seyreden tekneyi hep yavaşlatır (OCS dönüşü dahil; start öncesi bekleme ve ceza turu hariç)
       if (b.mine && sh.k > 0.25 && !(b.shadow > 0.25) && t > s.startAt) log(s, `${b.id} pis rüzgarda kaldı (${sh.by.id} numaranın rüzgar gölgesi), yavaşladı`, 'bad', 'golge' + b.id);
       b.shadow = sh.k; b.shadowBy = sh.by ? sh.by.id : null;
+      if (CRS.type === 'trapez') zoneUpd(b, t);
       if (b.hand) { handPhase(b, s, t, w, remain); continue; }   // elle sürülen tekne: dümen/iskota kullanıcıda (drive), yalnız evre geçişleri
       let target = b.h, speedK = 1, holding = false, turnDir = 0, creepV = null;
 
@@ -627,7 +742,8 @@
       }
       if (b.phase === 'race') {
         const routing = !b.manual && b.started && b.route && b.routeIdx < b.route.length;
-        let wt = routing || b.manual ? b.tack : wantedTack(b, s, w);   // manuel: tramolayı yalnız sen atarsın
+        const offwind = b.started && (b.leg || 0) > 0 && !legOf(b).up;   // apaz / pupa ayağı: tramola kararı yok, rota aşağıda
+        let wt = routing || b.manual || offwind ? b.tack : wantedTack(b, s, w);   // manuel: tramolayı yalnız sen atarsın
         // start hattını henüz uçların arasından geçmediyse: önce hattın içine yönel
         let lineAim = null;
         if (!b.started) {
@@ -655,7 +771,7 @@
         if (wt !== b.tack && t - b.lastTack > MIN_TACK_GAP && (t > s.startAt + 3 || edge)) {
           // K13 bilinci: tramoladan sonra biriyle çakışacaksa bekle
           const nh = E.tackHeading(w, wt), others = snap.filter(o => o.ref !== b);
-          const relWp = E.norm180(bearing(b, waypoint(w)) - w);
+          const relWp = E.norm180(bearing(b, aimOf(b, w)) - w);
           const LA = layAngle(s, b), must = (b.tack === 'starboard' && relWp >= LA + 1) || (b.tack === 'port' && relWp <= -LA - 1) || b.x < 70 || b.x > WORLD.w - 70;
           let m = 1e9;
           for (const o of others) { const c = closest(b, nh, 30, o, 4); if (c.d < 220) m = Math.min(m, c.dmin); }
@@ -664,23 +780,35 @@
           const need = b.started ? (must ? 28 : 34) : (must ? 22 : 26);   // start'a dönen / hattı arayan tekne eskisi gibi
           if (m > need || edge || (waited > 9 && (m > 24 || !b.started)) || waited > 25) doTack(b, s, '');
         }
-        const wp = waypoint(w), dWp = Math.hypot(wp.x - b.x, wp.y - b.y);
+        const wp = aimOf(b, w), dWp = Math.hypot(wp.x - b.x, wp.y - b.y);
         const brg = bearing(b, wp), rel = E.norm180(brg - w);
         target = E.tackHeading(w, b.tack);
+        if (offwind && !routing) target = offwindTarget(b, w, t, dWp, brg, rel);
         // şamandırayı tutuyorsa doğrudan geçiş noktasına (orsa açısından dar değilse)
         if (lineAim) { if (Math.abs(lineAim.rel) >= 45) { target = lineAim.brg; b.tack = lineAim.rel > 0 ? 'port' : 'starboard'; } }
-        else if (!b.started) { /* hattın içinde: orsa rotasında devam */ }
+        else if (!b.started || (offwind && !routing)) { /* hattın içinde: orsa rotasında devam; apaz/pupa: yukarıda */ }
         else if ((b.tack === 'starboard' && rel <= -layAngle(s, b)) || (b.tack === 'port' && rel >= layAngle(s, b))) target = brg;
         else if (!lineAim && Math.abs(rel) >= 55 && (!b.manual || (rel > 0) === (b.tack === 'port'))) { target = brg; b.tack = rel > 0 ? 'port' : 'starboard'; }   // şamandıra rüzgarüstünde değil (aşmış): doğrudan git
         if (routing) target = followRoute(b, s, w, t, snap.filter(o => o.ref !== b));
         // dönüşe başla: giriş noktasına geldi ya da şamandıranın rüzgarüstü tarafında, çembere yakın.
         // Şamandıranın altından (rüzgaraltı yarısından) dönüşe başlanmaz.
-        const dM = Math.hypot(b.x - MARK.x, b.y - MARK.y), phi = markAngle(b, w);
-        if (b.started && !(b.route && b.routeIdx < b.route.length) && (dWp < 20 || (phi > -10 && phi < 110 && dM < R_ROUND + 26) || (phi > -95 && phi < 95 && dM < 160 && dot({ x: b.x - MARK.x, y: b.y - MARK.y }, E.fwd(w)) > 30))) {
-          b.phase = 'round'; b.roundAt = t;
+        const dM = Math.hypot(b.x - MARK.x, b.y - MARK.y), phi = markAngle(b, w), lgR = legOf(b);
+        if (!b.started || (b.route && b.routeIdx < b.route.length)) { /* henüz değil */ }
+        else if ((b.leg || 0) === 0) {
+          if (dWp < 20 || (phi > -10 && phi < 110 && dM < R_ROUND + 26) || (phi > -95 && phi < 95 && dM < 160 && dot({ x: b.x - MARK.x, y: b.y - MARK.y }, E.fwd(w)) > 30)) startRound(b, MARK, w, t);
+        } else if (lgR.k !== 'fin') {
+          // 2 ve kapı: giriş noktasına geldi, şamandıranın hizasına vardı ya da az geçti
+          const m = lgR.k === 'gate' ? gateMark(b) : lgR.m, inB = legIn(lgR), fi = E.fwd(inB);
+          const dMk = Math.hypot(b.x - m.x, b.y - m.y), al = dot({ x: b.x - m.x, y: b.y - m.y }, fi);
+          if (dWp < 22 || (al > -15 && dMk < R_ROUND + 30) || (dMk < 160 && al > 30)) startRound(b, m, w, t);
         }
       }
-      if (b.phase === 'round') {
+      if (b.phase === 'round' && CRS.type === 'trapez') {
+        // çember teğeti (iskeleden dönüşte şamandıra solda, sancaktan sağda) + yarıçap düzeltmesi
+        const m = markByNo(b.rMk), dir = b.rDir || 1, dM = Math.hypot(b.x - m.x, b.y - m.y), th = bearing(m, b);
+        target = th - dir * 90 - dir * clamp((dM - R_ROUND) * 1.4, -45, 45);
+        if ((b.rTurn || 0) >= (b.rNeed || 0) - 12 || t - b.roundAt > 8) legDone(b, s, t, w);
+      } else if (b.phase === 'round') {
         // çember teğeti (şamandıra solda) + yarıçap düzeltmesi
         const dM = Math.hypot(b.x - MARK.x, b.y - MARK.y), th = bearing(MARK, b);
         target = th - 90 - clamp((dM - R_ROUND) * 1.4, -45, 45);
@@ -700,7 +828,7 @@
       }
       // ceza turu şamandıradan ve hattan uzakta atılır (K44.2: "diğer teknelerden ve şamandıradan uzaklaşıp")
       if (b.phase === 'race' && b.started && b.penaltyAt != null && t >= b.penaltyAt &&
-          Math.hypot(b.x - MARK.x, b.y - MARK.y) > 140 && lineSide(b) === -1 && distToLine(b, w) > 40) {
+          markNear(b) > 140 && ((b.leg || 0) > 0 || (lineSide(b) === -1 && distToLine(b, w) > 40))) {
         // K44.2: önce diğer teknelerden uzaklaş, sonra dön. Yön: teknenin gitmek istediği (avantajlı) taraf;
         // o taraf kalabalıksa öbür taraf. Hafif apaz (rüzgara ~100°) ile yana açılır.
         const pref = b.manual ? b.tack : wantedTack(b, s, w), others = snap.filter(o => o.ref !== b);
@@ -721,7 +849,7 @@
         if ((near > 85 && dt0 > 1.2) || dt0 > 5 || atEdge) { b.penWait = false; b.penAway = null; b.penTurn = 0; log(s, `${b.id} iki tur ceza atıyor (K${b.penaltyRule})`, 'bad'); }
       } else if (b.phase === 'penalty' && b.penWait) {
         target = w + 180 + 25;                                              // şamandıradan uzaklaş
-        if (Math.hypot(b.x - MARK.x, b.y - MARK.y) > 110) { b.penWait = false; b.penTurn = 0; log(s, `${b.id} iki tur ceza atıyor (K${b.penaltyRule})`, 'bad'); }
+        if (markNear(b) > 110) { b.penWait = false; b.penTurn = 0; log(s, `${b.id} iki tur ceza atıyor (K${b.penaltyRule})`, 'bad'); }
       } else if (b.phase === 'penalty') {
         target = b.h - 170; turnDir = -1; speedK = 0.55;
         if (b.penTurn >= 720 && b.penFinish) {
@@ -780,11 +908,12 @@
       if (b.phase !== 'round' && turnDir >= 0) {
         const markOn = b.phase !== 'done' && !(b.phase === 'penalty' && b.penFinish && !b.penWait);
         const into = (hh, lim) => Math.abs(E.norm180(hh - w)) < lim;
-        const st = E.steerAround(b.x, b.y, target, markOn ? AVOID_OBS : LINE_OBS, b.v, { maxTurn: o => o === MARK_OBS[0] ? 0 : 90,   // pin/hakem botunda en çok 90° sapma (eski davranışa yakın)
+        const st = E.steerAround(b.x, b.y, target, markOn ? AVOID_OBS : LINE_OBS, b.v, { maxTurn: o => o.isMark || o.finEnd ? 0 : 90,   // pin/hakem botunda en çok 90° sapma (eski davranışa yakın)
 
-          ok: b.phase === 'wait' ? null : (hh, o) => o === MARK_OBS[0] || !into(hh, 35),   // rüzgarın içine kaçılmaz (şamandırada tramola kuralı var)
+          ok: b.phase === 'wait' ? null : (hh, o) => o.isMark || o.finEnd || !into(hh, 35),   // rüzgarın içine kaçılmaz (şamandırada tramola kuralı var)
           side: (o, def, hL, hR) => {
-            if (o === MARK_OBS[0]) return 1;                     // şamandıra hep iskelede (solda) kalsın
+            const ks = o.isMark || o.finEnd ? keepSide(b, o) : 0;
+            if (ks) return ks;                                   // gidilen şamandıra dönüş yönünde kalsın (1: iskelede/solda), finişte uçların arasından
             let sd = def;
             // kaçış rüzgara doğru (yelken boşa) götürecekse öbür taraftan, bordalayarak dolaş
             if (b.phase !== 'wait' && (b.started ? into(sd > 0 ? hR : hL, 38) : true) && into(b.h + sd * 20, 38)) sd = -sd;
@@ -795,8 +924,13 @@
         });
         if (st) {
           // şamandırayı tutamıyor (sağa kaçış rüzgarın içine sokuyor): rüzgarda kalmak yerine hemen tramola
-          if (st.o === MARK_OBS[0] && b.phase === 'race' && b.started && !b.manual && b.tack === 'starboard' && into(b.h + 25, 40) && t - b.lastTack > 2) doTack(b, s, 'Tutmuyor, tramola');
-          else { target = st.h; avoiding = st.o === MARK_OBS[0] ? 320 : 160; }
+          // finiş ucunu tutamıyor (hakem botunu sancakta, şamandırayı iskelede rüzgarın içine dönmeden geçemiyor): tramola
+          const finStuck = st.o.finEnd && legOf(b).k === 'fin' && b.phase === 'race' && !b.manual && t - b.lastTack > 2 &&
+            ((st.o.finEnd > 0 && b.tack === 'starboard' && into(b.h + 25, 40)) || (st.o.finEnd < 0 && b.tack === 'port' && into(b.h - 25, 40))) &&
+            !snap.some(o => o.ref !== b && Math.hypot(o.x - b.x, o.y - b.y) < 60);   // yanında tekne varken tramola atmaz (K13)
+          if (finStuck) doTack(b, s, 'Finişi tutmuyor, tramola');
+          else if (st.o.mk === MARK && (b.leg || 0) === 0 && b.phase === 'race' && b.started && !b.manual && b.tack === 'starboard' && into(b.h + 25, 40) && t - b.lastTack > 2) doTack(b, s, 'Tutmuyor, tramola');
+          else { target = st.h; avoiding = st.o.isMark ? 320 : 160; }
         }
       }
       // dönüş
@@ -804,6 +938,7 @@
       if (turnDir < 0 && diff > 0) diff -= 360;          // yalnızca sola dön
       const rate = (b.phase === 'round' ? 130 : b.phase === 'penalty' ? 150 : avoiding || TURN_RATE) * DT;
       const dh = clamp(diff, -rate, rate); b.h = E.norm360(b.h + dh);
+      if (b.phase === 'round' && b.rDir) b.rTurn = (b.rTurn || 0) - dh * b.rDir;   // dönüş yönünde dönülen açı
       if (b.phase === 'penalty' && !b.penWait) b.penTurn += Math.abs(dh);
       // rüzgarın içinde kaldı (şamandıranın altında, akıntı itiyor): tramola atıp çık
       if (b.phase === 'race' && b.started && !b.manual && Math.abs(E.norm180(b.h - w)) < 30 && b.v < 15 && t - b.lastTack > 4) {
@@ -895,7 +1030,26 @@
         }
       }
     }
+    // finiş (trapez): son ayakta hattı uçların arasından rüzgaraltından rüzgarüstüne geçen bitirir
+    if (CRS.type === 'trapez') for (const b of active) {
+      if ((b.leg || 0) < CRS.legs.length - 1 || b.phase !== 'race') { b.prevFin = null; continue; }
+      const sd = R.lineSide(FIN, b), was = b.prevFin == null ? sd : b.prevFin; b.prevFin = sd;
+      if (was === 1 && sd === -1) { const u = R.lineParam(FIN, b); if (u >= -0.05 && u <= 1.05) finishBoat(b, s, t); }
+    }
     s.t = +(t + DT).toFixed(4);
+  }
+  // Apaz / pupa ayağında rota: geniş açıda doğrudan; tam pupada (rüzgara 150°'den geniş) 160° ile kavançalı gider
+  // (kutup: 120-165° tam hız, pupa %80 → 160° daha çabuk varır), öbür kontra hedefi tutunca kavança
+  function offwindTarget(b, w, t, dA, brg, rel) {
+    if (Math.abs(rel) < 50) return E.tackHeading(w, b.tack);                       // rüzgar çok döndü: orsa
+    if (Math.abs(rel) < 150 || dA < 110) { b.tack = rel > 0 ? 'port' : 'starboard'; return brg; }
+    // ayağın başında hedefe daha yakın giden kontrayla başla (kenara doğru uzun kavançasız gitmesin)
+    if (b.gybeLeg !== (b.leg || 0)) { b.gybeLeg = b.leg || 0; b.tack = rel > 0 ? 'port' : 'starboard'; }
+    const stb = b.tack === 'starboard';
+    const edge = (b.x < 70 && E.fwd(w + (stb ? -160 : 160)).x < 0) || (b.x > WORLD.w - 70 && E.fwd(w + (stb ? -160 : 160)).x > 0);
+    if (t - b.lastTack > 2 && (edge || (stb ? rel > 0 && rel <= 160 : rel < 0 && rel >= -160))) { b.tack = stb ? 'port' : 'starboard'; b.lastTack = t; }
+    const fetch = b.tack === 'starboard' ? rel <= -150 && rel >= -160 : rel >= 150 && rel <= 160;
+    return fetch ? brg : w + (b.tack === 'starboard' ? -160 : 160);
   }
   // Elle sürülen tekne (canlı elle sürme): hareketi drive() yapar; burada yalnız yarış evreleri ilerler.
   // Şamandıra dönüşü ve ceza turu otomatiğe geçer (b.hand kalkar, arayüz elle sürmeyi bitirir).
@@ -906,7 +1060,18 @@
       const wp = waypoint(w), dWp = Math.hypot(wp.x - b.x, wp.y - b.y), dM = Math.hypot(b.x - MARK.x, b.y - MARK.y), phi = markAngle(b, w);
       // şamandıraya ~1.5 boy yaklaşınca (hangi yandan gelirse gelsin) dönüşü otomatik yapar
       const level = dot({ x: b.x - MARK.x, y: b.y - MARK.y }, E.fwd(w)) > -15;   // şamandıranın hizasına gelmiş (altından kesmiyor)
-      if (dWp < 20 || (level && dM < R_ROUND + 40) || (phi > -10 && phi < 110 && dM < R_ROUND + 26)) { b.phase = 'round'; b.roundAt = t; b.hand = false; }
+      const lg = legOf(b);
+      let rm = null;
+      if ((b.leg || 0) === 0) { if (dWp < 20 || (level && dM < R_ROUND + 40) || (phi > -10 && phi < 110 && dM < R_ROUND + 26)) rm = MARK; }
+      else if (lg.k !== 'fin') {
+        // 2 ve kapı (trapez): şamandıranın hizasına gelip ~1.5 boy yaklaşınca; kapıda yaklaştığın şamandıra seçilir
+        const inB = legIn(lg), fi = E.fwd(inB);
+        for (const m of (lg.k === 'gate' ? lg.ms.slice().sort((a, c) => Math.hypot(b.x - a.x, b.y - a.y) - Math.hypot(b.x - c.x, b.y - c.y)) : [lg.m])) {
+          const e = entryOf(m, m.dir, inB), dMk = Math.hypot(b.x - m.x, b.y - m.y), al = dot({ x: b.x - m.x, y: b.y - m.y }, fi);
+          if (Math.hypot(e.x - b.x, e.y - b.y) < 20 || (al > -15 && dMk < R_ROUND + 40)) { rm = m; if (lg.k === 'gate') b.gateMk = m.no; break; }
+        }
+      }
+      if (rm) { startRound(b, rm, w, t); b.hand = false; }
       else if (b.penaltyAt != null && t >= b.penaltyAt) b.hand = false;      // ceza turunu otomatik atar
     }
   }
@@ -966,13 +1131,22 @@
       if (b.finish && b.dsq) { key = 10000 + b.finish; status = `${b.dsq} · diskalifiye (bitirdi, sayılmaz)`; }
       else if (b.finish) { key = -1000 + b.finish; status = `${b.finish}. · ${fmt(b.finishT)}${b.penalties ? ' · ' + b.penalties + ' ceza' : ''}${b.zPen ? ` · Z: ${b.finish}+${zp} = ${b.finish + zp} puan` : ''}`; }
       else {
-        const along = Math.max(0, dot({ x: wp.x - b.x, y: wp.y - b.y }, up)), lat = Math.abs(dot({ x: b.x - wp.x, y: b.y - wp.y }, right));
-        key = along + Math.max(0, lat - along) + (b.phase === 'ocs' ? 400 : 0) + (b.dsq ? 10000 : 0);
-        status = b.phase === 'wait' ? (s.t < s.startAt ? 'Bekliyor' : 'Yarışta') : b.phase === 'ocs' ? (b.iFlag ? 'I · uçlardan dolaşıyor' : 'OCS · geri dönüyor') : b.phase === 'round' ? 'Şamandırayı dönüyor' : b.phase === 'penalty' ? 'Ceza turu' : `${(key % 10000 / HULL).toFixed(1)} boy kaldı`;
+        const tz = CRS.type === 'trapez', i = tz ? Math.min(b.leg || 0, CRS.legs.length - 1) : 0, ap = tz ? aimOf(b, w) : wp;
+        const along = Math.max(0, dot({ x: ap.x - b.x, y: ap.y - b.y }, up)), lat = Math.abs(dot({ x: b.x - ap.x, y: b.y - ap.y }, right));
+        const cur = !tz || CRS.legs[i].up ? along + Math.max(0, lat - along) : Math.hypot(ap.x - b.x, ap.y - b.y);   // orsada rüzgar ekseninde
+        key = cur + (tz ? restOf(i, w) : 0) + (b.phase === 'ocs' ? 400 : 0) + (b.dsq ? 10000 : 0);
+        const to = tz ? ['1', '2', 'kapı', 'finiş'][i] + ' · ' : '';
+        status = b.phase === 'wait' ? (s.t < s.startAt ? 'Bekliyor' : 'Yarışta') : b.phase === 'ocs' ? (b.iFlag ? 'I · uçlardan dolaşıyor' : 'OCS · geri dönüyor') : b.phase === 'round' ? (tz && b.rMk ? `${b.rMk} dönüyor` : 'Şamandırayı dönüyor') : b.phase === 'penalty' ? 'Ceza turu' : `${to}${(key % 10000 / HULL).toFixed(1)} boy kaldı`;
         if (b.dsq) status = `${b.dsq} · diskalifiye · ${status}`; else if (b.zPen) status += ' · Z %20 ceza';
       }
       return { b, key, status };
     }).sort((a, c) => a.key - c.key);
+  }
+  // trapez: i. ayaktan sonraki ayakların boyu (sıralamada kalan yol)
+  function restOf(i, w) {
+    const pts = [waypoint(w), entryOf(M2, 1, legIn(CRS.legs[1])), gateC(), finMid()];
+    let d = 0; for (let j = i + 1; j < pts.length; j++) d += Math.hypot(pts[j].x - pts[j - 1].x, pts[j].y - pts[j - 1].y);
+    return d;
   }
   const zPoints = s => Math.max(1, Math.round(0.2 * s.boats.length));   // Z: kayıtlı tekne sayısının %20'si (K44.3c)
   const fmt = t => `${Math.floor(t * CLOCK_SCALE / 60)}:${String(Math.floor(t * CLOCK_SCALE % 60)).padStart(2, '0')}`;
@@ -988,7 +1162,7 @@
     const s = clone(s0), frames = [clone(s)];
     // sınır start'a göre: gerçek zamanlı 5 dk geri sayımda (ILCA, sert rüzgar) start ~200 sim. sn'ye düşer; eski sabit 200
     // sınırı yarışı start'ta / ortasında kesiyordu (ayar kombinasyonu testi buldu, 2026-11-13)
-    maxT = maxT || (s.startAt || 0) + RACE_MAX;
+    maxT = maxT || (s.startAt || 0) + (s.course && s.course.type === 'trapez' ? RACE_MAX * 3 : RACE_MAX);   // trapez ~4 ayak
     while (s.t < maxT && !s.boats.every(b => b.finish || b.gone)) {
       step(s);
       if (Math.round(s.t / DT) % 2 === 0) frames.push(clone(s));
@@ -1027,7 +1201,7 @@
   }
   // Kayıttaki kurulumu ve işlemleri sırayla uygula (tekrar oynatma). rec: { setup, ops }
   function replayRecord(rec) {
-    if (rec.setup.boat) setBoat(rec.setup.boat);
+    if (rec.setup.boat) setBoat(rec.setup.boat);   // parkur türü yazılmamış eski kayıt orsada biter (newRace)
     let frames = runToEnd(newRace(jcopy(rec.setup.fleet), jcopy(rec.setup)));
     for (const op of rec.ops) {
       const i = Math.min(op.i, frames.length - 1);
@@ -1044,7 +1218,7 @@
   global.SailSim = {
     OPS, GUST_FX, GUST_BASE, SEA_TXT, CURRENT_FROM, currentFromTxt, driftVec, replayRecord, spliceHand,
     runToEnd,
-    DT, HULL, WORLD, LINE, MARK, BASE, CLASSES, BOAT_DEFAULT, WIND_KN, ACCEL_AT, PRE_SEC, VIS, setBoat, upwindKn, BOAT,
+    DT, HULL, WORLD, LINE, MARK, M2, G3S, G3P, FIN, CRS, aimOf, legOf, BASE, CLASSES, BOAT_DEFAULT, WIND_KN, ACCEL_AT, PRE_SEC, VIS, setBoat, upwindKn, BOAT,
     get START_AT() { return START_AT; }, get CLOCK_SCALE() { return CLOCK_SCALE; }, MAN_MARGIN, bounds, PERSONAS, MINE_COLOR, OBSTACLES,
     FLAG_RULE, signalState, inTriangle, zPoints, SHADOW_LEN, SEA, SEA_DEFAULT, knots, drive, steer, helmTurn, idealSheet, trimEff, SHEET_MAX, SHEET_OFF_MAX, defaultFleet, frontU, handStep, runHand, handRow, setCourse, COURSE_DEFAULT, makeBoat, newRace, step, command, standings, clone, waypoint, gustAt, fmt, lineSide
   };

@@ -12,7 +12,8 @@ const cases = [
   { name: 'sağda sağanak', wind: 0, gusts: [{ x: 760, y: 450, rx: 130, ry: 200 }] },
   { name: 'yarışta rüzgar 12° sağa döner', wind: 0, shift: { at: 25, to: 12 } },
   { name: 'kısa hat (5 boy), yakın şamandıra (8 boy)', wind: 0, course: { lineLen: 250, markDist: 400 } },
-  { name: 'uzun hat (16 boy), uzak şamandıra (24 boy)', wind: 8, course: { lineLen: 800, markDist: 1200 } },
+  { name: 'uzun hat (16 boy), uzak şamandıra (24 boy), trapez', wind: 8, course: { lineLen: 800, markDist: 1200, type: 'trapez' } },
+  { name: 'yalnız orsa parkur (eski)', wind: 0, course: { lineLen: 550, markDist: 950, type: 'orsa' } },
   { name: 'orta akıntı + büyük dalga, 3 numara sürükleniyor', wind: 0, sea: { current: 2, waves: 2 }, drift: '3' },
   { name: 'senin teknen sağa rota çizdi', wind: 0, route: [{ x: 560, y: 700 }, { x: 800, y: 560 }, { x: 820, y: 300 }, { x: 600, y: 150 }] },
   { name: 'ILCA 7, 18 knot rüzgar, 10 sn kala hızlan', wind: 0, boat: { cls: 'ilca7', windKn: 18, accelAt: 10 } },
@@ -23,11 +24,15 @@ let problems = 0;
 const verbose = process.argv.includes('-v');
 for (const c of cases) {
   S.setCourse(c.course || S.COURSE_DEFAULT);
+  // koordinatlar eski varsayılan parkura göre (orta x 535): trapezde parkur ortası sağa kayar
+  const DX = S.MARK.x - 535, mv = p => ({ ...p, x: p.x + DX });
+  if (c.route && !c.route.moved) { c.route = c.route.map(mv); c.route.moved = true; }
+  const gusts = c.gusts && c.gusts.map(mv);
   const fleet = S.defaultFleet(12); if (c.route) fleet.find(b => b.mine).route = c.route;
   if (c.drift) fleet.find(b => b.id === c.drift).drift = 2;
-  const s = S.newRace(fleet, { wind: c.wind, gusts: c.gusts, course: c.course, sea: c.sea, boat: c.boat });
+  const s = S.newRace(fleet, { wind: c.wind, gusts, course: c.course, sea: c.sea, boat: c.boat });
   let out = 0; const near = c.route ? c.route.map(() => 1e9) : [];
-  while (s.t < s.startAt + 142 && s.boats.some(b => !b.finish)) {
+  while (s.t < s.startAt + (S.CRS.type === 'trapez' ? 420 : 142) && s.boats.some(b => !b.finish)) {
     if (c.shift && Math.abs(s.t - c.shift.at) < 1e-6) s.wind = c.shift.to;
     S.step(s);
     const me = s.boats.find(b => b.mine);
@@ -52,11 +57,13 @@ for (const c of cases) {
 for (const wind of [-12, 0, 12]) {
   S.setCourse(S.COURSE_DEFAULT);
   const fleet = S.defaultFleet(12); fleet.forEach((b, i) => { if (b.mine || i % 3 === 0) b.manual = true; });
-  const s = S.newRace(fleet, { wind }); const prev = new Map(s.boats.map(b => [b.id, b.tack])); let self = 0, n0;
+  const s = S.newRace(fleet, { wind }); const prev = new Map(s.boats.map(b => [b.id, b.tack])), legs = new Map(); let self = 0, n0;
   while (s.t < s.startAt + 112 && s.boats.some(b => !b.finish)) {
     n0 = s.events.length; S.step(s);
     for (const b of s.boats) {
-      if (b.manual && b.started && b.phase === 'race' && prev.get(b.id) !== b.tack && !s.events.slice(n0).some(e => e.text.startsWith(`${b.id}: parkurdan çok uzaklaştı`))) self++;
+      // trapezde apaz/pupa ayaklarında kavança otomatik (manuel yalnız orsa tramolaları); ayak değişince kontra dönüşten gelir
+      const lg = S.CRS.legs[Math.min(b.leg || 0, S.CRS.legs.length - 1)], legChanged = legs.get(b.id) !== (b.leg || 0); legs.set(b.id, b.leg || 0);
+      if (b.manual && b.started && b.phase === 'race' && lg.up && !b.leg && !legChanged && prev.get(b.id) !== b.tack && !s.events.slice(n0).some(e => e.text.startsWith(`${b.id}: parkurdan çok uzaklaştı`))) self++;
       prev.set(b.id, b.tack);
     }
   }
@@ -112,7 +119,7 @@ for (const wind of [-12, 0, 12]) {
 {
   S.setCourse(S.COURSE_DEFAULT);
   const fleet = S.defaultFleet(12), me = fleet.find(b => b.mine), still = fleet.filter(b => !b.mine).map(b => b.x + ',' + b.y).join();
-  Object.assign(me, { x: 500, y: 560, h: -45, v: 0, manual: true });
+  Object.assign(me, { x: 500 + S.MARK.x - 535, y: 560, h: -45, v: 0, manual: true });   // eski parkura göre (trapezde orta sağa kayar)
   const ctx = { t: 0, wind: 0, gusts: [], boats: fleet }, evs = [];
   const run = (n, inp) => { for (let i = 0; i < n; i++) evs.push(...S.drive(ctx, me, inp || {}, 0.05)); };
   run(60); const vClose = me.v;
@@ -127,7 +134,7 @@ for (const wind of [-12, 0, 12]) {
   const bad = ok.filter(([, v]) => !v).map(([k]) => k);
   // otomatik: yarış biter; iskota salık teknen daha geç biter
   const race = off => { const f = S.defaultFleet(12); const m = f.find(b => b.mine); m.manual = true; m.sheetOff = off; const s = S.newRace(f, { wind: 0 });
-    while (s.t < s.startAt + 152 && s.boats.some(b => !b.finish)) S.step(s); return s.boats.find(b => b.mine); };
+    while (s.t < s.startAt + 420 && s.boats.some(b => !b.finish)) S.step(s); return s.boats.find(b => b.mine); };
   const a = race(0), b2 = race(16);
   if (!a.finish || !b2.finish) bad.push('otomatikte bitirmedi');
   else if (!(b2.finishT > a.finishT)) bad.push('iskota salıkken yavaşlamadı');
@@ -328,11 +335,46 @@ for (const cls of ['optimist', 'ilca7']) {
     if (!ok) bad.push(`${k}: (${v.x.toFixed(1)}, ${v.y.toFixed(1)})`);
   }
   // yarışta: arkadan akıntıda tekneler daha erken bitirir, karşıdan akıntıda daha geç
-  const fin = from => { S.setCourse(S.COURSE_DEFAULT); const s = S.newRace(S.defaultFleet(8), { wind: 0, sea: { current: 3, waves: 0, from } }); while (s.t < s.startAt + 200 && s.boats.some(o => !o.finish)) S.step(s); return s.boats.filter(o => o.finish).reduce((a, o) => a + o.finishT, 0) / Math.max(1, s.boats.filter(o => o.finish).length); };
+  const fin = from => { S.setCourse(S.COURSE_DEFAULT); const s = S.newRace(S.defaultFleet(8), { wind: 0, sea: { current: 3, waves: 0, from } }); while (s.t < s.startAt + 600 && s.boats.some(o => !o.finish)) S.step(s); return s.boats.filter(o => o.finish).reduce((a, o) => a + o.finishT, 0) / Math.max(1, s.boats.filter(o => o.finish).length); };
   const tBack = fin(180), tFront = fin(0), tSide = fin(90);
   if (!(tBack < tFront)) bad.push(`arkadan ${tBack.toFixed(1)} s, karşıdan ${tFront.toFixed(1)} s`);
   console.log(`• Akıntı yönü: ${bad.length ? 'SORUN' : `doğru yöne taşıyor · ortalama bitiş arkadan ${tBack.toFixed(1)} s, sağdan ${tSide.toFixed(1)} s, karşıdan ${tFront.toFixed(1)} s`}`);
   if (bad.length) { problems++; console.log('  ⚠ Akıntı:', bad.join(', ')); }
+}
+// Trapez parkur (kullanıcı 2026-11-14): herkes 1 → 2 → 3S/3P kapısı → finiş sırasıyla; kapının iki şamandırası da kullanılır;
+// finişi uçların arasından geçer. Elle sürülen tekne (basit otomatik pilotla) dönüşlerden sonra yine sürer ve bitirir.
+{
+  S.setCourse(S.COURSE_DEFAULT);
+  const bad = [], s = S.newRace(S.defaultFleet(12), { wind: 0 }), seq = new Map(), gate = { '3S': 0, '3P': 0 };
+  if (S.CRS.type !== 'trapez') bad.push('varsayılan parkur trapez değil');
+  while (s.t < s.startAt + 420 && s.boats.some(b => !b.finish)) {
+    S.step(s);
+    for (const b of s.boats) if (b.phase === 'round' && b.rMk && (seq.get(b.id) || []).slice(-1)[0] !== b.rMk) { seq.set(b.id, [...(seq.get(b.id) || []), b.rMk]); if (b.rMk[0] === '3') gate[b.rMk]++; }
+  }
+  for (const b of s.boats) {
+    const q = (seq.get(b.id) || []).join('-');
+    if (!/^1-2-3[SP]$/.test(q)) bad.push(`${b.id} dönüş sırası ${q || '-'}`);
+    if (!b.finish) bad.push(`${b.id} bitirmedi`);
+  }
+  if (!gate['3S'] || !gate['3P']) bad.push(`kapı tek taraflı (3S ${gate['3S']}, 3P ${gate['3P']})`);
+  // elle sürme: hedefe dümen tut (orsada 45°, pupada 160°), dönüş otomatik, sonra dümen yine elde
+  S.setCourse(S.COURSE_DEFAULT);
+  const h = S.newRace(S.defaultFleet(10), { wind: 0 }), m = h.boats.find(b => b.mine); let rounds = 0;
+  Object.assign(m, { manual: true, sheetOff: 0 });
+  while (h.t < h.startAt + 500 && !m.finish) {
+    if (h.t < h.startAt + 1 || !['race', 'wait', 'ocs'].includes(m.phase)) { if (m.phase === 'round') rounds += m.hand ? 0 : 0; m.hand = false; S.step(h); continue; }
+    const a = S.aimOf(m, h.wind), brg = (Math.atan2(a.x - m.x, -(a.y - m.y)) / EN.DEG + 360) % 360, r = EN.norm180(brg - h.wind);
+    const want = Math.abs(r) < 45 ? h.wind + (m.tack === 'port' ? 45 : -45) : brg;
+    const dif = EN.norm180(want - m.h);
+    const was = m.phase; S.handStep(h, m, { rudder: Math.max(-1, Math.min(1, dif / 15)), autoTrim: true }, null);
+    if (was === 'race' && m.phase === 'round') rounds++;
+    // orsada kontra seçimi: hedef öbür kontrada tutuyorsa tramola (dümenle)
+    if (Math.abs(r) < 45 && m.phase === 'race' && Math.abs(EN.norm180(m.h - h.wind)) > 40 && ((m.tack === 'starboard' && r > 44) || (m.tack === 'port' && r < -44))) m.tack = m.tack === 'port' ? 'starboard' : 'port';
+  }
+  if (rounds < 3) bad.push(`elle sürme: ${rounds} dönüş (3 olmalı)`);
+  if (!m.finish) bad.push(`elle sürme: bitirmedi (${m.phase}, ayak ${m.leg})`);
+  console.log(`• Trapez parkur: ${bad.length ? 'SORUN' : `12 tekne 1-2-kapı-finiş, kapı 3S ${gate['3S']} / 3P ${gate['3P']}, elle sürülen ${m.finish}. bitirdi`}`);
+  if (bad.length) { problems++; console.log('  ⚠ Trapez:', bad.join(', ')); }
 }
 console.log(problems ? `\n${problems} uyarı` : '\nSimülatör temiz ✔');
 process.exit(problems ? 1 : 0);

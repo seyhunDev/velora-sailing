@@ -366,6 +366,10 @@
         <section id="courseBox" class="sel-box course-box" data-cat="course">
           <div class="box-head"><span><small id="courseState"></small></span><button class="tb sm" id="btnCourseReset" title="Varsayılan parkura dön">Varsayılan</button></div>
           <div class="sel-row">
+            <span class="lbl">Parkur</span>
+            <div class="seg" id="courseType"><button data-v="trapez" title="Start → 1 → 2 → 3S/3P kapısı → finiş (Optimist)">Trapez</button><button data-v="orsa" title="1 numaralı şamandırayı dönünce biter">Yalnız orsa</button></div>
+          </div>
+          <div class="sel-row">
             <span class="lbl">Start hattı</span>
             <div class="stepper"><button id="btnLineMinus" title="Hattı kısalt">−</button><span class="val" id="lineVal"></span><button id="btnLinePlus" title="Hattı uzat">+</button></div>
           </div>
@@ -398,7 +402,8 @@
             <li><b>İskota:</b> sağdaki <b>İskota</b> düğmesi: dokun → çek, yelken dolar, tekne hızlanır; yeniden dokun → sal, yavaşlar (↑ ↓ ile ince ayar). Burnun rüzgardayken iskota işe yaramaz: önce kafa aç.</li>
             <li><b>Orsa</b> (V): teknen bu kontrada orsa rotasına girer, rüzgar dönse de orada kalır; dümene dokununca bırakır. <b>Tramola / Kavança</b> (T): seyrine göre tek düğme. <b>Tersle</b> (B): yelkeni ters bas, fren yap, geri git (geri giden tekne herkese yol verir).</li>
             <li><b>Zaman kutusu</b> (sahnenin üstünde): <b>Durdur / Devam</b> (boşluk), saat hızı, <b>Yeni yarış</b> (R): baştan, yelken boş.</li>
-            <li><b>Ayarlar:</b> <b>Rüzgar</b> yönü ve <b>Sağanak</b>, <b>Deniz</b> yarışta da değişir. <b>Filo</b> (tekne sayısı, sınıf, geri sayım), <b>Parkur</b> (hat boyu, şamandıra, start bayrağı) ve rüzgar hızı değişince yarış baştan başlar.</li>
+            <li><b>Trapez parkur:</b> start → 1 → 2 → 3S/3P kapısı (birini seç) → finiş. Şamandıraya yaklaşınca dönüş otomatik, sonra dümen yine sende. Finiş hattını uçların arasından geç.</li>
+            <li><b>Ayarlar:</b> <b>Rüzgar</b> yönü ve <b>Sağanak</b>, <b>Deniz</b> yarışta da değişir. <b>Filo</b> (tekne sayısı, sınıf, geri sayım), <b>Parkur</b> (trapez ya da yalnız orsa, hat boyu, şamandıra, start bayrağı) ve rüzgar hızı değişince yarış baştan başlar.</li>
             <li><b>Kurallar:</b> bütün yol hakkı kuralları geçerli. Yol vermen gereken yerde vermezsen protesto edilirsin, <b>iki tur (720°) ceza</b>yı teknen otomatik atar, sonra dümen yine sende. Şamandırayı dönüşü de otomatik.</li>
             <li><b>Kamera:</b> teknen hep ortada; <b>+ / −</b> ile yakınlaş / uzaklaş.</li>
             <li><b>Kaydet:</b> yarış bitince <b>“Kaydedelim mi?”</b> diye sorulur; üstteki <b>Kayıtlar</b>'dan aynen tekrar izlersin.</li>

@@ -82,6 +82,16 @@
     const tc = w2 < 1e-6 ? 0 : clampN(-(rx * wx + ry * wy) / w2, 0, H);
     return { dmin: Math.hypot(rx + wx * tc, ry + wy * tc), tc, d: Math.hypot(rx, ry) };
   }
+  // K18 (simülatör, trapez): iki tekne aynı şamandıranın bölgesindeyse (b.zoneT: bölgeye giriş anı, b.zoneX/Y şamandıra).
+  // Bölgeye açıkça önde giren yer alır; aşağı yukarı birlikte (bindirmeli) girdilerse şamandıraya yakın olan (iç tekne).
+  // Orsa ayağında zıt kontralar arasında uygulanmaz (K18.1a). Senaryo teknelerinde alan yok: etkisiz.
+  function zoneRoom(b, O, w) {
+    if (b.zoneT == null || O.zoneT == null || b.zoneLeg !== O.zoneLeg || b.zoneX !== O.zoneX || b.zoneY !== O.zoneY) return null;
+    if (b.zoneUp && tackOf(b.h, w) !== tackOf(O.h, w)) return null;
+    const dT = b.zoneT - O.zoneT;
+    const bRoom = Math.abs(dT) < 0.8 ? Math.hypot(b.x - b.zoneX, b.y - b.zoneY) < Math.hypot(O.x - b.zoneX, O.y - b.zoneY) : dT < 0;
+    return bRoom ? 0 : 18;
+  }
   // b, O'ya hangi kurala göre yol vermeli? (0 = b hak sahibi)
   function classify(b, O, w, t) {
     const lt = x => (x.lastTack != null ? x.lastTack : -10);
@@ -92,6 +102,7 @@
     if (O.phase === 'ocs') return 0;
     if (O.phase === 'round' && b.phase !== 'round') return 18;            // şamandırayı dönen tekneye yer ver
     if (b.phase === 'round' && O.phase !== 'round') return 0;
+    const z = zoneRoom(b, O, w); if (z != null) return z;                // K18.2: bölgeye (3 boy) önce giren / bindirmede içteki yer alır
     if (tk(b) && !tk(O)) return 13;                                       // tramola atan yol verir (K13)
     if (tk(O) && !tk(b)) return 0;
     const tb = tackOf(b.h, w), to = tackOf(O.h, w);

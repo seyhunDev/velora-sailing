@@ -24,10 +24,11 @@ for (let k = 0; k < N; k++) {
   const course = k % 5 === 2 || k % 5 === 4 ? { lineLen: 250 + Math.round(rc() * 15) * 50, markDist: 400 + Math.round(rc() * 10) * 100 } : S.COURSE_DEFAULT;
   S.setCourse(course);
   const fleet = S.defaultFleet(n);
+  const DX = S.MARK.x - 500;   // aşağıdaki sabit x'ler eski parkura göre (orta 500); trapezde parkur ortası sağa kayar
   const wind = Math.round((rnd() - 0.5) * 70);   // ±35°
   // rastgele yerleşim: hattın altında 0-400 px, hat boyunca ±150 px taşma; bazen kontra iskele
   for (const b of fleet) {
-    if (rnd() < 0.6) { b.x = 150 + rnd() * 700; b.y = S.LINE.pin.y + 40 + rnd() * 120; }
+    if (rnd() < 0.6) { b.x = DX + 150 + rnd() * 700; b.y = S.LINE.pin.y + 40 + rnd() * 120; }
     if (b.mine || rnd() < 0.15) b.y += rnd() * 280;
     b.y = Math.min(S.WORLD.h - 20, b.y);
     if (rnd() < 0.15) b.tack = 'port';
@@ -36,9 +37,9 @@ for (let k = 0; k < N; k++) {
   if (k % 4 === 1) {                                    // senin teknene rastgele rota (seed dizisini bozmamak için ayrı üreteç)
     let q = k * 7919 + 1; const r2 = () => (q = (q * 48271) % 2147483647) / 2147483647;
     const nr = 2 + Math.floor(r2() * 3);
-    fleet.find(b => b.mine).route = Array.from({ length: nr }, (_, i) => ({ x: 120 + r2() * 760, y: 680 - (i + 1) * (560 / nr) + r2() * 60 }));
+    fleet.find(b => b.mine).route = Array.from({ length: nr }, (_, i) => ({ x: DX + 120 + r2() * 760, y: S.LINE.pin.y - 60 - (i + 1) * ((S.LINE.pin.y - S.MARK.y - 180) / nr) + r2() * 60 }   /* eski parkurda 680 - (i+1)·560/nr */));
   }     // her 3 yarıştan birinde bir "yol vermez" tekne
-  const gusts = rnd() < 0.5 ? [{ x: rnd() < 0.5 ? 230 : 770, y: 250 + rnd() * 300, rx: 120, ry: 190 }] : [];
+  const gusts = rnd() < 0.5 ? [{ x: DX + (rnd() < 0.5 ? 230 : 770), y: 250 + rnd() * 300, rx: 120, ry: 190 }] : [];
   // her 3 yarıştan birinde akıntı / dalga ve sürüklenen bir tekne (ayrı üreteç)
   const sea = k % 3 === 1 ? { current: (k * 7) % 4, waves: (k * 5) % 3, from: [null, 0, 90, 180, 270, 135][k % 6] } : null;   // akıntı yönü de değişir
   if (sea) fleet[(k * 3) % n].drift = 1 + (k % 2);
@@ -51,12 +52,12 @@ for (let k = 0; k < N; k++) {
   const tr = {};
   for (const b of s.boats) tr[b.id] = { maxAbove: -1e9, wrong: 0, minMark: 1e9, prog: [], out: false, flagged: {} };
   const tag = `#${k} n=${n}${boat ? ` ${boat.cls} ${boat.windKn}kn hızlan ${boat.accelAt}sn` : ''} rüzgar=${wind}${shiftAt > 0 ? '→' + shiftTo : ''}${gusts.length ? ' sağanak' : ''}`;
-  while (s.t < s.startAt + 142 && s.boats.some(b => !b.finish)) {
+  while (s.t < s.startAt + (S.CRS.type === 'trapez' ? 420 : 142) && s.boats.some(b => !b.finish)) {   // trapez: 4 ayak
     if (shiftAt > 0 && Math.abs(s.t - shiftAt) < 0.026) s.wind = shiftTo;
     const before = new Map(s.boats.map(b => [b.id, b.phase]));
     S.step(s);
     const w = s.wind, up = E.fwd(w);
-    if (traceArg && String(k) === traceK) { const b = s.boats.find(x => x.id === traceId); if (b && Math.round(s.t * 20) % 5 === 0) console.log(s.t.toFixed(2), b.phase, b.tack, 'st', b.started, 'h', b.h.toFixed(0), 'v', b.v.toFixed(0), 'man', b.man, b.escH, (b.x).toFixed(0), (b.y).toFixed(0)); }
+    if (traceArg && String(k) === traceK) { const b = s.boats.find(x => x.id === traceId); if (b && Math.round(s.t * 20) % 5 === 0) console.log(s.t.toFixed(2), b.phase, 'ayak', b.leg || 0, b.tack, 'st', b.started, 'h', b.h.toFixed(0), 'v', b.v.toFixed(0), 'man', b.man, b.escH, (b.x).toFixed(0), (b.y).toFixed(0)); }
     for (const b of s.boats) {
       if (b.gone) continue;
       const T = tr[b.id], rel = { x: b.x - S.MARK.x, y: b.y - S.MARK.y };
