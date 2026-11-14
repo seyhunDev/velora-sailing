@@ -55,10 +55,19 @@
 
   <header class="topbar sim-top">
     <a class="tool back-btn" href="./" title="Hazır senaryolara dön"><svg><use href="#i-back"/></svg><span class="lbl">Senaryolar</span></a>
-    <h1 class="sim-h1">Yarış Simülatörü</h1>
+    <h1 class="sim-h1">Simülatör</h1>
+    <div class="spacer"></div>
+    <!-- Yarış göstergesi (2026-11-14): rüzgar + start saati üst çubukta; yatay telefonda elle sürerken sahnenin sol üstüne taşınır -->
+    <div id="raceHud" class="race-hud" aria-live="off">
+      <div class="rh-chip rh-wind" title="Rüzgar: geldiği yön ve hızı">
+        <svg class="rh-comp" viewBox="-20 -20 40 40" aria-hidden="true"><circle r="17.5"/><path class="rh-n" d="M0 -17.5v4"/><g id="rhArrow"><path class="rh-shaft" d="M0 -12V6"/><path class="rh-head" d="M-5.5 3 0 12 5.5 3Z"/></g></svg>
+        <div class="rh-txt"><b id="rhWindDeg">0°</b><small id="rhWindSub">8 kn</small></div>
+      </div>
+      <div class="rh-chip rh-time" id="rhTime" title="Start'a kalan süre / yarış süresi"><small id="rhTimeLbl">START'A</small><b id="rhTimeVal">2:00</b></div>
+    </div>
     <div class="spacer"></div>
     <div class="tool-group">
-      <button id="btnRecs" class="tool" title="Kayıtlı yarışlar: tekrar izle, dosyaya aktar"><svg><use href="#i-save"/></svg><span class="lbl">Kayıtlar</span></button>
+      <button id="btnRecs" class="tool" title="Kayıtlı yarışlar: tekrar izle, dosyaya aktar" aria-label="Kayıtlar"><svg><use href="#i-save"/></svg></button>
       <button id="btnFull" class="tool" title="Tam ekran"><svg><use href="#i-expand"/></svg></button>
     </div>
   </header>

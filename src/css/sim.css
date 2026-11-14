@@ -667,3 +667,51 @@ body.lay-strip .cat-rail .cr-reset { min-width: 64px; }
 .cur-dir .cur-w { font-size: 12px; color: var(--muted); }
 .cur-dir.off { opacity: .45; }
 .cur-txt { flex: 1 1 120px; min-width: 0; font-size: 12px; color: var(--muted); line-height: 1.35; }
+
+/* ---------- Üst çubuk ve yarış göstergesi (kullanıcı 2026-11-14: sade üst çubuk; saat ve rüzgar sahneden çubuğa) ---------- */
+.sim-top { gap: 10px; min-height: 60px; }
+.sim-top .sim-h1 { font-size: 15px; font-weight: 700; color: var(--muted); }
+.sim-top .tool-group { gap: 4px; }
+.sim-top .tool-group .tool { width: 40px; padding: 0; border-color: transparent; background: transparent; }
+.sim-top .tool-group .tool .lbl { display: none; }
+.sim-top .tool-group .tool:hover { background: var(--hover); }
+/* tam ekranda ✕ öbür simgelerle aynı sade düğme (kutulu değil) */
+.sim-top .fs-btn.fs-exit { background: transparent; border-color: transparent; }
+.sim-top .fs-btn.fs-exit svg { width: 20px; height: 20px; }
+.sim-top .acc-chip { margin-left: 4px; }
+.race-hud { display: flex; align-items: stretch; gap: 8px; flex: 0 0 auto; }
+.rh-chip { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px 0 8px; border-radius: 14px;
+  background: var(--raised); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.rh-comp { width: 32px; height: 32px; flex: 0 0 auto; }
+.rh-comp circle { fill: rgba(125,211,252,.06); stroke: rgba(255,255,255,.18); stroke-width: 1.2; }
+.rh-comp .rh-n { stroke: #7dd3fc; stroke-width: 2; }
+.rh-comp .rh-shaft { stroke: #7dd3fc; stroke-width: 3; stroke-linecap: round; }
+.rh-comp .rh-head { fill: #7dd3fc; }
+.rh-comp #rhArrow { transition: transform .3s; }
+.rh-txt { display: flex; flex-direction: column; line-height: 1.1; }
+.rh-txt b { font-size: 16px; font-weight: 800; color: var(--text); }
+.rh-txt small { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.rh-time { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0; padding: 0 14px; min-width: 92px; line-height: 1.05; }
+.rh-time small { font-size: 10px; font-weight: 800; letter-spacing: .9px; color: var(--muted); }
+.rh-time b { font-size: 21px; font-weight: 800; letter-spacing: -.3px; color: #fbbf24; }
+.rh-time.acc { background: rgba(251,191,36,.16); border-color: rgba(251,191,36,.6); }
+.rh-time.acc small { color: #fcd34d; }
+.rh-time.last { background: rgba(248,113,113,.16); border-color: rgba(248,113,113,.7); }
+.rh-time.last small, .rh-time.last b { color: #fca5a5; }
+.rh-time.race b { color: #34d399; }
+/* sahnede (yatay telefon, elle sürerken): sol üstte cam görünümlü */
+.race-hud.on-stage { position: absolute; top: calc(8px + var(--sat)); left: 8px; z-index: 8; }
+.race-hud.on-stage .rh-chip { height: 40px; background: rgba(11,23,36,.62); border-color: rgba(148,178,208,.35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+/* sahnedeki büyük kart kalktı: elle sürme zaman kutusu ortada */
+body.driving .drive-bar { left: 0; }
+@media (max-width: 760px) {
+  .sim-top .sim-h1 { display: none; }
+  .rh-txt small { display: none; }
+  .rh-time { min-width: 74px; padding: 0 10px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .sim-top { min-height: 0; }
+  .rh-chip { height: 36px; }
+  .rh-comp { width: 26px; height: 26px; }
+  .rh-time b { font-size: 18px; }
+}
