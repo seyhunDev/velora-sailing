@@ -19,7 +19,7 @@ yürütülür; sohbetler arasındaki ortak hafıza **`NOTLAR.md`** dosyasıdır.
 
 ## Proje özeti
 Genç yarış yelkencileri için etkileşimli taktik/kural animasyonları. Üstten görünüş, SVG, vanilla JS.
-Canlı site: https://seyhundev.github.io/velora-sailing/ (main'e push → GitHub Actions → otomatik yayın).
+Canlı site: https://velora-sailing.netlify.app (main'e push → GitHub Actions → Netlify; geçici olarak github.io da güncelleniyor).
 
 ## Teknik kurallar
 - Dil: arayüz ve açıklamalar **Türkçe**; yelken terimleri yerleşik Türkçe (sancak/iskele kontra, orsa,
