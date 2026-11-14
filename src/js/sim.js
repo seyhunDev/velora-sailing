@@ -603,6 +603,10 @@
       if (Array.isArray(o.route) && o.route.length) b.route = o.route;
       return b;
     });
+    // Eski hatanın onarımı (2026-11-14): uzatılmış parkurda "Varsayılan"a basınca tekneler eski hat yüksekliğinde,
+    // yeni hattın 6+ boy altında kalıp öyle kaydediliyordu. Bütün filo hattın 5 boydan daha altındaysa hatta yaklaştır.
+    const below = Math.min(...st.fleet.map(b => b.y - S.LINE.pin.y));
+    if (below > 5 * S.HULL) { const dy = below - 58; for (const b of st.fleet) { b.y -= dy; b.route = null; } }
     renumber();
     return true;
   }
@@ -1136,13 +1140,18 @@
   function changeCourse(next) {
     if (st.mode !== 'setup') return;
     const c = { lineLen: Math.max(COURSE_LIM.lineLen[0], Math.min(COURSE_LIM.lineLen[1], next.lineLen)), markDist: Math.max(COURSE_LIM.markDist[0], Math.min(COURSE_LIM.markDist[1], next.markDist)), flag: next.flag || st.course.flag || 'P' };
+    moveCourse(c);
+    fitViewBox(); updatePanel(true);
+  }
+  // Parkuru değiştirirken tekneler hatta göre yerini korur (hat boyunca orantılı), sağanaklar parkura göre.
+  // Ayarları sıfırla da bunu kullanır (kullanıcı 2026-11-14: parkur uzatılıp sıfırlanınca tekneler hattın çok altında kalıyordu).
+  function moveCourse(c) {
     const o = { cx: S.MARK.x, ly: S.LINE.pin.y, my: S.MARK.y, L: S.LINE.boat.x - S.LINE.pin.x };
     st.course = c; S.setCourse(c);
     const n = { cx: S.MARK.x, ly: S.LINE.pin.y, my: S.MARK.y, L: S.LINE.boat.x - S.LINE.pin.x };
-    // tekneler hatta göre yerini korur (hat boyunca orantılı), sağanaklar parkura göre
+    if (o.cx === n.cx && o.ly === n.ly && o.my === n.my && o.L === n.L) return;
     for (const b of st.fleet) { b.x = n.cx + (b.x - o.cx) * (n.L / o.L); b.y = b.y - o.ly + n.ly; if (b.route) b.route = null; }
     for (const g of st.gusts) { g.x = n.cx + (g.x - o.cx); g.y = n.my + (g.y - o.my) * ((n.ly - n.my) / (o.ly - o.my)); }
-    fitViewBox(); updatePanel(true);
   }
   const boyTxt = px => `${(px / S.HULL).toFixed(px % S.HULL ? 1 : 0).replace('.', ',')} boy`;
   function courseUpdate() {
@@ -1598,7 +1607,7 @@
     if (st.drawMode) endDraw(false);
     st.wind = 0; st.gusts = []; st.gsel = null; st.sea = { ...S.SEA_DEFAULT };
     setBoatCfg({ ...S.BOAT_DEFAULT, vis: st.boat.vis });
-    st.course = { ...S.COURSE_DEFAULT }; S.setCourse(st.course);
+    moveCourse({ ...S.COURSE_DEFAULT });   // tekneler yeni hatta göre taşınır
     for (const b of st.fleet) { b.ignoresRules = false; b.speedK = 1; b.drift = 0; b.manual = false; b.route = null; b.drv = false; b.sheetOff = 0; }
     fitViewBox(); updatePanel(true); gustBarUpdate();
     toast('Ayarlar varsayılana döndü: rüzgar 0°, sağanak ve akıntı yok, Optimist 8 kn. Tekne yerleri ve isimler kaldı');
