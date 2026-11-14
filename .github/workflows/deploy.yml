@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy (Netlify + GitHub Pages)
 
 on:
   push:
@@ -17,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,6 +30,11 @@ jobs:
       # Testler kırılırsa yayın yapılmaz, site eski haliyle kalır (senaryo + simülatör + 60 rastgele yarış)
       - run: npm run check
       - run: node scripts/build.mjs
+      # Netlify'a yayın (derleme burada yapılır, Netlify yalnız dist'i alır; Netlify derleme dakikası harcanmaz).
+      # Gizli anahtarlar: Settings → Secrets and variables → Actions → NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID
+      - name: Netlify'a yayınla
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
+        run: npx --yes netlify-cli@17 deploy --prod --dir=dist --message "v1.$(git rev-list --count HEAD) $(git rev-parse --short HEAD)"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
