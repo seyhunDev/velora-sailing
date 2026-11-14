@@ -32,7 +32,7 @@
   let veloraWait = false;
   const role = () => (acc && acc.role) || 'misafir';
   const can = f => { const x = FEATURES[f]; return !x || x.roles.includes(role()); };
-  function syncWho() { T.setWho({ role: acc ? acc.role : null, uid: acc && acc.uid }); document.documentElement.dataset.role = role(); }
+  function syncWho() { T.setWho({ role: acc ? acc.role : null, uid: acc && acc.uid, name: (acc && acc.name) || '' }); document.documentElement.dataset.role = role(); }
   syncWho();
 
   async function sha256(text) {
@@ -44,13 +44,14 @@
 
   function setAccount(a, how) {
     acc = a; put(a); syncWho(); chipUpdate();
+    setTimeout(askConsent, 400);
     document.dispatchEvent(new CustomEvent('sail-access', { detail: { role: role(), how } }));
   }
 
   // ---------- giriş ekranı ----------
   const NOTICE_SHORT = 'Siteyi geliştirmek için ziyaretin kaydedilir: hangi sayfaları ve animasyonları açtığın, ' +
     'hangi düğmelere bastığın, ne zaman ve ne kadar kaldığın, cihaz/tarayıcı türü, dil ve geldiğin site. ' +
-    'Kayıtlar şimdilik yalnızca bu tarayıcıda durur, kimseye gönderilmez.';
+    'Kayıtlar site sahibine iletilir; yalnızca site sahibi görebilir.';
   const NOTICE_LONG = `
     <p><b>Veri sorumlusu:</b> Velora Sailing site sahibi.</p>
     <p><b>Toplanan veriler:</b> rastgele bir ziyaretçi kimliği (adın ya da IP adresin değil), açtığın sayfalar ve animasyonlar,
@@ -58,8 +59,8 @@
     dil, saat dilimi, ekran boyutu ve hangi siteden geldiğin. Kaydolursan verdiğin ad, e-posta, kulüp ve rol bilgisi.</p>
     <p><b>Amaç:</b> hangi konuların kullanıldığını görüp siteyi ve animasyonları geliştirmek. Reklam ya da satış için kullanılmaz,
     üçüncü kişilerle paylaşılmaz.</p>
-    <p><b>Saklama yeri:</b> şimdilik yalnızca bu tarayıcının yerel belleği. İleride site sahibinin sunucusuna (Firebase) aktarılacaksa
-    bu metin güncellenir ve sana yeniden sorulur.</p>
+    <p><b>Saklama yeri:</b> önce bu tarayıcı, sonra site sahibinin Firebase (Google Cloud) veritabanı. Kayıtları yalnızca site sahibi
+    okuyabilir; diğer kullanıcılar ve ziyaretçiler göremez.</p>
     <p><b>Hakların (KVKK md. 11):</b> verilerini görmek, düzeltmek ve silmek. Sağ üstteki hesap menüsünden
     <b>Gizlilik ve verilerim → Kayıtlarımı sil</b> ile hepsini silebilir, izni kapatabilirsin.</p>`;
 
@@ -78,7 +79,7 @@
         <div class="gate-body" id="gateBody"></div>
         <div class="gate-foot">
           <label class="gate-consent"><input type="checkbox" id="gateConsent" checked>
-            <span>Siteyi geliştirmek için kullanımın bu cihazda kaydedilir. <button type="button" class="gate-link" id="gateMore">Ayrıntılar</button></span></label>
+            <span>Siteyi geliştirmek için kullanımın kaydedilir ve site sahibine iletilir. <button type="button" class="gate-link" id="gateMore">Ayrıntılar</button></span></label>
         </div>
         <div class="gate-notice hidden" id="gateNotice"><p>${esc(NOTICE_SHORT)}</p>${NOTICE_LONG}</div>
       </div></div>`);
@@ -324,11 +325,27 @@
     const close = () => d.remove();
     d.querySelectorAll('[data-x]').forEach(x => x.onclick = close);
     d.addEventListener('click', e => { if (e.target === d) close(); });
-    d.querySelector('#pvOn').onchange = e => { T.setConsent(e.target.checked); if (e.target.checked) T.log('consent', { ok: true }); };
+    d.querySelector('#pvOn').onchange = e => { T.setConsent(e.target.checked); if (consentBar) { consentBar.remove(); consentBar = null; } if (e.target.checked) T.log('consent', { ok: true }); };
     d.querySelector('#pvDel').onclick = () => {
       if (window.SailTrack) SailTrack.clear();
       d.querySelector('.gate-tag').textContent = 'Kayıtların silindi.';
     };
+  }
+
+  // Hesabı olan ama kayıt izni sorulmamış ziyaretçi (ör. Velora'dan doğrudan gelen, ya da metin değişti): alttan kısa soru
+  let consentBar = null;
+  function askConsent() {
+    if (!acc || T.consent() != null || consentBar || (gate && !gate.classList.contains('hidden'))) return;
+    consentBar = el(`<div class="consent-bar" role="dialog" aria-label="Kayıt izni">
+      <span>Siteyi geliştirmek için kullanımın kaydedilir ve site sahibine iletilir. <button type="button" class="gate-link" data-c="more">Ayrıntılar</button></span>
+      <div class="consent-btns"><button class="tb" data-c="no">Hayır</button><button class="tb primary" data-c="yes">İzin ver</button></div></div>`);
+    document.body.appendChild(consentBar);
+    consentBar.querySelectorAll('[data-c]').forEach(b => b.onclick = () => {
+      const c = b.dataset.c;
+      if (c === 'more') { openPrivacy(); return; }
+      T.setConsent(c === 'yes'); if (c === 'yes') T.log('consent', { ok: true });
+      consentBar.remove(); consentBar = null;
+    });
   }
 
   function toast(msg) {
@@ -361,4 +378,5 @@
     veloraWait = true;
     setTimeout(() => { if (veloraWait && !acc) openGate('home'); veloraWait = false; }, 12000);
   } else if (!acc) openGate('home');
+  askConsent();
 })();

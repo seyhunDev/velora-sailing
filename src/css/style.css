@@ -702,3 +702,13 @@ html:not([data-role="sahip"]) .report-btn { display: none; }
 }
 @media (max-height: 500px) { a.trim-link.tool { width: var(--tap); padding: 0; } a.trim-link .lbl { display: none; } }
 @media (max-height: 500px) { .du-card { padding: 18px 20px 14px; } .du-card .gate-brand { margin-bottom: 10px; } }
+
+/* kayıt izni şeridi (hesabı olan ama izni sorulmamış ziyaretçi) */
+.consent-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + var(--sab)); z-index: 190; width: min(560px, calc(100vw - 32px)); bottom: calc(84px + var(--sab));
+  display: flex; align-items: center; gap: 14px; padding: 12px 12px 12px 16px; border-radius: 14px; background: var(--panel-solid);
+  border: 1px solid var(--border-strong); box-shadow: var(--shadow); font-size: 13px; line-height: 1.45; color: var(--text2); }
+.consent-bar > span { flex: 1; min-width: 0; }
+.consent-bar .gate-link { font-size: 13px; }
+.consent-btns { display: flex; gap: 8px; flex: 0 0 auto; }
+.consent-btns .tb { min-height: 40px; min-width: 76px; }
+@media (max-width: 520px) { .consent-bar { flex-direction: column; align-items: stretch; } .consent-btns .tb { flex: 1; } }

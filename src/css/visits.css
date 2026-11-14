@@ -23,7 +23,8 @@ body.visits { display: block; background: var(--bg); }
 .vis-actions .tb { min-height: 40px; }
 .tb.danger { color: var(--hata); }
 
-.vis-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.vis-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .vis-stats { grid-template-columns: repeat(2, 1fr); } }
 .vis-stat { background: var(--panel-solid); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: grid; gap: 4px; }
 .vis-stat b { font-size: 24px; font-variant-numeric: tabular-nums; }
 .vis-stat span { font-size: 12px; color: var(--muted); }
@@ -67,3 +68,15 @@ body.visits { display: block; background: var(--bg); }
   .vis-events li { grid-template-columns: 1fr; }
   .ev-who { grid-column: auto; }
 }
+/* bulut durumu kartı */
+.vis-note { display: block; }
+.vis-note .tb { min-height: 36px; margin-left: 8px; vertical-align: middle; }
+.vis-note.ok { background: color-mix(in srgb, var(--hak) 9%, var(--panel-solid)); border-color: color-mix(in srgb, var(--hak) 35%, transparent); }
+.vis-note.setup ol { margin: 10px 0; padding-left: 20px; display: grid; gap: 4px; }
+.vis-note.setup a { color: var(--accent); }
+.vis-note pre { margin: 0 0 10px; padding: 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); font-size: 12px; line-height: 1.5;
+  overflow-x: auto; white-space: pre; color: var(--text); }
+.vis-note code { font-size: 12px; overflow-wrap: anywhere; }
+.vis-setup-btns { display: flex; gap: 8px; margin-bottom: 8px; }
+.vis-setup-btns .tb { margin-left: 0; flex: 0 0 auto; }
+.vis-note small { color: var(--muted); }

@@ -1,11 +1,12 @@
-// Ziyaret kayıtları sayfası (yalnız sahip). Veri: SailTrack.all() (bu tarayıcı) + içe aktarılan dosyalar.
+// Ziyaret kayıtları sayfası (yalnız sahip). Veri: Firestore sailingEvents (tüm ziyaretçiler; okuma kuralı yalnız sahibin uid'i)
+// + SailTrack.all() (bu tarayıcı, içe aktarılan dosyalar). Aynı olay (id) tek sayılır.
 (function () {
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TYPES = {
     visit: 'Ziyaret başladı', page: 'Sayfa açtı', leave: 'Ayrıldı', scenario: 'Senaryo açtı', click: 'Düğmeye bastı',
     race_start: 'Yarış başlattı', race_end: 'Yarış bitti', race_save: 'Yarışı kaydetti', drive: 'Elle sürdü',
-    gate: 'Giriş seçimi', signup: 'Kaydoldu', owner: 'Sahip girişi', consent: 'İzin', locked: 'Kilitli bölüme denedi', logout: 'Çıkış yaptı',
+    gate: 'Giriş seçimi', signup: 'Kaydoldu', velora: 'Velora girişi', owner: 'Sahip girişi', consent: 'İzin', locked: 'Kilitli bölüme denedi', logout: 'Çıkış yaptı',
   };
   const ROLE = { sahip: 'Sahip', kayitli: 'Kayıtlı', misafir: 'Misafir', yeni: 'Yeni' };
   const fmt = ts => new Date(ts).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -13,9 +14,12 @@
   const short = v => (v || '').slice(0, 6);
 
   let whoFilter = null, shown = 150;
+  let cloud = [], cloudState = 'bekliyor', cloudAt = 0;   // bekliyor | yükleniyor | tamam | giriş | izin | hata
 
   function events() {
-    let ev = SailTrack.all();
+    const seen = new Set(), ev0 = [];
+    for (const e of [...cloud, ...SailTrack.all()]) if (e && e.id && !seen.has(e.id)) { seen.add(e.id); ev0.push(e); }
+    let ev = ev0;
     if ($('visHideOwner').checked) ev = ev.filter(e => e.role !== 'sahip');
     return ev;
   }
@@ -34,12 +38,14 @@
     const by = new Map();
     for (const e of ev) {
       let p = by.get(e.vid);
-      if (!p) by.set(e.vid, p = { vid: e.vid, first: e.ts, last: e.ts, n: 0, sessions: new Set(), role: e.role, name: '', ctx: null, scn: new Set(), sec: 0 });
+      if (!p) by.set(e.vid, p = { vid: e.vid, first: e.ts, last: e.ts, n: 0, sessions: new Set(), role: e.role, name: '', ctx: null, scn: new Set(), sec: 0, races: 0 });
+      if (e.name && !p.name) p.name = e.name;
       p.n++; p.first = Math.min(p.first, e.ts); p.last = Math.max(p.last, e.ts); p.sessions.add(e.sid);
       if (e.ts >= p.last) p.role = e.role;
       if (e.type === 'signup' && e.data) p.name = e.data.name + (e.data.kind ? ` · ${e.data.kind}` : '') + (e.data.club ? ` · ${e.data.club}` : '');
       if (e.type === 'visit' && e.data) p.ctx = e.data;
       if (e.type === 'scenario' && e.data) p.scn.add(e.data.id);
+      if (e.type === 'race_start') p.races++;
       if (e.type === 'leave' && e.data) p.sec += e.data.sec || 0;
     }
     return [...by.values()].sort((a, b) => b.last - a.last);
@@ -74,7 +80,10 @@
     const secs = all.filter(e => e.type === 'leave').map(e => (e.data && e.data.sec) || 0);
     const avg = visits.length ? Math.round(secs.reduce((a, b) => a + b, 0) / visits.length) : 0;
     const stat = (n, l) => `<div class="vis-stat"><b>${n}</b><span>${l}</span></div>`;
-    $('visStats').innerHTML = stat(visits.length, 'ziyaret') + stat(vids.size, 'tekil ziyaretçi') + stat(signed.size, 'kaydolan') +
+    const ps = people(all);
+    const byRole = r => ps.filter(p => p.role === r).length;
+    $('visStats').innerHTML = stat(vids.size, 'kişi') + stat(byRole('misafir'), 'misafir') + stat(byRole('kayitli') + byRole('sahip'), 'kayıtlı / Velora') +
+      stat(signed.size, 'yeni kaydolan') + stat(visits.length, 'ziyaret') +
       stat(all.filter(e => e.type === 'scenario').length, 'senaryo açılışı') + stat(all.filter(e => e.type === 'race_start').length, 'simülatör yarışı') +
       stat(dur(avg), 'ziyaret başına ort. süre');
 
@@ -83,16 +92,15 @@
     rank('visDev', count(visits, e => e.data && `${e.data.device} · ${e.data.browser}`), 'Henüz yok');
     rank('visClicks', count(all.filter(e => e.type === 'click'), e => e.data && (e.data.label || e.data.id)), 'Henüz yok');
 
-    const ps = people(all);
-    $('visPeople').innerHTML = `<thead><tr><th>Ziyaretçi</th><th>Rol</th><th>Cihaz</th><th>Nereden</th><th>Ziyaret</th><th>Senaryo</th><th>Süre</th><th>Son görülme</th></tr></thead><tbody>` +
+    $('visPeople').innerHTML = `<thead><tr><th>Ziyaretçi</th><th>Rol</th><th>Cihaz</th><th>Nereden</th><th>Ziyaret</th><th>Senaryo</th><th>Yarış</th><th>Süre</th><th>Son görülme</th></tr></thead><tbody>` +
       (ps.length ? ps.map(p => `<tr data-vid="${esc(p.vid)}" class="${p.vid === whoFilter ? 'on' : ''}${p.vid === SailTrack.vid ? ' me' : ''}">
         <td><b>${esc(p.name || '#' + short(p.vid))}</b>${p.vid === SailTrack.vid ? ' <small>(bu cihaz)</small>' : ''}</td>
         <td><span class="acc-role" data-role="${esc(p.role)}">${ROLE[p.role] || esc(p.role)}</span></td>
         <td>${esc(p.ctx ? `${p.ctx.device} · ${p.ctx.os} · ${p.ctx.browser}` : '')}</td>
         <td>${esc(p.ctx ? p.ctx.utm_source || p.ctx.from : '')}</td>
-        <td>${p.sessions.size}</td><td>${p.scn.size}</td><td>${dur(p.sec)}</td>
+        <td>${p.sessions.size}</td><td>${p.scn.size}</td><td>${p.races}</td><td>${dur(p.sec)}</td>
         <td title="${esc(fmt(p.first))} ilk">${esc(ago(p.last))}</td></tr>`).join('')
-        : '<tr><td colspan="8" class="vis-empty">Kayıt yok.</td></tr>') + '</tbody>';
+        : '<tr><td colspan="9" class="vis-empty">Kayıt yok.</td></tr>') + '</tbody>';
     $('visPeople').querySelectorAll('tr[data-vid]').forEach(tr => tr.onclick = () => {
       whoFilter = whoFilter === tr.dataset.vid ? null : tr.dataset.vid; shown = 150; render();
     });
@@ -122,11 +130,11 @@
     a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   const stamp = () => new Date().toISOString().slice(0, 10);
-  $('visJson').onclick = () => download(`ziyaretler-${stamp()}.json`, JSON.stringify({ app: 'professional-sailing', kind: 'visits', v: 1, events: SailTrack.all() }, null, 1), 'application/json');
+  $('visJson').onclick = () => download(`ziyaretler-${stamp()}.json`, JSON.stringify({ app: 'professional-sailing', kind: 'visits', v: 1, events: events() }, null, 1), 'application/json');
   $('visCsv').onclick = () => {
     const cols = ['t', 'type', 'page', 'vid', 'sid', 'role', 'uid', 'desc', 'data'];
     const q = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-    const rows = SailTrack.all().map(e => cols.map(c => q(c === 'desc' ? describe(e) : c === 'data' ? JSON.stringify(e.data || {}) : e[c])).join(','));
+    const rows = events().map(e => cols.map(c => q(c === 'desc' ? describe(e) : c === 'data' ? JSON.stringify(e.data || {}) : e[c])).join(','));
     download(`ziyaretler-${stamp()}.csv`, '﻿' + cols.join(',') + '\n' + rows.join('\n'), 'text/csv');
   };
   $('visFile').onchange = async e => {
@@ -142,7 +150,7 @@
     if (Date.now() - clearArm > 3000) { clearArm = Date.now(); $('visClear').textContent = 'Emin misin? Tekrar bas'; setTimeout(() => { $('visClear').textContent = 'Temizle'; }, 3000); return; }
     SailTrack.clear(); clearArm = 0; $('visClear').textContent = 'Temizle'; render();
   };
-  function alertNote(msg) { const n = document.querySelector('.vis-note'); const d = document.createElement('div'); d.className = 'vis-flash'; d.textContent = msg; n.after(d); setTimeout(() => d.remove(), 3000); }
+  function alertNote(msg) { const n = $('visCloud'); const d = document.createElement('div'); d.className = 'vis-flash'; d.textContent = msg; n.after(d); setTimeout(() => d.remove(), 3000); }
   $('visHideOwner').onchange = render;
   $('visType').onchange = () => { shown = 150; render(); };
   $('visSearch').oninput = () => { shown = 150; render(); };
@@ -150,12 +158,70 @@
   $('visMore').onclick = () => { shown += 300; render(); };
   $('visOwner').onclick = () => SailAccess.open('owner');
 
+  // ---------- bulut (Firestore) ----------
+  const RULES_URL = 'https://console.firebase.google.com/project/sesliasistan-3e95a/firestore/rules';
+  const rulesText = uid => `    // Velora Sailing ziyaret kayıtları: herkes yazar (sınırlı), yalnız site sahibi okur
+    match /sailingEvents/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['v', 'vid', 'sid', 'uid', 'role', 'name', 'at', 'events'])
+        && request.resource.data.at == request.time
+        && request.resource.data.vid is string && request.resource.data.vid.size() <= 64
+        && request.resource.data.events is list && request.resource.data.events.size() <= 100
+        && (request.resource.data.uid == null || (request.auth != null && request.resource.data.uid == request.auth.uid));
+      allow read, delete: if request.auth != null && request.auth.uid == '${uid}';
+    }`;
+  function cloudView() {
+    const box = $('visCloud'), V = window.VeloraAuth;
+    const when = cloudAt ? new Date(cloudAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
+    if (cloudState === 'tamam') {
+      box.className = 'vis-note ok';
+      box.innerHTML = `<b>Tüm ziyaretçiler gösteriliyor.</b> Son ${cloud.length} olay buluttan geldi (${esc(when)}). Kayıtları yalnızca sen görebilirsin.
+        <button class="tb" id="visReload">Yenile</button>`;
+    } else if (cloudState === 'yükleniyor' || cloudState === 'bekliyor') {
+      box.className = 'vis-note'; box.innerHTML = '<b>Bulut kayıtları yükleniyor…</b>';
+    } else if (cloudState === 'giriş') {
+      box.className = 'vis-note';
+      box.innerHTML = `<b>Başkalarının ziyaretlerini görmek için Velora hesabınla gir.</b> Şu an yalnızca bu tarayıcıdaki kayıtlar görünüyor.
+        <button class="tb primary" id="visVelora">Velora hesabıyla gir</button>`;
+    } else if (cloudState === 'izin') {
+      const uid = V && V.uid ? V.uid() : '';
+      box.className = 'vis-note setup';
+      box.innerHTML = `<b>Bir kerelik kurulum: Firestore kuralı.</b> Ziyaretçilerin kayıtları buluta yazılabilsin ve yalnızca sen okuyabilesin diye
+        Velora'nın Firebase kurallarına aşağıdaki bloğu eklemen gerekiyor.
+        <ol><li><a href="${RULES_URL}" target="_blank" rel="noopener">Firebase konsolunda Firestore kurallarını aç</a>.</li>
+        <li>Mevcut kuralları <b>silme</b>. Bloğu <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır.</li>
+        <li><b>Yayınla</b> (Publish) düğmesine bas, sonra burada <b>Yenile</b>.</li></ol>
+        <pre id="visRules">${esc(rulesText(uid))}</pre>
+        <div class="vis-setup-btns"><button class="tb" id="visCopy">Kuralı kopyala</button><button class="tb primary" id="visReload">Yenile</button></div>
+        <small>Hesap kimliğin: <code>${esc(uid)}</code> (kurala yazıldı).</small>`;
+    } else {
+      box.className = 'vis-note';
+      box.innerHTML = `<b>Bulut kayıtları okunamadı.</b> Bağlantını kontrol et. <button class="tb" id="visReload">Yenile</button>`;
+    }
+    const r = box.querySelector('#visReload'); if (r) r.onclick = loadCloud;
+    const v = box.querySelector('#visVelora'); if (v) v.onclick = () => SailAccess.open('velora');
+    const c = box.querySelector('#visCopy'); if (c) c.onclick = async () => {
+      try { await navigator.clipboard.writeText($('visRules').textContent); c.textContent = 'Kopyalandı'; }
+      catch (e) { const sel = getSelection(); const rg = document.createRange(); rg.selectNodeContents($('visRules')); sel.removeAllRanges(); sel.addRange(rg); c.textContent = 'Seçildi: kopyala'; }
+    };
+  }
+  async function loadCloud() {
+    const V = window.VeloraAuth;
+    if (!V || !V.listEvents) { cloudState = 'bekliyor'; cloudView(); return; }
+    await V.ready().catch(() => {});
+    if (!V.uid()) { cloudState = 'giriş'; cloudView(); return; }
+    cloudState = 'yükleniyor'; cloudView();
+    try { cloud = await V.listEvents(600); cloudState = 'tamam'; cloudAt = Date.now(); }
+    catch (e) { cloudState = /permission|insufficient/i.test((e && (e.code || e.message)) || '') ? 'izin' : 'hata'; }
+    cloudView(); render();
+  }
+
   function gateView() {
     const ok = SailAccess.can('visits');
     $('visLocked').classList.toggle('hidden', ok);
     $('visBody').classList.toggle('hidden', !ok);
-    if (ok) render();
+    if (ok) { render(); loadCloud(); }
   }
+  document.addEventListener('velora-ready', () => { if (SailAccess.can('visits')) loadCloud(); });
   document.addEventListener('sail-access', gateView);
   addEventListener('storage', e => { if (e.key === 'ps.track.v1' && SailAccess.can('visits')) render(); });
   gateView();

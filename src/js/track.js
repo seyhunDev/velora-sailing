@@ -1,7 +1,6 @@
 // Ziyaret ve olay kaydı (SailTrack).
-// Şimdilik YALNIZCA bu tarayıcıda (localStorage) tutulur; hiçbir sunucuya gönderilmez.
-// Firebase bağlanınca: SailTrack.setSink(async events => { ...Firestore'a yaz... }) — gönderilmemiş
-// olaylar sırayla teslim edilir, başarılı olanlar "gönderildi" işaretlenir. Biçim değişmez.
+// Olaylar önce bu tarayıcıda (localStorage) birikir; izin varsa js/velora-auth.js'in kurduğu sink ile Velora
+// Firestore'una (sailingEvents) toplu gönderilir ve "gönderildi" işaretlenir. Okuma yalnız site sahibine açık (kural).
 //
 // Olay biçimi (v1):
 //   { id, t (ISO zaman), ts (ms), type, page, vid (ziyaretçi), sid (oturum), role, uid?, data {…}, sent? }
@@ -15,7 +14,7 @@
   history.replaceState(null, '', location.pathname + location.search);
 })();
 (function () {
-  const KEY = 'ps.track.v1', VID = 'ps.vid', SID = 'ps.sid', CONSENT = 'ps.consent.v1';
+  const KEY = 'ps.track.v1', VID = 'ps.vid', SID = 'ps.sid', CONSENT = 'ps.consent.v2';   // v2: kayıtlar sunucuya gider (yeniden sorulur)
   const MAX = 3000;                       // en fazla bu kadar olay tutulur (eskiler silinir)
   const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\?.*$/, '') || 'index.html';
   const t0 = Date.now();
@@ -33,7 +32,7 @@
   const newSession = !sid;
   if (!sid) { sid = rid(); try { sessionStorage.setItem(SID, sid); } catch (e) { /* yok */ } }
 
-  let who = { role: null, uid: null };   // access.js doldurur
+  let who = { role: null, uid: null, name: '' };   // access.js doldurur
   let sink = null, flushing = false;
 
   // izin: null (henüz sorulmadı) / true / false. Sorulmadıysa olaylar bellekte bekler, izin gelince yazılır.
@@ -47,7 +46,7 @@
     all.push(ev);
     if (all.length > MAX) all.splice(0, all.length - MAX);
     if (!ls.set(KEY, all)) { all.splice(0, Math.ceil(all.length / 3)); ls.set(KEY, all); }
-    flush();
+    soon();
   }
 
   function log(type, data) {
@@ -82,10 +81,13 @@
     };
   }
 
+  // gönderim: olaylar 4 sn biriktirilip toplu gider; sayfa gizlenince hemen
+  let timer = 0;
+  function soon() { if (!timer) timer = setTimeout(() => { timer = 0; flush(); }, 4000); }
   async function flush() {
     if (!sink || flushing || consent() !== true) return;
     const all = ls.get(KEY, []);
-    const todo = all.filter(e => !e.sent);
+    const todo = all.filter(e => !e.sent && e.vid === vid).slice(-500);   // başka cihazdan içe aktarılanlar gönderilmez
     if (!todo.length) return;
     flushing = true;
     try {
@@ -106,7 +108,7 @@
   }
   addEventListener('pagehide', leave);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') leave();
+    if (document.visibilityState === 'hidden') { leave(); flush(); }
     else if (leftLogged) { leftLogged = false; log('page', { back: true }); }
   });
 
@@ -128,6 +130,7 @@
     log,
     context,
     setWho(w) { who = { ...who, ...w }; },
+    get who() { return { ...who }; },
     consent,
     setConsent(v) {
       ls.set(CONSENT, !!v);

@@ -61,6 +61,7 @@
 - [ ] **İleri Teknik dersleri (kullanıcı 2026-11-13):** İT2 arka yaka (leech) ayarı, İT3 gırcala ayarının önemi (az/çok basılmasının olumsuz etkileri). `rigview.js` panelini genişlet (gırcala, arka yaka şeritleri); `ayar.js`'deki kırışık çizimlerinden yararlanılabilir. KONULAR.md → İT bölümü.
 - [x] **Sağlık incelemesinden kalanlar** (2026-11-13, v1.99): kalıcı kayıt yalnız yerleşim, rüzgar okunda tek hesap, "Varsayılan" rozeti, ayar kombinasyonu testi, tarayıcı duman testi (`npm run smoke`). Sonraki fikir: duman testini yayına bağlamak (Playwright bağımlılığı gerekir, kullanıcıya sorulmalı).
 - [x] **Simülatörde start bayrakları 5-4-1** (2026-11-13): P/I/Z/U/Siyah, yasaklı bölge, kural cezaları. Kalan fikirler: "erken çıkar" tekne davranışı, genel geri çağırma + Birinci Tekrar, sesli işaretler.
+- [x] **Ziyaret kayıtları Firestore'a** (2026-11-14, v1.132): `sailingEvents`, okuma yalnız sahip uid'i; kural kullanıcının konsolda yayınlamasını bekliyor.
 - [x] **Velora hesabıyla giriş** (2026-11-13): Velora'daki "Velora Sailing" kartından tek dokunuşla giriş canlıda çalışıyor (kullanıcı denedi: "Oldu"). Ayrıca giriş ekranında Velora e-posta/şifre. Sonraki adım istenirse: ziyaret kayıtlarını Firestore'a akıtmak (`SailTrack.setSink`, sesliasistan kuralları gerekir).
 > Karar (2026-11-12): **Önce Taktik → Start (A) bitirilecek, sonra Kurallar, sonra Teknik.** Liste: KONULAR.md → A1–A15.
 - [ ] **Firebase bağlantısı (kullanıcı isteği 2026-11-12):** Firebase Auth (kayıt/giriş, sahip rolü sunucuda), Firestore'a olay akışı (`SailTrack.setSink`), IP/ülke için Cloud Function, Firestore güvenlik kuralları (gerçek erişim kısıtı), yarış kayıtları ve simülatör kurulumu da taşınacak. Aydınlatma metni o zaman güncellenip izin yeniden sorulmalı.
@@ -220,6 +221,12 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-14 · Ziyaret kayıtları buluta (yalnız sahip görür)
+- Kullanıcı: misafirleri, kaydolanları, kimin girip oynadığını yalnız ana hesap sahibi görsün.
+- Yapılan: olaylar Velora Firestore'a (`sailingEvents`, belge = bir ziyaretçinin ≤100 olayı: v, vid, sid, uid (Velora oturumu varsa), role, name, at=serverTimestamp, events) toplu gider (`velora-auth.js` sink, `track.js` 4 sn biriktirir, sayfa gizlenince hemen; yalnız bu cihazın olayları). İzin anahtarı `ps.consent.v2` (metin değişti: kayıtlar site sahibine iletilir) → hesabı olanlara alttan izin şeridi. `ziyaret.html`: Velora ile giriş yapan sahip için buluttaki son 600 belge + yerel olaylar birleşir; kişi/misafir/kayıtlı sayıları, tabloda Yarış sütunu, ad bulut belgesinden. Okuma reddedilirse sayfada bir kerelik kurulum kartı: Firebase konsolu kural bağlantısı + kullanıcının uid'iyle doldurulmuş kural bloğu (kopyala) + Yenile.
+- **Bekleyen (kullanıcı):** Firestore kuralını sesliasistan-3e95a konsolunda yayınlamak (kural yayınlanana kadar yazma da reddedilir; olaylar cihazda bekler, sonra gider). Sandbox'tan gstatic/Firestore'a erişilemedi: SDK yolu canlıda denenmedi, sink ve sayfa durumları taklitle denendi.
+- Not: Velora'da kendi işletmesinin sahibi olan herkes Sailing'de 'sahip' rolü alır (velora-auth roleOf); bu yüzden okuma kuralı uid'e bağlı, rol bilgisine değil.
+
 ### 2026-11-14 · Yayını Netlify'a taşıma
 Yapılan: `netlify.toml`, `build.mjs` sığ klon düzeltmesi (v1.129); `deploy.yml` Netlify'a da yüklüyor (v1.130), ilk yayın canlı: velora-sailing.netlify.app. Yarım: depo henüz açık (kullanıcı sonra gizli yapacak), Pages kaldırılmadı. Sonraki sohbete: kullanıcı "gizli yaptım" deyince Açık sorular'daki ilk maddeyi uygula.
 

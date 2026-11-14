@@ -68,6 +68,31 @@ async function start() {
     async getDoc(col, id) { const d = await fs.getDoc(fs.doc(fs.getFirestore(app), col, id)); return d.exists() ? d.data() : null; },
     setDoc: (col, id, data) => fs.setDoc(fs.doc(fs.getFirestore(app), col, id), data),
   };
+  // Ziyaret kayıtları → Firestore `sailingEvents` (bir belge = bir ziyaretçinin ≤100 olayı). Ziyaretçi giriş yapmamış
+  // olabilir: kural anonim "create"e izin verir (alanlar ve boyut sınırlı), okuma/silme yalnız site sahibinin uid'i.
+  const db = fs.getFirestore(app);
+  const T = window.SailTrack;
+  if (T && T.setSink) {
+    auth.authStateReady().catch(() => {}).then(() => T.setSink(async events => {
+      const w = T.who, u = auth.currentUser;
+      for (let i = 0; i < events.length; i += 100) {
+        const ch = events.slice(i, i + 100).map(({ sent, ...e }) => e);
+        await fs.addDoc(fs.collection(db, 'sailingEvents'), {
+          v: 1, vid: T.vid, sid: T.sid, uid: u ? u.uid : null, role: ch[ch.length - 1].role || w.role || 'yeni',
+          name: String(w.name || '').slice(0, 60), at: fs.serverTimestamp(), events: ch,
+        });
+      }
+    }));
+  }
+  window.VeloraAuth.uid = () => (auth.currentUser ? auth.currentUser.uid : null);
+  window.VeloraAuth.ready = () => auth.authStateReady();
+  // Yalnız sahip (kural): son `max` belgeyi okuyup olaylara açar; her olaya belgenin adı ve Velora uid'i eklenir
+  window.VeloraAuth.listEvents = async (max = 400) => {
+    const snap = await fs.getDocs(fs.query(fs.collection(db, 'sailingEvents'), fs.orderBy('at', 'desc'), fs.limit(max)));
+    const out = [];
+    snap.forEach(d => { const x = d.data(); for (const e of x.events || []) out.push({ ...e, name: x.name || '', fuid: x.uid || null, cloud: true }); });
+    return out;
+  };
   document.dispatchEvent(new CustomEvent('velora-ready'));
 
   if (pending) {
