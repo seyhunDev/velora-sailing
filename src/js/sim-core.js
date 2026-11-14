@@ -119,7 +119,7 @@
   // acc: hızlanma süresi sabiti (gerçek sn) – yelkeni doldurduktan sonra tam hıza ~3×acc sn'de çıkar.
   const CLASSES = E.BOAT_CLASSES;   // sınıf hız tablosu engine.js'te (senaryolarla ortak)
   const BOAT_DEFAULT = { cls: 'optimist', windKn: 8, accelAt: 30, pre: 300, vis: 'normal' };   // pre: start geri sayımı (gerçek sn)
-  const PRE_SEC = [120, 180, 240, 300];   // accelAt: start'a kaç gerçek sn kala yelken doldurulur
+  const PRE_SEC = [60, 120, 180, 240, 300];   // accelAt: start'a kaç gerçek sn kala yelken doldurulur
   const WIND_KN = [4, 6, 8, 10, 12, 15, 18];
   const ACCEL_AT = [60, 45, 30, 20, 15, 10];
   const upwindKn = E.upwindKn;

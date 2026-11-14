@@ -67,9 +67,15 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
   await p.goto(BASE + '/sim.html'); await p.waitForTimeout(700);
   ok(!p.errors.length, `simülatör açıldı${p.errors.length ? ': ' + p.errors[0] : ''}`);
 
-  // kurulumda zorlaştıran ayarlar: rüzgar, sağanak → rozet görünür
-  await cat('wind'); await p.click('#btnWindR'); await p.click('#btnWindR');
-  await cat('gust'); await p.click('#btnGustL'); await p.waitForTimeout(200);
+  // doğrudan elle sürüş (2026-11-14): açılınca yarış başlar, dümen sende, yelken boş
+  const driving = () => p.evaluate(() => document.body.classList.contains('driving'));
+  ok(await driving(), 'simülatör doğrudan elle sürüşle açıldı');
+  const luff = await p.$eval('#hpTrimTxt', e => e.textContent);
+  ok(/salık|pırpır/i.test(luff), `başta yelken boş: "${luff}"`);
+
+  // yarışta zorlaştıran ayarlar: rüzgar, sağanak → rozet görünür
+  await cat('wind'); await p.click('#btnWindR'); await p.click('#btnWindR'); await p.waitForTimeout(700);
+  await cat('gust'); await p.click('#btnGustL'); await p.waitForTimeout(300);
   const badge = await p.$eval('#btnResetSet', e => !e.classList.contains('hidden') && e.textContent);
   ok(!!badge && /2/.test(badge), `değişmiş ayar rozeti: "${badge}"`);
   await shot(p, 'sim-rozet.png');
@@ -79,37 +85,26 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
   ok(saved && saved.wind === undefined && saved.gusts === undefined && saved.fleet.length >= 2, 'kalıcı kayıt yalnız yerleşimi tutuyor');
   await p.reload(); await p.waitForTimeout(700);
   const after = await p.evaluate(() => [document.getElementById('windVal').textContent, document.getElementById('btnResetSet').classList.contains('hidden')]);
-  ok(after[0] === '0°' && after[1], `yeniden açılışta rüzgar ${after[0]}, rozet ${after[1] ? 'yok' : 'VAR'}`);
+  ok(after[0] === '0°' && after[1] && await driving(), `yeniden açılışta rüzgar ${after[0]}, rozet ${after[1] ? 'yok' : 'VAR'}, elle sürüş açık`);
 
-  // rozet: bir ayar değiştir, rozete bas → varsayılan
-  await cat('wind'); await p.click('#btnWindL'); await p.waitForTimeout(100);
-  await p.click('#btnResetSet'); await p.waitForTimeout(150);
-  ok(await p.$eval('#windVal', e => e.textContent) === '0°', 'rozete basınca rüzgar varsayılana döndü');
+  // rozet: bir ayar değiştir, rozete bas → varsayılan, yeni yarış yine elle
+  await cat('wind'); await p.click('#btnWindL'); await p.waitForTimeout(700);
+  await p.click('#btnResetSet'); await p.waitForTimeout(300);
+  ok(await p.$eval('#windVal', e => e.textContent) === '0°' && await driving(), 'rozete basınca rüzgar varsayılana döndü, yarış elle sürüşle baştan');
 
-  // Elle sür (kurulum) → çık: Manuel kalıcı olmaz
-  await p.keyboard.press('d'); await p.waitForTimeout(300);
-  await p.click('#hpGo'); await p.waitForTimeout(300);
-  ok(!(await p.$eval('#btnManual', e => e.classList.contains('on'))), 'kurulumda elle sürdükten sonra Manuel kapalı');
+  // kurulum ayarı yarışta değişince yarış baştan başlar
+  const n0 = await p.$eval('#fleetVal', e => +e.textContent);
+  await cat('fleet'); await p.click('#btnFleetPlus'); await p.waitForTimeout(400);
+  ok(await p.$eval('#fleetVal', e => +e.textContent) === n0 + 1 && await driving(), 'filo değişince yarış elle sürüşle baştan başladı');
 
-  // Start → rüzgar art arda: yön hemen görünür, yarış bir kez yeniden hesaplanır
-  await p.click('#btnPlay'); await p.waitForTimeout(900);
-  const w0 = await p.$eval('#windVal', e => parseInt(e.textContent));
-  await cat('wind'); for (let i = 0; i < 4; i++) await p.click('#btnWindR');
-  const wNow = await p.$eval('#windVal', e => parseInt(e.textContent));
-  await p.waitForTimeout(800);
-  const evs = await p.$$eval('#events li', l => l.map(x => x.textContent).filter(t => /Rüzgar .*döndü/.test(t)));
-  ok(wNow === (w0 + 20) % 360 && evs.length === 1, `yarışta 4 kez rüzgar: gösterge ${w0}° → ${wNow}°, ${evs.length} yeniden hesap`);
-
-  // yarışta elle sür → çık
-  await p.keyboard.press('d'); await p.waitForTimeout(1200);
   await shot(p, 'sim-elle.png');
   await p.keyboard.press('i'); await p.waitForTimeout(2500);         // iskotayı çek, hızlan
   await p.keyboard.press('b'); await p.waitForTimeout(5000);         // yelkeni tersle: fren, dur, geri
   const backTxt = await p.$eval('#hpSpeed', e => e.textContent), backOn = await p.$eval('#hpBack', e => e.classList.contains('on'));
   ok(backOn && /geri/.test(backTxt), `Tersle (B): ${backTxt}`);
   await p.keyboard.press('b');
-  await p.click('#hpGo'); await p.waitForTimeout(400);
-  ok(!(await p.$eval('#btnManual', e => e.classList.contains('on'))), 'yarışta elle sürdükten sonra Manuel kapalı (tekne kendi tramolasını atar)');
+  await p.keyboard.press('r'); await p.waitForTimeout(400);
+  ok(await driving() && /salık|pırpır/i.test(await p.$eval('#hpTrimTxt', e => e.textContent)), 'Yeni yarış (R): yine elle, yelken boş');
 
   // yapay çizim hatası: döngü durmamalı
   await p.evaluate(() => { const o = SVGElement.prototype.setAttribute; let n = 0; SVGElement.prototype.setAttribute = function (...a) { if (n++ === 40) throw new Error('duman testi yapay hata'); return o.apply(this, a); }; });
@@ -128,8 +123,7 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
   const p = await page();
   await p.goto(BASE + '/sim.html'); await p.waitForTimeout(700);
   await p.evaluate(() => { window.__opened = []; window.open = () => ({ set location(v) { window.__opened.push(v.href || v); }, get location() { return { set href(v) { window.__opened.push(v); } }; } }); });
-  await p.click('#btnPlay'); await p.waitForTimeout(800);
-  await p.keyboard.press('d'); await p.waitForTimeout(1500);
+  await p.waitForTimeout(1500);   // açılınca zaten elle sürüş
   await p.keyboard.down('ArrowLeft'); await p.waitForTimeout(400); await p.keyboard.up('ArrowLeft');
   ok(await p.isVisible('#btnReport'), 'sahip hesabında Bildir düğmesi görünüyor');
   await p.click('#btnReport'); await p.waitForTimeout(200);
@@ -150,7 +144,7 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
   const { decode, rebuild, inspect } = await import('./report.mjs');
   const rep = decode(fs.readFileSync(file, 'utf8')), fromUrl = u && /velora-report/.test(u.searchParams.get('body')) ? decode(u.searchParams.get('body')) : null;
   const r = rebuild(rep);
-  ok(rep.note.startsWith('Duman') && rep.events.some(e => e.type === 'click' && e.d.id === 'btnPlay') && rep.state.sim.drive && r && r.frames.length > 100,
+  ok(rep.note.startsWith('Duman') && rep.events.some(e => e.type === 'key') && rep.state.sim.drive && r && r.frames.length > 100,
     `bildirim: ${rep.events.length} işlem, durum "${rep.state.sim.ozet.slice(0, 60)}…", ${r ? r.note : 'yeniden kurulamadı'}${fromUrl ? ', adresteki veri de çözüldü' : ', veri panoda'}`);
   const probs = r ? inspect(r.frames) : [];
   console.log(`  (bildirimden kurulan yarışta hata avcısı: ${probs.length ? probs.slice(0, 2).join(' | ') : 'temiz'})`);
@@ -187,8 +181,7 @@ for (const [pg, n] of [['sim.html', 400], ['index.html', 250]]) {
 // ---------- Telefon (yatay) ----------
 {
   const p = await page({ width: 844, height: 390 });
-  await p.goto(BASE + '/sim.html'); await p.waitForTimeout(600);
-  await p.click('#btnPlay'); await p.waitForTimeout(600);
+  await p.goto(BASE + '/sim.html'); await p.waitForTimeout(1200);   // açılınca elle sürüş
   const over = await p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   ok(!over && !p.errors.length, `yatay telefonda simülatör: taşma ${over ? 'VAR' : 'yok'}${p.errors.length ? ', hata: ' + p.errors[0] : ''}`);
   await shot(p, 'telefon.png');

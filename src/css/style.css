@@ -712,3 +712,6 @@ html:not([data-role="sahip"]) .report-btn { display: none; }
 .consent-btns { display: flex; gap: 8px; flex: 0 0 auto; }
 .consent-btns .tb { min-height: 40px; min-width: 76px; }
 @media (max-width: 520px) { .consent-bar { flex-direction: column; align-items: stretch; } .consent-btns .tb { flex: 1; } }
+
+/* Doğrudan elle sürüş (2026-11-14): otomatik yarışa ait düğmeler (Teknem, Tramola, Otomatik) simülatörde yok */
+body.sim .hand-off { display: none !important; }

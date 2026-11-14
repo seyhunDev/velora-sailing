@@ -11,6 +11,8 @@
   };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const W = S.WORLD;
+  // Doğrudan elle sürüş (kullanıcı 2026-11-14): geri sayım varsayılanı 2 dk (5 dk gerçek zamanda elle beklemek uzun)
+  const BOAT_DEF = { ...S.BOAT_DEFAULT, pre: 120 };
   const phoneMq = window.matchMedia('(max-width: 640px), (max-height: 460px)');
 
   const st = {
@@ -21,7 +23,7 @@
     show: { speed: true, shadow: true, startLay: false, zone: true },   // pis rüzgar konileri varsayılan açık; hat layline'ları ayarlardan
     sel: null, vb: { x: 0, y: 0, w: W.w, h: W.h }, drag: null, mineOnly: false, viewT: 0,
     cam: { z: 1, x: null, y: null, follow: false }, base: null, pinch: null, pts: new Map(),
-    course: { ...S.COURSE_DEFAULT }, sea: { ...S.SEA_DEFAULT }, boat: { ...S.BOAT_DEFAULT }, gsel: null, drawMode: false, drawPts: null, routeMode: 'acili', draft: [], steps: [], legPrev: null
+    course: { ...S.COURSE_DEFAULT }, sea: { ...S.SEA_DEFAULT }, boat: { ...BOAT_DEF }, gsel: null, drawMode: false, drawPts: null, routeMode: 'acili', draft: [], steps: [], legPrev: null
   };
 
   // ---------- görünüm ----------
@@ -588,7 +590,7 @@
     const c = d.course || {};
     st.course = { ...S.COURSE_DEFAULT, ...(c.lineLen ? { lineLen: +c.lineLen } : {}), ...(c.markDist ? { markDist: +c.markDist } : {}) }; S.setCourse(st.course);   // bayrak hep P
     const vis = d.vis != null ? d.vis : d.boat && d.boat.vis;   // eski kayıt: yalnız ekranda hız tercihi alınır
-    if (vis != null) setBoatCfg({ ...S.BOAT_DEFAULT, vis });
+    if (vis != null) setBoatCfg({ ...BOAT_DEF, vis });
     const n = Math.min(16, d.fleet.length), mineIdx = Math.max(0, d.fleet.findIndex(b => b.mine));
     st.fleet = d.fleet.slice(0, n).map((o, i) => {
       const b = S.makeBoat(i, { x: +o.x, y: +o.y }, i === mineIdx ? { mine: true, id: 'SEN', name: 'Senin teknen' } : null);
@@ -621,14 +623,14 @@
     }
     clearArm = 0; clearBtn = null; clearArmReset();
     if (st.drawMode) endDraw(false);
-    if (st.mode !== 'setup' || st.drive) backToSetup();
+    if (st.mode !== 'setup' || st.drive) backToSetup(true);
     try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem('ps.sim.fastPre'); } catch (er) { /* yok say */ }
     st.course = { ...S.COURSE_DEFAULT }; S.setCourse(st.course);
-    st.wind = 0; st.sea = { ...S.SEA_DEFAULT }; setBoatCfg({ ...S.BOAT_DEFAULT }); st.gusts = []; st.gsel = null; st.sel = null; st.fleet = S.defaultFleet(12);
+    st.wind = 0; st.sea = { ...S.SEA_DEFAULT }; setBoatCfg({ ...BOAT_DEF }); st.gusts = []; st.gsel = null; st.sel = null; st.fleet = S.defaultFleet(12);
     st.fastPre = true; setSpeed(1);
     st.cam.z = 1; st.cam.follow = false; st.cam.panAt = null; st.cam.x = st.cam.y = null;
     openCat(null); fitViewBox(); applyCam(); updatePanel(true);
-    toast('Her şey sıfırlandı: varsayılan filo, rüzgar 0°, sağanak ve akıntı yok');
+    newHandRace('Her şey sıfırlandı: varsayılan filo, rüzgar 0° · yelken boş, dümen sende');
   }
 
   // ---------- Geri sayım: tekneler start öncesi neredeyse durur; son dakikaya kadar hızlı geç (varsayılan açık) ----------
@@ -669,7 +671,7 @@
     $('windVal').textContent = `${Math.round(E.norm360(v.wind + (st.mode === 'setup' ? 0 : windPend)))}°`;
     $('fleetVal').textContent = st.fleet.length;
     const setup = st.mode === 'setup';
-    ['btnFleetMinus', 'btnFleetPlus', 'btnFleetLine'].forEach(id => { $(id).disabled = !setup; });
+    ['btnFleetMinus', 'btnFleetPlus', 'btnFleetLine'].forEach(id => { $(id).disabled = false; });   // yarışta da: değişince yarış baştan başlar
     const mine = v.boats.find(b => b.mine);
     $('btnTack').disabled = !mine || setup || !(mine.phase === 'race' || (mine.manual && mine.phase === 'wait'));
     $('btnManual').classList.toggle('on', !!(mine && mine.manual));
@@ -793,7 +795,7 @@
     try { tickBody(ts); }
     catch (e) {
       console.error('[sim] kare hatası', e);
-      if (Date.now() - tickErr > 15000) { tickErr = Date.now(); try { toast('Bir sorun oldu, animasyon sürüyor. Takılırsa Sıfırla (R).'); } catch (e2) { /* yok */ } }
+      if (Date.now() - tickErr > 15000) { tickErr = Date.now(); try { toast('Bir sorun oldu, animasyon sürüyor. Takılırsa Yeni yarış (R).'); } catch (e2) { /* yok */ } }
       if (window.SailTrack) try { SailTrack.log('error', { where: 'sim.tick', msg: String(e && e.message || e).slice(0, 120) }); } catch (e3) { /* yok */ }
     }
     requestAnimationFrame(tick);
@@ -805,6 +807,9 @@
       // elle sürerken haritayı kaydırdıysan: 2.5 sn dokunulmazsa kamera tekrar teknene döner
       const c = st.cam;
       if (st.drive && !c.follow) { c.follow = true; c.ft = 0; if (c.z < 1.2) c.z = 1.8; }   // elle sürerken kamera hep teknende
+    }
+    else if (st.reHand && st.mode === 'run' && canDrive() && ['race', 'ocs'].includes((view().boats.find(b => b.mine) || {}).phase)) {
+      st.reHand = false; enterDrive('Ceza bitti · dümen yine sende');
     }
     else if (st.mode === 'run') {
       st.playT += dt * playSpeed() / S.CLOCK_SCALE;   // 1× = gerçek zaman (start → şamandıra ~15 dk); geri sayım hızlı geçebilir
@@ -826,13 +831,54 @@
     else if (st.mode === 'end') { st.playT = 0; st.sim = viewAt(0); st.mode = 'run'; }
     updatePanel(true);
   }
-  function backToSetup() {
-    windPend = 0; clearTimeout(windTimer);
+  function backToSetup(quiet) {
+    windPend = 0; clearTimeout(windTimer); st.reHand = false;
     if (st.drive) { st.drive = null; if (st.camPrev) Object.assign(st.cam, st.camPrev); st.camPrev = null; st.cam.follow = false; st.cam.panAt = null; applyCam(); }
-    if (st.mode !== 'setup') toast('Yarış sıfırlandı · tekneler start öncesi yerlerinde, ▶ ile yeniden başlat');
+    if (st.mode !== 'setup' && !quiet) toast('Yarış sıfırlandı · tekneler start öncesi yerlerinde, ▶ ile yeniden başlat');
     st.mode = 'setup'; st.sim = null; st.frames = []; updatePanel(true); }
   // Tahmini sonuç: hesaplanmış yarışın son karesi
   function predicted() { return st.frames.length ? st.frames[st.frames.length - 1] : null; }
+
+  // ---------- Doğrudan elle sürüş (kullanıcı 2026-11-14) ----------
+  // Simülatör açılınca kurulum ekranı yok: yarış başlar (geri sayım akar), teknen start hattının yakınında, yelken boş
+  // (pırpırlıyor) ve dümen sende. Kurulum ayarı (filo, sınıf, parkur, bayrak, geri sayım) değişince yarış baştan başlar.
+  // Çekirdek aynı: startRace + enterDrive (canlı) + driveTick → S.handStep (online yarış da bunu kullanır).
+  const canDrive = () => !window.SailAccess || SailAccess.can('sim.drive');
+  function placeMine() {
+    const m = st.fleet.find(b => b.mine); if (!m) return;
+    const P = S.LINE.pin, Q = S.LINE.boat, others = st.fleet.filter(b => !b.mine);
+    let best = null;
+    const hr = (st.wind - 45) * Math.PI / 180, hx = Math.sin(hr), hy = -Math.cos(hr);
+    // hattın ortasına yakın, filonun hemen arkasında boş su: en az ~1,6 boy açıklık (dümen çevirecek alan), hatta olabildiğince yakın
+    for (let u = 0.25; u <= 0.751; u += 0.025) for (let dy = 80; dy <= 260; dy += 15) {
+      const p = { x: P.x + (Q.x - P.x) * u, y: P.y + (Q.y - P.y) * u + dy };
+      const gap = others.length ? Math.min(...others.map(b => Math.hypot(b.x - p.x, b.y - p.y))) : 999;
+      // sancak orsa rotasında önü açık olsun: iskotayı çekince ilk iş bir tekneye bindirmesin
+      let ahead = 200;
+      for (const b of others) { const rx = b.x - p.x, ry = b.y - p.y, f = rx * hx + ry * hy, l = Math.abs(rx * hy - ry * hx); if (f > 0 && l < 40) ahead = Math.min(ahead, f); }
+      const score = Math.min(gap, 80) * 3 + Math.min(ahead, 200) * 0.6 - Math.abs(u - 0.5) * 60 - dy * 0.25;
+      if (!best || score > best.score) best = { p, score };
+    }
+    m.x = best.p.x; m.y = best.p.y; m.tack = 'starboard'; m.drv = false; m.route = null; m.manual = false; m.sheetOff = 0;
+  }
+  function newHandRace(msg) {
+    if (st.drawMode) endDraw(false);
+    if (st.drive || st.mode !== 'setup') backToSetup(true);
+    placeMine(); saveSetup();
+    startRace();
+    if (!canDrive()) {                                   // misafir: elle sürme kilitli, yarışı izler (Elle sür kilidi açıklar)
+      st.mode = 'run'; updatePanel(true);
+      toast('Yarışı izliyorsun · tekneni elle sürmek için kaydol (Elle sür)'); return;
+    }
+    enterDrive(msg);
+  }
+  // Ayar kurulumda geçerliyse: yarışı bırak, ayarı uygula, yeni yarışı elle sürüşle başlat
+  function reconf(fn, msg) {
+    const live = st.mode !== 'setup' || !!st.drive;
+    if (live) backToSetup(true);
+    fn();
+    if (live) newHandRace(msg || 'Yeni ayarla yarış baştan başladı · yelken boş, dümen sende');
+  }
 
   // ---------- Elle sürme: dümen ve iskota sende ----------
   // Kurulumda: zaman yok, teknen start'tan önce istediğin yere götürülür (diğerleri yerinde).
@@ -849,7 +895,7 @@
     return d.s || { t: 0, wind: st.wind, gusts: st.gusts, sea: st.sea, boat: st.boat, course: st.course, boats: st.fleet, events: [] };
   }
   function driveBoat() { return st.drive && driveCtx().boats.find(b => b.mine); }
-  function enterDrive() {
+  function enterDrive(msg) {
     if (st.drive) return;
     if (window.SailAccess && !SailAccess.guard('sim.drive')) return;
     if (window.SailTrack) SailTrack.log('drive', { mode: st.mode });
@@ -868,6 +914,7 @@
       const prev = { manual: !!m.manual, route: null };   // yarışta rota geri gelmez (tekne yolundan çıktı); Manuel eski haline döner
       m.manual = true; m.route = null; m.man = null; m.escH = null; m.sheet = null; m.hand = true;
       if (m.phase === 'wait' && Math.abs(E.norm180(m.h - s.wind)) < 40) { m.h = s.wind + (m.tack === 'starboard' ? -45 : 45); m.sheetOff = S.SHEET_OFF_MAX; }   // beklerken yelken boştu
+      if (s.t === 0) { m.v = 0; m.sheetOff = S.SHEET_OFF_MAX; }   // yarışın başı: yelken boş, pırpırlıyor; İskota Çek ile dolar
       // canlı: bu kareden itibaren yarış adım adım ilerler; kareler ve teknenin yolu (kayıt için) tutulur
       st.drive = { s, i, live: true, paused: false, acc: 0, prev,   // Elle sür'e basınca zaman hep akar (durmuş oynatmadan geçince kilitli sanılıyordu)
         n: 0, frames: [S.clone(s)], path: [] };
@@ -878,7 +925,7 @@
     if (!st.cam.follow) { st.cam.follow = true; st.cam.z = Math.max(st.cam.z, phoneMq.matches ? 1.6 : 1.8); }
     Object.assign(st.drive, { keyRud: 0, touchRud: 0, autoTrim: true,   // iskota hep otomatik: çekikken seyre, salıkken rüzgara göre (kullanıcı 2026-11-13)
       noteAt: 0, lastEv: {} });
-    toast(st.drive.live ? 'Elle sürüyorsun · yarış akıyor, herkes hareket ediyor. ← → dümen, ↑ ↓ iskota' : 'Elle sürüyorsun · start\'tan önce yerini al. ← → dümen, ↑ ↓ iskota, Start ▶ ile yarış başlar');
+    toast(msg || (st.drive.live ? 'Elle sürüyorsun · yarış akıyor, herkes hareket ediyor. ← → dümen, ↑ ↓ iskota' : 'Elle sürüyorsun · start\'tan önce yerini al. ← → dümen, ↑ ↓ iskota, Start ▶ ile yarış başlar'));
     updatePanel(true);
   }
   // keep: kurulumdan Start ▶ ile çıkınca elle sürmeye yarışta devam et
@@ -945,6 +992,7 @@
         if (!m.hand || d.s.boats.every(b => b.finish || b.gone)) {      // şamandıra dönüşü / ceza turu: otomatik devralır
           if (d.n % 2) d.frames.push(S.clone(d.s));
           const why = m.phase === 'round' ? 'Şamandırayı dönüyorsun: otomatik devraldı' : m.phase === 'penalty' || m.penaltyAt != null ? 'Ceza turunu otomatik atıyor' : 'Elle sürme bitti';
+          if (m.phase === 'penalty' || m.penaltyAt != null) st.reHand = true;   // ceza bitince dümen yine sende
           exitDrive(true); toast(why); return;
         }
       }
@@ -1153,24 +1201,24 @@
   function courseUpdate() {
     const c = st.course, setup = st.mode === 'setup', D = S.COURSE_DEFAULT;
     $('lineVal').textContent = boyTxt(c.lineLen); $('markVal').textContent = boyTxt(c.markDist);
-    $('btnLineMinus').disabled = !setup || c.lineLen <= COURSE_LIM.lineLen[0]; $('btnLinePlus').disabled = !setup || c.lineLen >= COURSE_LIM.lineLen[1];
-    $('btnMarkMinus').disabled = !setup || c.markDist <= COURSE_LIM.markDist[0]; $('btnMarkPlus').disabled = !setup || c.markDist >= COURSE_LIM.markDist[1];
+    $('btnLineMinus').disabled = c.lineLen <= COURSE_LIM.lineLen[0]; $('btnLinePlus').disabled = c.lineLen >= COURSE_LIM.lineLen[1];
+    $('btnMarkMinus').disabled = c.markDist <= COURSE_LIM.markDist[0]; $('btnMarkPlus').disabled = c.markDist >= COURSE_LIM.markDist[1];
     const def = c.lineLen === D.lineLen && c.markDist === D.markDist;
-    $('btnCourseReset').disabled = !setup || def;
-    $('courseState').textContent = !setup ? 'Yarışta değiştirilemez (kurulumda ayarlanır)' : def ? 'Varsayılan parkur' : 'Değiştirildi';
-    $('courseState').classList.toggle('changed', setup && !def);
+    $('btnCourseReset').disabled = def;
+    $('courseState').textContent = (def ? 'Varsayılan parkur' : 'Değiştirildi') + (setup ? '' : ' · değişince yarış baştan başlar');
+    $('courseState').classList.toggle('changed', !def);
     flagUpdate();
   }
   // Ayarlar → Parkur → Start bayrakları
   function flagUpdate() {
     const v = view(), f = flagNow(v), setup = st.mode === 'setup', info = FLAG_INFO[f];
-    [...$('flagSeg').children].forEach(x => { x.classList.toggle('on', x.dataset.v === f); x.disabled = !setup; });
+    [...$('flagSeg').children].forEach(x => { x.classList.toggle('on', x.dataset.v === f); });
     const fn = f === 'Siyah' ? 'siyah bayrak' : `${f} bayrağı`, rem = setup ? 301 : remReal(v);
     const steps = [[300, '5:00', 'Uyarı: sınıf bayrağı çekilir, 1 ses'], [240, '4:00', `Hazırlık: ${fn} çekilir, 1 ses`], [60, '1:00', `${fn[0].toUpperCase() + fn.slice(1)} iner, 1 uzun ses`], [0, '0:00', 'Start: sınıf bayrağı iner, 1 ses']];
     const cur = setup ? -1 : steps.findIndex((s0, i) => rem <= s0[0] + 1e-6 && (i === steps.length - 1 || rem > steps[i + 1][0]));
     $('flagSeq').innerHTML = steps.map((s0, i) => `<li class="${i === cur ? 'now' : i < cur ? 'past' : ''}"><b>${s0[1]}</b><span>${esc(s0[2])}</span></li>`).join('');
     $('flagNote').textContent = info.text + (S.FLAG_RULE[f] ? ` Yasaklı bölge (${info.zone.toLowerCase()}) son dakikada sahnede kırmızı görünür, start'ta kalkar.` : '');
-    $('flagState').textContent = setup ? '' : 'Yarışta değiştirilemez';
+    $('flagState').textContent = setup ? '' : 'Değişince yarış baştan başlar';
   }
   function setFlag(f) {
     if (st.mode !== 'setup' || !FLAG_INFO[f]) return;
@@ -1486,7 +1534,7 @@
     if (st.drive) exitDrive(false);
     if (st.drawMode) endDraw(false);
     st.course = { ...S.COURSE_DEFAULT, ...(su.course || {}) }; S.setCourse(st.course);
-    st.sea = { ...S.SEA_DEFAULT, ...(su.sea || {}) }; setBoatCfg({ ...S.BOAT_DEFAULT, ...(su.boat || {}) });
+    st.sea = { ...S.SEA_DEFAULT, ...(su.sea || {}) }; setBoatCfg({ ...BOAT_DEF, ...(su.boat || {}) });
     st.wind = +su.wind || 0; st.gusts = jcopy(su.gusts || []); st.fleet = jcopy(su.fleet);
     st.sel = null; st.gsel = null; gustBarUpdate();
   }
@@ -1583,16 +1631,16 @@
   }
   // kapalı kategoride varsayılandan farklı bir ayar varsa düğmede turuncu nokta
   function catDots(v, mine) {
-    const sea = v.sea || st.sea, b = st.boat, D = S.BOAT_DEFAULT, C = S.COURSE_DEFAULT;
+    const sea = v.sea || st.sea, b = st.boat, D = BOAT_DEF, C = S.COURSE_DEFAULT;
     const on = {
-      mine: !!(mine && (mine.manual || mine.ignoresRules || (mine.speedK || 1) !== 1 || (mine.route && mine.route.length) || mine.sheetOff)),
+      mine: false && !!(mine && (mine.manual || mine.ignoresRules || (mine.speedK || 1) !== 1 || (mine.route && mine.route.length) || mine.sheetOff)),
       wind: Math.round(E.norm180(v.wind)) !== 0 || b.windKn !== D.windKn, gust: (v.gusts || []).length > 0, sea: !!(sea.current || sea.waves || sea.from != null),
       fleet: b.cls !== D.cls || b.accelAt !== D.accelAt || b.pre !== D.pre || b.vis !== D.vis, course: st.course.lineLen !== C.lineLen || st.course.markDist !== C.markDist || (st.course.flag || 'P') !== 'P'
     };
     [...document.querySelectorAll('#catRail [data-cat]')].forEach(x => x.classList.toggle('dot', !!on[x.dataset.cat]));
     // değişmiş ayar rozeti (yalnız kurulumda): kaç bölüm varsayılandan farklı + filoda yol vermez / hız farkı / yalpalama
     const fleetMods = st.mode === 'setup' && st.fleet.some(b => !b.mine && (b.ignoresRules || (b.speedK || 1) !== 1 || b.drift || b.manual));
-    const n = Object.values(on).filter(Boolean).length + (fleetMods ? 1 : 0), show = st.mode === 'setup' && !st.drive && n > 0;
+    const n = Object.values(on).filter(Boolean).length + (fleetMods ? 1 : 0), show = n > 0;
     const rb = $('btnResetSet'); rb.classList.toggle('hidden', !show);
     if (show && rb.dataset.n !== String(n)) { rb.dataset.n = n; rb.querySelector('span').innerHTML = `Varsayılan<b>${n}</b>`; }
   }
@@ -1600,9 +1648,8 @@
   // Tekne yerleri, isimler ve taktikler (sol/orta/sağ) kalır. Tümünü sıfırla'dan farkı bu.
   function resetSettings() {
     if (st.mode !== 'setup' || st.drive) return;
-    if (st.drawMode) endDraw(false);
     st.wind = 0; st.gusts = []; st.gsel = null; st.sea = { ...S.SEA_DEFAULT };
-    setBoatCfg({ ...S.BOAT_DEFAULT, vis: st.boat.vis });
+    setBoatCfg({ ...BOAT_DEF, vis: st.boat.vis });
     moveCourse({ ...S.COURSE_DEFAULT });   // tekneler yeni hatta göre taşınır
     for (const b of st.fleet) { b.ignoresRules = false; b.speedK = 1; b.drift = 0; b.manual = false; b.route = null; b.drv = false; b.sheetOff = 0; }
     fitViewBox(); updatePanel(true); gustBarUpdate();
@@ -1622,8 +1669,8 @@
 
   // ---------- olaylar ----------
   $('btnPlay').addEventListener('click', togglePlay);
-  $('btnReset').addEventListener('click', backToSetup);
-  $('hpReset').addEventListener('click', backToSetup);
+  $('btnReset').addEventListener('click', () => newHandRace('Yeni yarış · yelken boş, dümen sende'));
+  $('hpReset').addEventListener('click', () => newHandRace('Yeni yarış · yelken boş, dümen sende'));
   $('speedSeg').addEventListener('click', e => { let b = e.target.closest('button'); if (!b) return;
     if (b.classList.contains('on') && phoneMq.matches) b = b.nextElementSibling || $('speedSeg').firstElementChild;   // telefonda yalnız seçili görünür: dokununca sıradaki hız
     setSpeed(+b.dataset.v); });
@@ -1644,7 +1691,7 @@
   st.fastPre = true;
   try { localStorage.removeItem('ps.sim.fastPre'); } catch (e) { /* yok */ }   // artık kaydedilmez: her açılışta hızlı geçiş açık
   $('cbPre').innerHTML = S.PRE_SEC.map(v => `<button data-v="${v}" title="Start'a ${v / 60} dakika">${v / 60}</button>`).join('') + '<i>dk</i>';
-  $('cbPre').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('pre', +x.dataset.v); });
+  $('cbPre').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('pre', +x.dataset.v)); });
   $('cbFast').addEventListener('click', () => {
     st.fastPre = !st.fastPre;
     toast(st.fastPre ? 'Geri sayım son dakikaya kadar 10× akar' : 'Geri sayım seçili hızla akar (1× = gerçek zaman)');
@@ -1661,7 +1708,7 @@
   $('btnShowShadow').addEventListener('click', () => { st.show.shadow = !st.show.shadow; $('btnShowShadow').classList.toggle('on', st.show.shadow); });
   $('btnShowZone').addEventListener('click', () => { st.show.zone = !st.show.zone; $('btnShowZone').classList.toggle('on', st.show.zone); });
   $('flagSeg').innerHTML = FLAGS.map(f => `<button data-v="${f}" title="${esc(FLAG_INFO[f].name + ': ' + FLAG_INFO[f].short)}">${flagSvgTag(f)}<span>${f}</span></button>`).join('');
-  $('flagSeg').addEventListener('click', e => { const x = e.target.closest('button'); if (x) setFlag(x.dataset.v); });
+  $('flagSeg').addEventListener('click', e => { const x = e.target.closest('button'); if (x && x.dataset.v !== flagNow(view())) reconf(() => setFlag(x.dataset.v), `${x.dataset.v === 'Siyah' ? 'Siyah bayrak' : x.dataset.v + ' bayrağı'} · yarış baştan başladı`); });
   $('btnWindL').addEventListener('click', () => setWind(-5));
   $('btnWindR').addEventListener('click', () => setWind(5));
   $('btnGustL').addEventListener('click', () => addGust('L'));
@@ -1672,16 +1719,16 @@
     if (st.mode === 'setup') { const m = st.fleet.find(b => b.mine); if (m) m.persona = e.target.value; updatePanel(true); }
     else { const v = e.target.value; applyChange({ k: 'cmd', c: 'persona', v }); }
   });
-  $('btnFleetMinus').addEventListener('click', () => { removeOne(); updatePanel(true); });
-  $('btnFleetPlus').addEventListener('click', () => { addOne(); updatePanel(true); });
-  $('btnFleetLine').addEventListener('click', () => { setFleetSize(st.fleet.length); updatePanel(true); toast('Tekneler hattın dibine yeniden dizildi'); });
+  $('btnFleetMinus').addEventListener('click', () => reconf(() => { removeOne(); updatePanel(true); }, `${st.fleet.length - 1} tekne · yarış baştan başladı`));
+  $('btnFleetPlus').addEventListener('click', () => reconf(() => { addOne(); updatePanel(true); }, `${Math.min(16, st.fleet.length + 1)} tekne · yarış baştan başladı`));
+  $('btnFleetLine').addEventListener('click', () => reconf(() => { setFleetSize(st.fleet.length); updatePanel(true); }, 'Tekneler hattın dibine yeniden dizildi · yarış baştan başladı'));
   $('selTack').addEventListener('click', e => { const x = e.target.closest('button'); const b = st.fleet.find(q => q.id === st.sel); if (x && b) { b.tack = x.dataset.v; updatePanel(true); } });
   const LS = COURSE_LIM.lineLen[2], MS = COURSE_LIM.markDist[2];
-  $('btnLineMinus').addEventListener('click', () => changeCourse({ ...st.course, lineLen: st.course.lineLen - LS }));
-  $('btnLinePlus').addEventListener('click', () => changeCourse({ ...st.course, lineLen: st.course.lineLen + LS }));
-  $('btnMarkMinus').addEventListener('click', () => changeCourse({ ...st.course, markDist: st.course.markDist - MS }));
-  $('btnMarkPlus').addEventListener('click', () => changeCourse({ ...st.course, markDist: st.course.markDist + MS }));
-  $('btnCourseReset').addEventListener('click', () => { changeCourse({ ...S.COURSE_DEFAULT, flag: st.course.flag }); toast('Parkur varsayılana döndü'); });
+  $('btnLineMinus').addEventListener('click', () => reconf(() => changeCourse({ ...st.course, lineLen: st.course.lineLen - LS }), 'Parkur değişti · yarış baştan başladı'));
+  $('btnLinePlus').addEventListener('click', () => reconf(() => changeCourse({ ...st.course, lineLen: st.course.lineLen + LS }), 'Parkur değişti · yarış baştan başladı'));
+  $('btnMarkMinus').addEventListener('click', () => reconf(() => changeCourse({ ...st.course, markDist: st.course.markDist - MS }), 'Parkur değişti · yarış baştan başladı'));
+  $('btnMarkPlus').addEventListener('click', () => reconf(() => changeCourse({ ...st.course, markDist: st.course.markDist + MS }), 'Parkur değişti · yarış baştan başladı'));
+  $('btnCourseReset').addEventListener('click', () => reconf(() => changeCourse({ ...S.COURSE_DEFAULT, flag: st.course.flag }), 'Parkur varsayılana döndü · yarış baştan başladı'));
   $('gbMinus').addEventListener('click', () => gustScale(1 / 1.2));
   $('gbPlus').addEventListener('click', () => gustScale(1.2));
   $('gbReset').addEventListener('click', gustReset);
@@ -1702,9 +1749,9 @@
   $('selDrift').addEventListener('click', e => { const x = e.target.closest('button'); if (x) selEdit('drift', +x.dataset.v, 'drift'); });
   // ---------- Tekne sınıfı, rüzgar hızı, hızlanma anı (yalnız kurulumda) ----------
   function setBoatCfg(c) {
-    const cls = S.CLASSES[c.cls] ? c.cls : S.BOAT_DEFAULT.cls;
-    const windKn = Math.max(2, Math.min(30, +c.windKn || S.BOAT_DEFAULT.windKn)), accelAt = Math.max(5, Math.min(120, +c.accelAt || S.BOAT_DEFAULT.accelAt));
-    const pre = Math.max(60, Math.min(600, +c.pre || S.BOAT_DEFAULT.pre));
+    const cls = S.CLASSES[c.cls] ? c.cls : BOAT_DEF.cls;
+    const windKn = Math.max(2, Math.min(30, +c.windKn || BOAT_DEF.windKn)), accelAt = Math.max(5, Math.min(120, +c.accelAt || BOAT_DEF.accelAt));
+    const pre = Math.max(60, Math.min(600, +c.pre || BOAT_DEF.pre));
     const vis = S.VIS[c.vis] ? c.vis : 'eski';   // alanı olmayan (v1.95 öncesi) kayıt eski ölçekte oynar
     st.boat = { cls, windKn, accelAt, pre, vis }; S.setBoat(st.boat);   // zaman ölçeği ve geri sayım buna göre
   }
@@ -1716,13 +1763,13 @@
   const VIS_TXT = { yavas: 'Yavaş', normal: 'Normal', hizli: 'Hızlı' };
   $('boatVis').innerHTML = Object.keys(VIS_TXT).map(k => `<button data-v="${k}">${VIS_TXT[k]}</button>`).join('');
   function boatUpdate() {
-    const b = st.boat, setup = st.mode === 'setup', D = S.BOAT_DEFAULT;
+    const b = st.boat, setup = st.mode === 'setup', D = BOAT_DEF;
     [['boatCls', b.cls], ['boatWind', b.windKn], ['boatAccel', b.accelAt], ['boatPre', b.pre], ['boatVis', b.vis]].forEach(([id, val]) =>
-      [...$(id).children].forEach(x => { x.classList.toggle('on', x.dataset.v === String(val)); x.disabled = !setup; }));
+      [...$(id).children].forEach(x => { x.classList.toggle('on', x.dataset.v === String(val)); }));
     const def = b.cls === D.cls && b.windKn === D.windKn && b.accelAt === D.accelAt && b.pre === D.pre && b.vis === D.vis;
     $('boatState').textContent = `orsada ≈${S.upwindKn(b.cls, b.windKn).toFixed(1).replace('.', ',')} kn`;
     $('boatState').classList.toggle('changed', !def);
-    $('btnBoatReset').disabled = !setup || def;
+    $('btnBoatReset').disabled = def;
   }
   function changeBoat(key, val) {
     if (st.mode !== 'setup') return;
@@ -1731,12 +1778,12 @@
     if (key === 'vis') { toast(`Teknelerin ekrandaki hızı: ${VIS_TXT[val]} · saat yine gerçek zamanda akar`); return; }
     toast(key === 'accelAt' ? `Tekneler start'a ${val} sn kala yelken doldurup hızlanacak` : `${S.CLASSES[st.boat.cls].name}, ${st.boat.windKn} knot rüzgar: orsada ≈${S.upwindKn(st.boat.cls, st.boat.windKn).toFixed(1).replace('.', ',')} kn`);
   }
-  $('boatCls').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('cls', x.dataset.v); });
-  $('boatWind').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('windKn', +x.dataset.v); });
-  $('boatAccel').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('accelAt', +x.dataset.v); });
-  $('boatPre').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('pre', +x.dataset.v); });
-  $('boatVis').addEventListener('click', e => { const x = e.target.closest('button'); if (x) changeBoat('vis', x.dataset.v); });
-  $('btnBoatReset').addEventListener('click', () => { if (st.mode !== 'setup') return; setBoatCfg({ ...S.BOAT_DEFAULT }); updatePanel(true); toast('Varsayılan: Optimist, 8 knot rüzgar, 30 sn kala hızlanma, 5 dk geri sayım, ekranda Normal hız'); });
+  $('boatCls').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('cls', x.dataset.v)); });
+  $('boatWind').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('windKn', +x.dataset.v)); });
+  $('boatAccel').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('accelAt', +x.dataset.v)); });
+  $('boatPre').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('pre', +x.dataset.v)); });
+  $('boatVis').addEventListener('click', e => { const x = e.target.closest('button'); if (x && !x.classList.contains('on')) reconf(() => changeBoat('vis', x.dataset.v)); });
+  $('btnBoatReset').addEventListener('click', () => reconf(() => { setBoatCfg({ ...BOAT_DEF }); updatePanel(true); }, 'Varsayılan: Optimist, 8 knot, 2 dk geri sayım · yarış baştan başladı'));
   function setSea(key, val) {
     if (st.mode === 'setup') { st.sea = { ...st.sea, [key]: val }; updatePanel(true); return; }
     applyChange({ k: 'sea', key, val });
@@ -1782,7 +1829,7 @@
   $('selName').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
   $('btnClearSaved').addEventListener('click', clearSaved);
   $('btnResetAll').addEventListener('click', clearSaved);
-  $('btnResetSet').addEventListener('click', resetSettings);
+  $('btnResetSet').addEventListener('click', () => reconf(resetSettings, 'Ayarlar varsayılanda · yarış baştan başladı'));
   $('btnMakeMine').addEventListener('click', () => { if (st.sel) { makeMine(st.sel); updatePanel(true); } });
   $('btnRemoveBoat').addEventListener('click', () => { if (st.sel) { removeOne(st.sel); updatePanel(true); } });
   $('btnSelClose').addEventListener('click', () => { st.sel = null; updatePanel(true); });
@@ -1831,15 +1878,13 @@
       if (k === 'v' || k === 'V') { vmgToggle(); return; }
       if (k === 'b' || k === 'B') { backToggle(); return; }
       if (k === 'i' || k === 'I') { sheetToggle(); return; }
-      if ((k === 'r' || k === 'R') && st.drive.live && !e.metaKey && !e.ctrlKey) { backToSetup(); return; }
-      if (k === 'Escape' || k === 'Enter') { e.preventDefault(); $('hpGo').click(); return; }
+      if ((k === 'r' || k === 'R') && st.drive.live && !e.metaKey && !e.ctrlKey) { newHandRace('Yeni yarış · yelken boş, dümen sende'); return; }
       if (e.code === 'Space') { e.preventDefault(); drivePause(); return; }
     } else if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey) { enterDrive(); return; }
     else if (e.key === 'ArrowUp' && st.mode !== 'setup') { e.preventDefault(); sheetBy(-1); return; }
     else if (e.key === 'ArrowDown' && st.mode !== 'setup') { e.preventDefault(); sheetBy(1); return; }
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.key === 't' || e.key === 'T') $('btnTack').click();
-    else if (e.key === 'm' || e.key === 'M') toggleManual();
     else if (e.key === 'Escape' && st.drawMode) endDraw(false);
     else if (e.key === 'Escape' && st.gsel != null) $('gbClose').click();
     else if (e.key === 'Enter' && st.drawMode) endDraw(true);
@@ -1848,7 +1893,7 @@
     else if (e.key === '-') zoomBy(1 / 1.4);
     else if (e.key === '0') camFit();
     else if (e.key === 'f' || e.key === 'F') camFollow();
-    else if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey && st.mode !== 'setup') backToSetup();
+    else if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) newHandRace('Yeni yarış · yelken boş, dümen sende');
     else if (e.key === 'ArrowLeft') setWind(-5);
     else if (e.key === 'ArrowRight') setWind(5);
   });
@@ -1864,7 +1909,7 @@
   // alt çubuğun yüksekliği değişince (elle sürme paneli açılınca) sahne yeniden sığsın
   if (window.ResizeObserver) new ResizeObserver(() => fitViewBox()).observe($('course'));
 
-  if (loadSetup()) toast('Son yerleşimin yüklendi (yerler, isimler, taktikler). Rüzgar, sağanak, akıntı varsayılanda');
+  loadSetup();
   // Bildirim gönder (report.js): o anki durum + yarış kaydı (kurulum + işlemler). scripts/report.mjs yarışı bundan
   // node'da aynen kurar; elle sürme sürüyorsa teknenin yolu (path) da eklenir.
   if (window.SailReport) SailReport.source('sim', () => {
@@ -1888,5 +1933,6 @@
   });
   applyLayout();
   updatePanel(true);
+  newHandRace("Start'a 2 dakika · yelken boş, pırpırlıyor. İskota Çek ile doldur, ◀ ▶ dümen");
   requestAnimationFrame(ts => { st.lastTs = ts; tick(ts); });
 })();
