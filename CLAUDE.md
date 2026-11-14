@@ -45,5 +45,6 @@ Canlı site: https://velora-sailing.netlify.app (main'e push → GitHub Actions 
 - `src/js/app-shell.js` uygulama kabuğu (kaymaz, büyümez, telefonda yatay zorunlu; her sayfada ilk betik) · `src/manifest.webmanifest` ana ekrana ekleme
 - `src/js/track.js` ziyaret/olay kaydı · `src/js/access.js` giriş ekranı, roller, kilitler (her sayfada uygulama betiğinden önce) · `src/js/velora-auth.js` Velora hesabıyla giriş (Firebase, modül) · `src/ziyaret.html` ziyaret kayıtları (sahip)
 - `src/js/report.js` Bildir düğmesi (sahip): not + işlemler + durum → GitHub konusu "Bildirim: …" · `scripts/report.mjs` bildirimi çözer, yarışı yeniden kurar, hata avcısı · `tests/bildirimler/` bildirim testleri · `npm run smoke` tarayıcı + rastgele tıklama testi (Playwright varsa)
+- `src/js/online.js` online yarış (şifreli oda, Firebase Realtime Database; `?net=yerel` ile sahte veritabanı) · `src/css/online.css`
 - `scripts/build.mjs` derleme · `.github/workflows/deploy.yml` yayın
 - `KONULAR.md` müfredat ve durumları · `NOTLAR.md` sohbetler arası hafıza · `README.md` kullanım ve geliştirme

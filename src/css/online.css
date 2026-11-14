@@ -1,0 +1,115 @@
+/* Online yarış (js/online.js): üst çubuk düğmesi, yarış çipi, oda penceresi. Yarışta simülatörün zaman/ayar
+   denetimleri gizlenir (body.net-on): saat herkeste ortak, durdurulamaz, sıfırlanamaz. */
+.net-tool.on { color: #4ade80; }
+.net-chip { position: absolute; top: calc(10px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 15; max-width: min(560px, calc(100% - 24px));
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 3px 4px 3px 10px; border-radius: 999px;
+  background: rgba(6,40,24,.82); border: 1px solid rgba(74,222,128,.5); font-size: 12.5px; font-weight: 600; color: #bbf7d0;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+/* telefonda elle sürerken üst çubuk gizli: Online düğmesi sahnede */
+.net-fab { display: none; }
+@media (max-height: 500px), (max-width: 640px) {
+  body.driving .net-fab:not(.hidden) { display: inline-flex; align-items: center; gap: 7px; position: absolute; top: calc(10px + var(--sat)); left: 50%; transform: translateX(-50%); z-index: 15;
+    height: 32px; padding: 0 12px; border-radius: 999px; background: rgba(11,23,36,.72); border: 1px solid rgba(74,222,128,.45); color: #bbf7d0; font-size: 12.5px; font-weight: 700;
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .net-fab .nc-dot { animation: none; }
+}
+.net-chip.hidden { display: none; }
+.nc-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,.6); animation: ncPulse 2s infinite; }
+@keyframes ncPulse { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+.nc-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.net-chip .tb.nc-btn { min-height: 28px; height: 28px; padding: 0 10px; font-size: 12px; border-radius: 999px; flex: 0 0 auto; }
+.net-chip .nc-leave { color: #fecaca; border-color: rgba(248,113,113,.45); }
+.net-chip .hidden { display: none; }
+
+/* yarışta kapalı olanlar: zaman, hız, sıfırla, bitir, ayar kategorileri, kayıtlar */
+body.net-on #hpPlay, body.net-on #dbSpeedSeg, body.net-on #dbSpeed, body.net-on #hpReset, body.net-on #hpGo,
+body.net-on #countBar, body.net-on #btnRecs, body.net-on #btnResetSet, body.net-on #btnResetAll,
+body.net-on #catRail [data-cat="mine"], body.net-on #catRail [data-cat="wind"], body.net-on #catRail [data-cat="gust"],
+body.net-on #catRail [data-cat="sea"], body.net-on #catRail [data-cat="fleet"], body.net-on #catRail [data-cat="course"],
+body.net-on #btnPlay, body.net-on #btnReset, body.net-on #scrub, body.net-on #speedSeg, body.net-on #btnDrive, body.net-on #btnTack { display: none !important; }
+body.net-on #driveBar { display: none !important; }   /* içindekilerin hepsi kapalı */
+
+/* pencere */
+.net-dlg .picker-panel { display: flex; flex-direction: column; max-height: min(720px, 100%); }
+.net-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 22px 4px; flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; }
+.net-body .dlg-actions { padding: 10px 0 16px; flex-wrap: wrap; }
+.net-tabs { align-self: flex-start; margin: 2px 0 6px; }
+.net-tabs button { height: 36px; padding: 0 16px; font-size: 13.5px; }
+.net-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.net-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.net-h { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 12px 0 6px; }
+.net-h small { font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--text2); margin-left: 4px; }
+.net-rooms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.net-rooms button { width: 100%; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; text-align: left; padding: 10px 12px;
+  background: var(--raised); border: 1px solid var(--border); border-radius: 12px; }
+.net-rooms button.on, .net-rooms button:hover { border-color: rgba(56,189,248,.55); }
+.net-rooms b { grid-row: 1 / 3; align-self: center; font-size: 17px; letter-spacing: 1.5px; color: #7dd3fc; font-variant-numeric: tabular-nums; }
+.net-rooms span { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.net-rooms small { font-size: 12px; color: var(--muted); }
+.net-empty { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin: 6px 0; }
+.net-code { text-transform: uppercase; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
+.net-err { min-height: 18px; margin: 4px 0 0; font-size: 13px; color: #fca5a5; }
+.net-err:empty { min-height: 0; margin: 0; }
+.net-go { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 42px; padding: 0 18px; font-size: 14px; font-weight: 700; margin: 6px 0 16px; }
+.net-wait { color: var(--text2); padding: 30px 0; text-align: center; }
+
+.net-form { display: flex; flex-direction: column; }
+.net-row3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+.net-row3 > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.net-opt { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 10px; padding: 4px 0; }
+.net-opt.hidden { display: none; }
+.net-ol { font-size: 13px; color: var(--text2); }
+.net-opt .seg { justify-self: start; }
+.net-opt .seg button { height: 30px; padding: 0 10px; }
+.net-sum { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+.net-sum .rc { font-size: 12px; color: var(--text2); background: var(--raised); border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; }
+
+.net-room .rec-sum { margin-top: 4px; }
+.net-players { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
+.net-players li { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 4px 6px 4px 10px; background: var(--raised); border: 1px solid var(--border); border-radius: 10px; }
+.net-players li.off { opacity: .55; }
+.net-players b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; font-size: 14px; }
+.net-players small { font-size: 11px; color: var(--muted); }
+.np-no { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 11.5px; font-weight: 800; background: var(--raised2); color: var(--text2); }
+.np-me, .np-host { flex: 0 0 auto; font-size: 10.5px; font-weight: 800; border-radius: 6px; padding: 1px 6px; }
+.np-me { background: #fb923c; color: #2a1204; }
+.np-host { background: var(--accent-soft); color: var(--accent); }
+.net-players .icon.sm { width: 30px; height: 30px; flex: 0 0 auto; }
+.net-share { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; border-radius: 12px;
+  background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.3); font-size: 13px; color: var(--text2); }
+.net-share b { color: #7dd3fc; letter-spacing: 1.5px; }
+
+.net-res { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.net-res li { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 4px 12px; background: var(--raised); border: 1px solid var(--border); border-radius: 10px; }
+.net-res li.me { border-color: rgba(251,146,60,.6); background: rgba(251,146,60,.08); }
+.nr-no { flex: 0 0 auto; width: 26px; font-weight: 800; font-size: 15px; text-align: center; font-variant-numeric: tabular-nums; }
+.net-res i { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #fff; }
+.net-res b { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.nr-st { margin-left: auto; font-size: 12.5px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+.net-setup ol { margin: 6px 0 4px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; line-height: 1.5; color: var(--text2); }
+.net-setup a { color: #7dd3fc; }
+.net-rules-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+.net-rules { margin: 6px 0 0; max-height: 220px; overflow: auto; padding: 10px 12px; border-radius: 10px; background: #06111c; border: 1px solid var(--border);
+  font-size: 11.5px; line-height: 1.45; color: #cbd5e1; white-space: pre; }
+
+@media (max-width: 760px), (max-height: 500px) {
+  .net-cols { grid-template-columns: 1fr; gap: 4px; }
+  .net-row3 { grid-template-columns: 1fr 1fr; }
+  .net-row3 > div:first-child { grid-column: 1 / -1; }
+  .net-opt { grid-template-columns: 1fr; gap: 4px; }
+  .net-chip { padding-left: 8px; }
+  .net-chip .nc-txt { max-width: 30vw; }
+  .net-body { padding: 4px 14px; }
+}
+
+/* pencere alt çubuğun (dümen paneli) da üstünde: telefonda Odaya gir düğmesi panelin altında kalıyordu */
+.picker.dlg.net-dlg { position: fixed; z-index: 60; padding: max(10px, var(--sat)) max(10px, var(--sar)) max(10px, var(--sab)) max(10px, var(--sal)); }
+@media (max-height: 460px) {
+  .net-dlg .picker-panel { display: flex; flex-direction: column; }
+  .net-dlg .picker-head { display: flex; align-items: center; padding: calc(6px + var(--sat)) calc(6px + var(--sar)) 2px calc(16px + var(--sal)); }
+  .net-dlg .picker-head h2 { padding: 0; font-size: 17px; }
+  .net-dlg .picker-sub { display: none; }
+  .net-dlg .picker-head .icon { margin: 0; }
+  .net-body { padding: 2px calc(16px + var(--sar)) 4px calc(16px + var(--sal)); }
+}

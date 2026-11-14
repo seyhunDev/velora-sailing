@@ -832,6 +832,7 @@
     updatePanel(true);
   }
   function backToSetup(quiet) {
+    if (st.drive && st.drive.net) return;                // online yarışta sıfırlanmaz (Ayrıl: js/online.js)
     windPend = 0; clearTimeout(windTimer); st.reHand = false;
     if (st.drive) { st.drive = null; if (st.camPrev) Object.assign(st.cam, st.camPrev); st.camPrev = null; st.cam.follow = false; st.cam.panAt = null; applyCam(); }
     if (st.mode !== 'setup' && !quiet) toast('Yarış sıfırlandı · tekneler start öncesi yerlerinde, ▶ ile yeniden başlat');
@@ -977,6 +978,7 @@
     const inp = { rudder: Math.max(-1, Math.min(1, d.keyRud + d.touchRud)), autoTrim: d.autoTrim, hold: d.back ? null : d.hold, back: !!d.back };
     if (inp.rudder && d.hold) { d.hold = null; lastHelmKey = ''; }   // dümene dokununca Orsa bırakır
     if (!d.live) driveEvents(m, S.drive(ctx, m, inp, dt * DRIVE_TEMPO));
+    else if (d.net) d.net.tick(d, m, inp, dt, ev => driveEvents(m, ev));   // online: saat ortak, öbür tekneler ağdan (js/online.js)
     else if (!d.paused) {
       // canlı yarış: sabit adımlarla (DT) herkes birlikte ilerler; ekran karesi başına en çok 8 adım
       const tempo = Math.min(st.speed, 5) / S.CLOCK_SCALE;   // saat hızı (1× = gerçek zaman); teknenin ekrandaki hızı S.CLOCK_SCALE'den (Ekranda hız)
@@ -1006,7 +1008,7 @@
     }
   }
   function drivePause() {
-    const d = st.drive; if (!d) return;
+    const d = st.drive; if (!d || d.net) return;         // online yarışta zaman durmaz
     if (!d.live) { exitDrive(true, true); return; }      // kurulumda: Start ▶ (elle sürmeye yarışta devam)
     d.paused = !d.paused; d.acc = 0;
     if (d.paused) { d.keyRud = 0; d.touchRud = 0; }
@@ -1860,7 +1862,7 @@
   $('hpVmg').addEventListener('click', vmgToggle);
   $('hpBack').addEventListener('click', backToggle);
   $('hpTack').addEventListener('click', () => { helmTurn('auto'); flash('hpTack'); });
-  $('hpGo').addEventListener('click', () => { if (!st.drive) return; const live = st.drive.live, run = live && !st.drive.paused; exitDrive(live ? run : false); });
+  $('hpGo').addEventListener('click', () => { if (!st.drive || st.drive.net) return; const live = st.drive.live, run = live && !st.drive.paused; exitDrive(live ? run : false); });
   $('hpPlay').addEventListener('click', drivePause);
   $('btnDrive').addEventListener('click', () => (st.drive ? $('hpGo').click() : enterDrive()));
   const RUD_KEYS = { ArrowLeft: -1, ArrowRight: 1, a: -1, A: -1, d: 1, D: 1 };
@@ -1931,6 +1933,40 @@
       simEvents: v ? v.events.slice(-40).map(e => ({ t: +(e.t - v.startAt).toFixed(1), text: e.text, kind: e.kind })) : []
     };
   });
+  // ---------- Online yarış (js/online.js) ----------
+  // Online modül simülatörün canlı elle sürmesini kullanır: kurulumu (oyuncular = tekneler) verir, yarışı başlatır;
+  // her karede net.tick saati ortak saate göre ilerletir ve öbür teknelerin konumunu ağdan yazar.
+  // Online yarışta duraklatma, hız, sıfırlama ve ayarlar kapalıdır (body.net-on, online.css). Çıkınca eski kurulum geri gelir.
+  let netPrev = null;
+  window.SimApi = {
+    S, st, toast,
+    netStart(setup, net) {
+      if (st.drawMode) endDraw(false);
+      backToSetup(true);                                   // simülatörün kendi yarışı bırakılır (kaydedilmez)
+      if (!netPrev) netPrev = jcopy({ fleet: st.fleet, wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, speed: st.speed });
+      st.fleet = jcopy(setup.fleet); st.wind = setup.wind; st.gusts = jcopy(setup.gusts || []); st.course = { ...setup.course }; st.sea = { ...setup.sea };
+      setBoatCfg(setup.boat); st.speed = 1; st.fastPre = false;
+      const s = S.newRace(jcopy(st.fleet), { wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat });
+      if (setup.patch) setup.patch(s);
+      st.frames = [s]; st.playT = 0; st.sim = s; st.mode = 'run'; st.sel = null; st.ended = false; st.rec = null; st.gsel = null;
+      document.body.classList.add('net-on');
+      enterDrive();
+      if (!st.drive) { document.body.classList.remove('net-on'); return null; }
+      st.drive.net = net; st.drive.frames = null;          // online yarış kaydedilmez (kareler tutulmaz)
+      st.cam.follow = true; applyCam();
+      updatePanel(true);
+      return st.drive.s;
+    },
+    netStop() {
+      if (st.drive && st.drive.net) st.drive.net = null;
+      st.drive = null; st.camPrev = null;
+      document.body.classList.remove('net-on');
+      if (netPrev) { const p = netPrev; netPrev = null; st.fleet = p.fleet; st.wind = p.wind; st.gusts = p.gusts; st.course = p.course; st.sea = p.sea; setBoatCfg(p.boat); st.speed = p.speed; S.setCourse(st.course); }
+      st.mode = 'setup'; st.sim = null; st.frames = []; st.cam.follow = false; st.cam.z = 1; applyCam();
+      newHandRace('Online yarıştan çıktın · kendi yarışın baştan başladı');
+    },
+    refresh: () => updatePanel(true)
+  };
   applyLayout();
   updatePanel(true);
   newHandRace("Start'a 2 dakika · yelken boş, pırpırlıyor. İskota Çek ile doldur, ◀ ▶ dümen");

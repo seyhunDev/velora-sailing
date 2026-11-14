@@ -80,6 +80,7 @@ src/
   sim.html            yarış simülatörü sayfası (css/sim.css)
   js/sim-core.js      simülatör çekirdeği (DOM yok): canlı adım, taktik, yol hakları, sıralama
   js/sim.js           simülatör arayüzü: sürükle-bırak, rüzgar/sağanak, geri sarma, panel
+  js/online.js        online yarış: şifreli oda, ortak saat, uzak tekneler (Firebase Realtime Database; ?net=yerel ile sahte)
   js/track.js         ziyaret/olay kaydı (şimdilik bu tarayıcıda; SailTrack.setSink ile Firebase'e bağlanır)
   js/access.js        giriş ara ekranı, roller (sahip/kayıtlı/misafir), kilitli özellikler (FEATURES), KVKK bildirimi
   ziyaret.html        ziyaret kayıtları (yalnız sahip; js/visits.js, css/visits.css)

@@ -334,6 +334,7 @@
   }
   // Protesto: hak sahibi `by`, `b`'nin kural ihlali yüzünden rota değiştirmek zorunda kaldı ya da temas oldu → b iki tur ceza atar
   function protest(s, b, by, rule, why) {
+    if (b.remote) return;                                    // online: uzak teknenin cezasını kendi cihazı verir (aynı temas orada da görülür)
     if (b.penaltyAt != null || b.phase === 'penalty' || b.phase === 'done') return;
     if (s.pairLog['p' + b.id + by.id] != null && s.t - s.pairLog['p' + b.id + by.id] < 10) return;
     s.pairLog['p' + b.id + by.id] = s.t;
@@ -577,10 +578,12 @@
   function step(s) {
     if (s.course) setCourse(s.course);                      // parkur bu yarışınki (değişmediyse işlem yok)
     setBoat(s.boat || BOAT_DEFAULT);                         // tekne sınıfı / rüzgar hızı / hızlanma anı
-    const w = s.wind, t = s.t, active = s.boats.filter(b => !b.gone);
+    // b.remote: online yarışta başka cihazdan sürülen tekne (js/online.js). Konumu ve evresi ağdan gelir: burada hareket
+    // ettirilmez, evresi değişmez; yalnız öbür teknelerin kaçınma, gölge ve temas hesabında yer alır.
+    const all = s.boats.filter(b => !b.gone), w = s.wind, t = s.t, active = all.filter(b => !b.remote);
     orientObs(w);
     const racing = b => b.phase === 'race' || b.phase === 'ocs' || b.phase === 'round';
-    const snap = active.filter(b => b.phase !== 'done').map(b => ({ ref: b, x: b.x, y: b.y, h: b.h, v: b.v }));
+    const snap = all.filter(b => b.phase !== 'done').map(b => ({ ref: b, x: b.x, y: b.y, h: b.h, v: b.v }));
     const rulesOn = t >= s.startAt + 0.5;
     signals(s, t);
 
@@ -836,7 +839,7 @@
       b.x += (f.x * b.v + dv.x * k) * DT; b.y += (f.y * b.v + dv.y * k) * DT;
     }
     // temas: üst üste binmeyi engelle, kaydet
-    const live = active.filter(b => b.phase !== 'done');
+    const live = all.filter(b => b.phase !== 'done');
     for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
       const a = live[i], c = live[j], dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy);
       if (d < 26 && d > 0.01) {

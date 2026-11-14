@@ -14,6 +14,8 @@ const CONFIG = {
   authDomain: 'sesliasistan-3e95a.firebaseapp.com',
   projectId: 'sesliasistan-3e95a',
   appId: '1:828345188662:web:b951d19cf1f647c14b3397',
+  // Online yarış (js/online.js): Realtime Database, Belçika (europe-west1). Konsolda bu bölgede oluşturulmalı.
+  databaseURL: 'https://sesliasistan-3e95a-default-rtdb.europe-west1.firebasedatabase.app',
 };
 const V = '10.14.1';
 const CDN = `https://www.gstatic.com/firebasejs/${V}`;
@@ -67,7 +69,14 @@ async function start() {
     onUser: cb => au.onAuthStateChanged(auth, cb),
     async getDoc(col, id) { const d = await fs.getDoc(fs.doc(fs.getFirestore(app), col, id)); return d.exists() ? d.data() : null; },
     setDoc: (col, id, data) => fs.setDoc(fs.doc(fs.getFirestore(app), col, id), data),
+    // Online yarış: Realtime Database (modül ilk istendiğinde yüklenir). Döner: { db, m } (m: firebase-database modülü)
+    uid: () => (auth.currentUser ? auth.currentUser.uid : null),
+    async rtdb() {
+      if (!rtdbP) rtdbP = import(`${CDN}/firebase-database.js`).then(m => ({ m, db: m.getDatabase(app, CONFIG.databaseURL) }));
+      return rtdbP;
+    },
   };
+  let rtdbP = null;
   // Ziyaret kayıtları → Firestore `sailingEvents` (bir belge = bir ziyaretçinin ≤100 olayı). Ziyaretçi giriş yapmamış
   // olabilir: kural anonim "create"e izin verir (alanlar ve boyut sınırlı), okuma/silme yalnız site sahibinin uid'i.
   const db = fs.getFirestore(app);
