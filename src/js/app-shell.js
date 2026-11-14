@@ -19,8 +19,17 @@
   // Ziyaret kayıtları gibi uzun sayfalar kendi içinde kaysın diye kabuk istisnası: <body data-shell="page">
   const isPage = () => document.body && document.body.dataset.shell === 'page';
 
+  // Yatay telefonda çentik / Dynamic Island hangi yanda? (iOS iki yana da aynı güvenli alan payını verir;
+  // yalnız kamera tarafında tam pay, öbür yanda yuvarlak köşe kadar pay bırakırız → ekran soldan sağa dolar)
+  function notchSide() {
+    let a = typeof window.orientation === 'number' ? window.orientation : (screen.orientation ? screen.orientation.angle : 0);
+    a = ((a % 360) + 360) % 360;
+    H.classList.toggle('notch-l', a === 90);
+    H.classList.toggle('notch-r', a === 270);
+  }
   function orient() {
     const portrait = innerHeight > innerWidth;
+    notchSide();
     H.classList.toggle('is-portrait', portrait);
     H.classList.toggle('is-landscape', !portrait);
     H.style.setProperty('--app-h', innerHeight + 'px');
@@ -83,6 +92,9 @@
     if (e.touches.length > 1) { e.preventDefault(); return; }           // iki parmak: sayfa büyümesin
     const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     const ax = Math.abs(dx), ay = Math.abs(dy);
+    // Düğmeye dokunurken parmak birkaç piksel kayar: iOS Safari'de bu küçük kaymayı engellemek dokunuşun
+    // "tıklama" olmasını da engeller (ör. oynat düğmesi çalışmaz). Küçük kaymaya dokunma, sayfa zaten sabit.
+    if (ax < 12 && ay < 12) return;
     if (!canScroll(e.target, ay >= ax ? dy : 0, ax > ay ? dx : 0)) e.preventDefault();
   }, { passive: false });
 
