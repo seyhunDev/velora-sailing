@@ -292,6 +292,7 @@
         <div class="acc-sub"><span class="acc-role" data-role="${r}">${ROLE_NAMES[r]}</span>${acc && acc.email ? `<span class="acc-mail">${esc(acc.email)}</span>` : ''}</div></div></div>
       ${r === 'misafir' ? '<button class="acc-item" data-a="signup">Kaydol <small>tüm bölümler açılır</small></button>' : ''}
       ${can('visits') ? '<a class="acc-item" href="ziyaret.html" data-a="visits">Ziyaret kayıtları</a>' : ''}
+      ${window.VeloraData ? `<button class="acc-item" data-a="data">Veri kullanımı <small>bugün ${VeloraData.fmt(VeloraData.stats().today)}</small></button>` : ''}
       <button class="acc-item" data-a="privacy">Gizlilik ve verilerim <small>${c === false ? 'kayıt kapalı' : 'kayıt açık'}</small></button>
       ${r !== 'misafir' ? '<button class="acc-item" data-a="logout">Çıkış yap</button>' : '<button class="acc-item" data-a="owner">Site sahibi girişi</button>'}`;
     // sayfanın kendi ayarları (ör. ana sayfada görünüm anahtarları, #pageSettings) menünün altına
@@ -302,6 +303,7 @@
       if (a === 'signup') openGate('signup');
       else if (a === 'owner') openGate('owner');
       else if (a === 'privacy') openPrivacy();
+      else if (a === 'data') window.VeloraData.open();
       else if (a === 'logout') { T.log('logout', {}); if (acc && acc.via === 'velora' && window.VeloraAuth) window.VeloraAuth.signOut(); setAccount(null, 'çıkış'); openGate('home'); }
     });
     menu.classList.remove('hidden'); chip.classList.add('on');
