@@ -329,7 +329,7 @@
         '.write': "auth != null && data.child('meta/host').val() === auth.uid",
         meta: { '.write': `auth != null && ${H} && (!data.exists() || data.child('host').val() === auth.uid)` },
         players: { $pid: {
-          '.write': "data.exists() ? (!newData.exists() || newData.child('name').val() === data.child('name').val()) : (root.child('sailRooms').child($key).child('meta/state').val() === 'open' && data.parent().numChildren() < root.child('sailRooms').child($key).child('meta/max').val())",
+          '.write': "data.exists() ? (!newData.exists() || newData.child('name').val() === data.child('name').val()) : root.child('sailRooms').child($key).child('meta/state').val() === 'open'",   // RTDB kurallarında sayma yok: katılımcı sınırını uygulama denetler
           '.validate': "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 24)"
         } },
         boats: { $pid: { '.write': "root.child('sailRooms').child($key).child('players').child($pid).exists()" } }
