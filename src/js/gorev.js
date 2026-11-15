@@ -42,9 +42,12 @@
   const myRuns = () => (be ? T.runs.filter(r => r.uid === be.uid()) : []);
   // hak = başlatılan yarış (kullanıcı 2026-11-15: en çok 3; göndermeden yeniden denemek de hak yer). Başlatma sayısı cihazda tutulur.
   const startKey = () => `ps.task.starts.${T.task.code}.${(be && be.uid()) || 'misafir'}`;
+  // Antrenör kendi yarışını "Sporcu gibi aç" ile (&sporcu=1) açar: sporcunun kartı, antrenör düğmeleri yok, hak sınırı yok (deneme amaçlı)
+  const asAthlete = params.has('sporcu');
+  const ownTask = () => !!(be && T.task && be.uid() && T.task.owner === be.uid());
   const startsUsed = () => Math.max(myRuns().length, +store.get(startKey(), 0) || 0);
-  const triesLeft = () => !T.task ? 0 : T.task.preview ? Infinity : Math.max(0, D.triesOf(T.task) - startsUsed());
-  const canSend = () => !!T.task && !T.task.preview && myRuns().length < D.triesOf(T.task);
+  const triesLeft = () => !T.task ? 0 : T.task.preview ? Infinity : ownTask() ? D.triesOf(T.task) : Math.max(0, D.triesOf(T.task) - startsUsed());
+  const canSend = () => !!T.task && !T.task.preview && (ownTask() || myRuns().length < D.triesOf(T.task));
 
   // ---------- Arayüz ----------
   const btn = html('<button id="btnTask" class="tool task-tool" title="Antrenör yarışları: oluştur, gönder, sıralama ve tekrarlar"><svg><use href="#i-flag"/></svg><span class="lbl">Yarışlar</span></button>');
@@ -122,7 +125,7 @@
 
   // ---------- Yarış sayfası: kart + sıralama ----------
   function taskHtml() {
-    const t = T.task, su = taskSetup(t), own = be && t.owner === be.uid(), left = triesLeft(), shut = closed(t);
+    const t = T.task, su = taskSetup(t), own = ownTask() && !asAthlete, left = triesLeft(), shut = closed(t);
     const hints = t.hints !== false ? planLines(su.plan) : [];
     const mine = myRuns(), rows = D.board(T.runs);
     const canSee = own || t.vis === 'all' || (t.vis === 'after' && mine.length);
@@ -152,6 +155,7 @@
         ${T.runs.length > 1 && canSee ? `<button class="tb tb-reload tb-cmp${T.pick.length >= 2 ? ' primary' : ''}" data-act="compare" ${T.pick.length >= 2 ? '' : 'disabled'} title="Seçili yarışları (2-4) aynı parkurda üst üste izle">Karşılaştır${T.pick.length ? ` (${T.pick.length})` : ''}</button>` : ''}</div>
       ${T.runs.length > 1 && canSee ? '<p class="dlg-note task-cmp-note">⇄ ile 2-4 yarış seç, <b>Karşılaştır</b>: sporcuların tekneleri aynı parkurda ortak saatle üst üste oynar.</p>' : ''}
       ${canSee ? table : `<p class="net-empty">${t.vis === 'after' ? 'Sıralama ve tekrarlar yarışını gönderince açılır.' : 'Sıralamayı yalnız antrenörün görüyor.'}</p>${mine.length ? `<div class="task-board-wrap"><table class="task-board"><tbody>${mine.map(r => runRow(r, null)).join('')}</tbody></table></div>` : ''}`}
+      ${asAthlete && ownTask() ? '<p class="dlg-note">Sporcu görünümü: sporcuların gördüğü kart bu. Sana hak sınırı yok; gönderdiğin yarış sıralamaya girer (Yarışlar sayfasından silebilirsin).</p>' : ''}
       <p class="net-err" id="taskErr">${esc(T.err)}</p>`;
   }
 
@@ -245,7 +249,7 @@
     const t = T.task; if (!t) return;
     if (triesLeft() <= 0) { setErr('Deneme hakkın bitti.'); return; }
     T.result = null; T.sent = false;
-    store.set(startKey(), startsUsed() + 1);
+    if (!ownTask()) store.set(startKey(), startsUsed() + 1);
     const ok = api.taskStart({ code: t.code, name: t.name, setup: taskSetup(t), sailor: sailorName().slice(0, 18), onEnd: onEnd,
       msg: `${t.name} · start'a ${Math.round(((taskSetup(t).boat || {}).pre || 120) / 60)} dk · İskota Çek ile yelkeni doldur` });
     if (!ok) { setErr('Online yarıştayken bu yarış başlatılamaz.'); return; }
@@ -265,7 +269,7 @@
       const uid = be.uid() || await be.anon();
       const mine = await be.listRuns(t.code, uid).catch(() => myRuns());
       const n = mine.reduce((m, x) => Math.max(m, x.n || 0), 0) + 1;
-      if (!canSend() || n > D.triesOf(t)) { busy(false); setErr('Deneme hakkın bitti.'); return; }
+      if (!canSend() || (!ownTask() && n > D.triesOf(t))) { busy(false); setErr('Deneme hakkın bitti.'); return; }
       const { ops, ...sum } = r;
       await be.addRun(t.code, `${uid}_${n}`, { v: 1, uid, n, name, via: velora ? 'velora' : 'ad', ...sum, rec: JSON.stringify({ ops }) });
       T.sent = true; busy(false); render();

@@ -150,7 +150,7 @@
         <div class="km-actions km-center">
           <button class="tb primary" data-k-act="copy">Bağlantıyı kopyala</button>
           ${navigator.share ? '<button class="tb" data-k-act="share">Paylaş</button>' : ''}
-          <a class="tb" href="${esc(link)}">Yarış sayfası</a>
+          <a class="tb" href="${esc(D.taskLink(t.code, '&sporcu=1'))}">Sporcu gibi aç</a>
           <button class="tb" data-k-act="again">Yeni yarış</button>
         </div></div>`;
   }

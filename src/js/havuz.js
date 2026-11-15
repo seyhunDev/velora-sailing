@@ -84,6 +84,7 @@
         ${t.note ? `<p class="task-note">${esc(t.note)}</p>` : ''}
         <div class="hv-actions">
           <a class="tb primary" href="${esc(D.taskLink(t.code))}"><svg class="ci"><use href="#i-play"/></svg>Yarış sayfası</a>
+          ${own ? `<a class="tb" href="${esc(D.taskLink(t.code, '&sporcu=1'))}" title="Sporcunun gördüğü kartı ve yarışı aç (sana hak sınırı yok)"><svg class="ci"><use href="#i-eye"/></svg>Sporcu gibi aç</a>` : ''}
           ${own ? `<button class="tb" data-copy="${esc(D.taskLink(t.code))}">Bağlantıyı kopyala</button>` : ''}
           ${runs.length > 1 ? (cmpHref ? `<a class="tb primary" href="${esc(cmpHref)}">Karşılaştır (${pick.length})</a>` : `<span class="tb disabled">Karşılaştır: ⇄ ile 2-4 yarış seç</span>`) : ''}
           <button class="tb" data-reload="${esc(t.code)}">Yenile</button>
