@@ -147,7 +147,7 @@
     custom: (saved.custom && typeof saved.custom === 'object') ? saved.custom : {},   // custom['marka|hava|deniz'] = tüm değerler (kişisel)
     manual: (saved.manual && typeof saved.manual === 'object') ? saved.manual : {},   // manual[marka][hava][alan] = elle girilmiş orijinal (ortak)
     customAt: saved.customAt || 0, manualAt: saved.manualAt || 0,
-    editOrig: false, view: saved.view === '2d' ? '2d' : '3d',
+    editOrig: false, view: saved.view === '2d' || saved.view === 'ders' ? saved.view : '3d',
     val: null, target: null, active: null, focusTie: -1, trial: null,
   };
   function persist(what) {
@@ -300,7 +300,7 @@
     setSeg('segView', v);
   }
   $('segView').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; setView(b.dataset.v); persist(); });
-  window.addEventListener('trim-no3d', () => setView('2d'));
+  window.addEventListener('trim-no3d', () => { setView('2d'); const d = document.querySelector('#segView [data-v="ders"]'); if (d) d.disabled = true; });
   setView(document.body.classList.contains('no3d') ? '2d' : st.view);
 
   function refresh() {

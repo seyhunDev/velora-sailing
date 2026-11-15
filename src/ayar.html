@@ -33,12 +33,17 @@
   <main class="trim-main">
     <section class="trim-stage">
       <div class="stage-bar">
-        <div class="seg seg-sm" id="segView"><button data-v="3d">3D</button><button data-v="2d">Yandan (2D)</button></div>
+        <div class="seg seg-sm" id="segView"><button data-v="3d">3D</button><button data-v="ders">Arkadan ders</button><button data-v="2d">Yandan (2D)</button></div>
         <div class="seg seg-sm cam-btns" id="camBtns"><button data-c="34">Çapraz</button><button data-c="yan">Yandan</button><button data-c="arka">Arkadan</button><button data-c="ust">Üstten</button></div>
         <span class="stage-hint">Sürükle: döndür · iki parmak: yakınlaştır</span>
       </div>
       <div class="stage-view">
         <div id="view3d"></div>
+        <svg id="lessonHud" class="lesson-hud" viewBox="0 0 80 80" aria-label="Rüzgar ve rota">
+          <circle cx="40" cy="40" r="37" class="hud-ring"/>
+          <g class="hud-boat"><path d="M40,26 C44,30 45,38 44,52 L36,52 C35,38 36,30 40,26 Z"/></g>
+          <g class="hud-wind"><path d="M40,6 L40,20" /><path d="M35,15 L40,22 L45,15" /></g>
+        </svg>
           <svg id="side" viewBox="-10 -64 720 630" preserveAspectRatio="xMidYMid meet" aria-label="Optimist yandan görünüş">
             <defs>
               <linearGradient id="sailFill" x1="0" y1="0" x2="1" y2="0">
@@ -67,6 +72,25 @@
     </section>
 
     <aside class="trim-panel">
+      <div class="lesson-card" id="lessonCard">
+        <div class="sec-head">Arkadan ders <span>dümen düz giderken rüzgar değişirse</span></div>
+        <div class="lesson-list" id="lessonList"></div>
+        <p class="lesson-now" id="lessonNow"></p>
+        <dl class="lesson-read">
+          <dt>Rüzgar açısı</dt><dd id="lrWind"></dd>
+          <dt>Yelken</dt><dd id="lrSail"></dd>
+          <dt>Dümen (yeke)</dt><dd id="lrTiller"></dd>
+          <dt>İskota</dt><dd id="lrSheet"></dd>
+          <dt>Sağanak</dt><dd id="lrGust"></dd>
+        </dl>
+        <div class="seg-row" id="gustRow" hidden>
+          <div class="seg-lbl">Sağanak</div>
+          <div class="seg" id="segGust"><button data-g="0.35">Hafif</button><button data-g="0.65">Orta</button><button data-g="1">Güçlü</button></div>
+        </div>
+        <div class="lesson-btns"><button id="btnPlay" class="reset-c">Oynat</button><button id="btnRestart" class="reset-c">Baştan</button></div>
+        <ol class="lesson-steps" id="lessonSteps"></ol>
+        <p class="lesson-note">Sarı ok yekenin hangi yöne gittiğini, sol üstteki pusula rüzgarı (mavi ok) ve teknenin başını gösterir. Açılar ve hızlar öğretim için yaklaşık.</p>
+      </div>
       <div class="seg-row">
         <div class="seg-lbl">Rüzgar</div>
         <div class="seg" id="segWind">

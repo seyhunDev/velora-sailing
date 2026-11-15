@@ -253,3 +253,45 @@ body[data-view="3d"] #side, body[data-view="2d"] #view3d, body[data-view="2d"] .
   .trim-panel .gauge { grid-template-columns: 60px 1fr 50px; }
   .trim-panel .seg-lbl { width: 48px; font-size: 11px; }
 }
+
+/* ---------- arkadan ders (2026-11-15) ---------- */
+body[data-view="ders"] #side, body[data-view="ders"] .cam-btns { display: none; }
+.lesson-card, .lesson-hud { display: none; }
+body[data-view="ders"] .lesson-card { display: block; }
+body[data-view="ders"] .lesson-hud { display: block; }
+body[data-view="ders"] .trim-panel > :not(.lesson-card) { display: none; }
+.lesson-card .sec-head { font-size: 14px; margin-bottom: 8px; }
+.lesson-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+.lesson-list button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; min-height: 44px; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--raised); color: var(--text2); font-size: 13.5px; font-weight: 600; }
+.lesson-list button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.lesson-btns { display: flex; gap: 8px; margin-bottom: 10px; }
+.lesson-btns .reset-c { flex: 1 1 0; }
+.lesson-steps { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+.lesson-steps li { display: flex; gap: 8px; padding: 7px 10px; border-radius: 9px; background: var(--raised); border: 1px solid var(--border); font-size: 13px; line-height: 1.4; color: var(--muted); }
+.lesson-steps li span { flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.lesson-steps li.past { color: var(--text2); }
+.lesson-steps li.on { color: var(--text); border-color: #fde047; background: color-mix(in srgb, #fde047 10%, var(--raised)); }
+.lesson-read { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 8px; font-size: 13px; }
+.lesson-read dt { color: var(--muted); font-weight: 600; }
+.lesson-read dd { margin: 0; font-weight: 700; color: var(--text); }
+.lesson-read dd.bad { color: #fca5a5; } .lesson-read dd.ok { color: #6ee7b7; }
+.lesson-note { font-size: 12px; color: var(--muted); line-height: 1.4; margin: 0; }
+.lesson-hud { position: absolute; left: 10px; top: 10px; width: 84px; height: 84px; pointer-events: none; }
+.lesson-hud .hud-ring { fill: rgba(11,23,36,.7); stroke: var(--border-strong); }
+.lesson-hud .hud-t { font: 600 7px system-ui, sans-serif; fill: var(--muted); }
+.lesson-hud .hud-boat path { fill: #e2e8f0; }
+.lesson-hud .hud-wind path { fill: none; stroke: #7dd3fc; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-height: 500px) {
+  .lesson-hud { width: 60px; height: 60px; left: 6px; top: 6px; }
+  .lesson-list button { min-height: 34px; font-size: 12.5px; }
+  .lesson-steps li { padding: 5px 8px; font-size: 12px; }
+}
+#gustRow[hidden] { display: none; }
+.lesson-list button small { font-size: 11px; font-weight: 500; opacity: .8; line-height: 1.25; }
+.lesson-now { margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, #fde047 12%, var(--raised)); border: 1px solid rgba(253,224,71,.6); color: var(--text); font-size: 14.5px; font-weight: 600; line-height: 1.4; min-height: 3.2em; }
+@media (max-height: 500px) {
+  .lesson-list button small { display: none; }
+  .lesson-now { font-size: 12.5px; padding: 6px 8px; margin-bottom: 6px; }
+  .lesson-read { font-size: 12px; }
+  .lesson-card .sec-head span { display: none; }
+}

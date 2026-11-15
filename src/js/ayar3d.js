@@ -50,19 +50,22 @@ function start() {
   const wBase = waterGeo.attributes.position.array.slice();
 
   // ---------- tekne ----------
+  const lerp = (p, q, t) => p + (q - p) * t;
   const boat = new THREE.Group();
   scene.add(boat);
+  // Optimist (IODA): kutu baş (pram), düz taban + alçak kine, dışa açık bordalar, baş aynası yüksek (rocker).
   const L = 2.31;
-  const hs = u => u < 0.45 ? 0.565 - 0.145 * ((0.45 - u) / 0.45) ** 2 : 0.565 - 0.265 * ((u - 0.45) / 0.55) ** 2;   // küpeşte yarı eni
-  const yb = u => u < 0.45 ? -0.12 + 0.06 * ((0.45 - u) / 0.45) ** 2 : -0.12 + 0.30 * ((u - 0.45) / 0.55) ** 2;     // omurga (rocker)
-  const ys = u => 0.27 + 0.06 * u;                                                                                    // küpeşte yüksekliği
+  const hs = u => u < 0.42 ? 0.565 - 0.135 * ((0.42 - u) / 0.42) ** 2 : 0.565 - 0.22 * ((u - 0.42) / 0.58) ** 2;   // küpeşte yarı eni (kıç 0,86, baş 0,69 m)
+  const hcF = u => hs(u) * (u < 0.42 ? 0.8 : 0.8 - 0.06 * ((u - 0.42) / 0.58));                                    // kine yarı eni
+  const yb = u => u < 0.42 ? -0.12 + 0.07 * ((0.42 - u) / 0.42) ** 2 : -0.12 + 0.30 * ((u - 0.42) / 0.58) ** 2.2;  // omurga (rocker)
+  const ys = u => 0.27 + 0.03 * u + 0.06 * u ** 4;                                                                 // küpeşte (başa doğru kalkar)
   const xs = u => -L / 2 + u * L;
   const section = u => {
-    const h = hs(u), b = yb(u), c = h * 0.82, yc = b + 0.07;
+    const h = hs(u), b = yb(u), c = hcF(u), yc = b + 0.04;
     return [[-h, ys(u)], [-c, yc], [0, b], [c, yc], [h, ys(u)]];        // [z, y] iskeleden sancağa
   };
   {
-    const N = 28, pos = [];
+    const N = 40, pos = [];
     const P = (u, k) => { const s = section(u)[k]; return [xs(u), s[1], s[0]]; };
     for (let i = 0; i < N; i++) {
       const u0 = i / N, u1 = (i + 1) / N;
@@ -90,41 +93,75 @@ function start() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.computeVertexNormals();
-    boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.45, metalness: 0.02, side: THREE.FrontSide })));
+    boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.02, side: THREE.FrontSide })));
     boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.7, side: THREE.BackSide })));
   }
-  const tubeAlong = (pts, r, color) => {
-    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, r, 6, false),
-      new THREE.MeshStandardMaterial({ color, roughness: 0.6 }));
-    boat.add(m); return m;
+  const tubeAlong = (pts, r, color, parent = boat, rough = 0.6) => {
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, r, 8, false),
+      new THREE.MeshStandardMaterial({ color, roughness: rough }));
+    parent.add(m); return m;
   };
-  for (const side of [-1, 1]) {                                          // küpeşte (usturmaça)
-    const pts = []; for (let i = 0; i <= 20; i++) { const u = i / 20; pts.push(new THREE.Vector3(xs(u), ys(u) + 0.01, side * hs(u))); }
-    tubeAlong(pts, 0.02, 0x1e293b);
+  // usturmaça: küpeşte boyunca kalın lastik (iki yanda, baş ve kıç aynasında)
+  {
+    const rim = [];
+    for (let i = 0; i <= 24; i++) { const u = i / 24; rim.push(new THREE.Vector3(xs(u), ys(u) + 0.008, -hs(u))); }
+    for (let i = 0; i <= 8; i++) { const z = lerp(-hs(1), hs(1), i / 8); rim.push(new THREE.Vector3(xs(1) + 0.005, ys(1) + 0.008, z)); }
+    for (let i = 24; i >= 0; i--) { const u = i / 24; rim.push(new THREE.Vector3(xs(u), ys(u) + 0.008, hs(u))); }
+    for (let i = 0; i <= 8; i++) { const z = lerp(hs(0), -hs(0), i / 8); rim.push(new THREE.Vector3(xs(0) - 0.005, ys(0) + 0.008, z)); }
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rim, true, 'catmullrom', 0.1), 240, 0.026, 8, true),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85 }));
+    boat.add(m);
   }
-  for (const u of [0, 1]) tubeAlong([new THREE.Vector3(xs(u), ys(u) + 0.01, -hs(u)), new THREE.Vector3(xs(u), ys(u) + 0.01, hs(u))], 0.016, 0x334155);
-  const box = (w, h, d, color, x, y, z, parent = boat) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: 0.6 }));
+  // iç küpeşte (ahşap şerit)
+  for (const side of [-1, 1]) {
+    const pts = []; for (let i = 0; i <= 20; i++) { const u = 0.02 + i / 20 * 0.96; pts.push(new THREE.Vector3(xs(u), ys(u) - 0.035, side * (hs(u) - 0.045))); }
+    tubeAlong(pts, 0.012, 0xb45309, boat, 0.7);
+  }
+  const box = (w, h, d, color, x, y, z, parent = boat, rough = 0.6) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: rough }));
     m.position.set(x, y, z); parent.add(m); return m;
   };
   const uM = 0.79;                                                       // direk yeri (baştan ~0,48 m)
   const MF = new THREE.Vector3(xs(uM), yb(uM) + 0.02, 0);                // direk ayağı
-  box(0.12, 0.03, hs(uM) * 2 - 0.04, 0xe2e8f0, xs(uM), ys(uM) - 0.06, 0);        // direk oturağı (thwart)
-  box(0.34, 0.3, 0.07, 0xe2e8f0, 0.02, yb(0.5) + 0.15, 0);                        // salma kutusu
-  for (const side of [-1, 1]) box(0.95, 0.15, 0.17, 0xcbd5e1, -0.15, yb(0.45) + 0.16, side * 0.42);   // yüzdürme torbaları
-  // salma (daggerboard): kutudan aşağı
-  const foilMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.35 });
-  const dagger = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.05, 0.018), foilMat);
-  dagger.position.set(0.02, yb(0.5) - 0.28, 0); boat.add(dagger);
-  // dümen + yeke + uzatma
+  box(0.16, 0.035, hs(uM) * 2 - 0.06, 0xd6a36a, xs(uM), ys(uM) - 0.05, 0, boat, 0.7);     // direk oturağı (ahşap thwart)
+  box(0.07, 0.07, 0.07, 0x1e293b, xs(uM), yb(uM) + 0.05, 0);                            // direk ıskaçası (step)
+  // salma kutusu + üst kapak
+  box(0.36, 0.34, 0.075, 0xf1f5f9, 0.02, yb(0.5) + 0.17, 0);
+  box(0.4, 0.03, 0.1, 0xd6a36a, 0.02, yb(0.5) + 0.355, 0, boat, 0.7);
+  // yüzdürme torbaları: iki yanda uzun, başta enine (gri, yuvarlak)
+  const bagMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.55 });
+  for (const side of [-1, 1]) {
+    const bg = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.82, 6, 14), bagMat);
+    bg.rotation.z = Math.PI / 2; bg.position.set(-0.1, yb(0.45) + 0.14, side * 0.4); bg.scale.set(1, 1, 1.1); boat.add(bg);
+  }
+  {
+    const bg = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.36, 6, 14), bagMat);
+    bg.rotation.x = Math.PI / 2; bg.position.set(xs(0.92), yb(0.92) + 0.1, 0); boat.add(bg);
+  }
+  // ayak kayışları (hiking straps): kıçtan salma kutusuna, lacivert
+  for (const side of [-1, 1]) {
+    const a = xs(0.06), b2 = -0.17;
+    tubeAlong([new THREE.Vector3(a, yb(0.06) + 0.05, side * 0.13), new THREE.Vector3((a + b2) / 2, yb(0.25) + 0.11, side * 0.14), new THREE.Vector3(b2, yb(0.43) + 0.06, side * 0.06)], 0.01, 0x1e3a8a, boat, 0.8);
+  }
+  // salma (daggerboard): kutudan aşağı, tutamak üstte
+  const foilMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+  const dagger = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.18, 0.018), foilMat);
+  dagger.position.set(0.02, yb(0.5) - 0.2, 0); boat.add(dagger);
+  box(0.12, 0.05, 0.03, 0x1e293b, 0.02, yb(0.5) + 0.41, 0);
+  // iskota köprüsü (bridle): kıç aynasında köşeden köşeye halat, ortada makara
   const xT = xs(0);
-  const rudder = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.92, 0.02), foilMat);
-  rudder.position.set(xT - 0.15, -0.16, 0); boat.add(rudder);
-  box(0.12, 0.16, 0.05, 0x334155, xT - 0.06, 0.3, 0);
+  const BRIDLE = new THREE.Vector3(xT + 0.02, ys(0) + 0.1, 0);
+  tubeAlong([new THREE.Vector3(xT + 0.02, ys(0) + 0.02, -hs(0) + 0.06), BRIDLE, new THREE.Vector3(xT + 0.02, ys(0) + 0.02, hs(0) - 0.06)], 0.005, 0xe2e8f0);
+  const bridleBlock = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+  bridleBlock.position.copy(BRIDLE); boat.add(bridleBlock);
+  // dümen grubu: iğneli kafa, uzun dar pala, yeke + uzatma (yeke grubun +X yönünde; rotation.y ile döner)
+  const rudderG = new THREE.Group(); rudderG.position.set(xT - 0.05, 0, 0); boat.add(rudderG);
+  const rudder = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.95, 0.02), foilMat);
+  rudder.position.set(-0.1, -0.2, 0); rudderG.add(rudder);
+  box(0.12, 0.2, 0.05, 0x334155, -0.03, 0.3, 0, rudderG);
   const rod = (a, b, r, color, parent) => {
-    const d = new THREE.Vector3().subVectors(b, a), l = d.length();
     const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.2 }));
-    void l; place(m, a, b); parent.add(m); return m;
+    place(m, a, b); parent.add(m); return m;
   };
   function place(m, a, b) {
     const d = new THREE.Vector3().subVectors(b, a), l = d.length() || 1e-6;
@@ -132,9 +169,10 @@ function start() {
     m.scale.set(1, l, 1);
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.multiplyScalar(1 / l));
   }
-  rod(new THREE.Vector3(xT - 0.05, 0.36, 0), new THREE.Vector3(-0.5, 0.38, 0), 0.016, 0xa16207, boat);            // yeke
-  rod(new THREE.Vector3(-0.5, 0.38, 0), new THREE.Vector3(0.12, 0.3, 0.08), 0.009, 0x0f172a, boat);             // uzatma
-
+  rod(new THREE.Vector3(0, 0.38, 0), new THREE.Vector3(0.68, 0.41, 0), 0.017, 0xa16207, rudderG);         // yeke
+  rod(new THREE.Vector3(0.68, 0.41, 0), new THREE.Vector3(1.2, 0.36, -0.12), 0.009, 0x0f172a, rudderG);   // uzatma (rüzgarüstüne)
+  // su çıkarma kovası (bailer)
+  box(0.12, 0.08, 0.1, 0x38bdf8, -0.55, yb(0.25) + 0.06, 0.24, boat, 0.5);
   // ---------- teçhizat (direk çerçevesi: Y direk boyunca, -X kıça) ----------
   const rig = new THREE.Group();
   rig.position.copy(MF);
@@ -154,7 +192,9 @@ function start() {
   const cunning = mkLine(0.005, 0xf97316);
   const outhaul = mkLine(0.005, 0xf97316);
   const snotter = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 0.05), metal(0x0f172a)); rig.add(snotter);
-  const sheetLine = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 1, 6), lineMat(0xe2e8f0)); boat.add(sheetLine);
+  // ana iskota: bumba ucundan kıç köprüsündeki makaraya, oradan bumbadaki cırcır makaraya, oradan yelkencinin eline
+  const sheetSeg = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 1, 6), lineMat(0xe2e8f0)); boat.add(m); return m; });
+  const ratchet = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), metal(0x0f172a)); boat.add(ratchet);
   const ties = Array.from({ length: 8 }, () => {
     const tg = new THREE.TorusGeometry(1, 0.12, 6, 18); tg.rotateX(Math.PI / 2);
     const m = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 }));
@@ -197,7 +237,7 @@ function start() {
       x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.lineTo(...cc); x.fill();
     }
     x.fillStyle = '#334155'; x.fillRect(0, 0, 7, 512);                       // orsa yakası şeridi
-    x.strokeStyle = '#38bdf8'; x.lineWidth = 7;                              // derinlik şeritleri (draft stripes)
+    x.strokeStyle = '#38bdf8'; x.lineWidth = 4;                              // derinlik şeritleri (draft stripes)
     for (const t of [0.25, 0.5, 0.78]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(14, y); x.lineTo(500, y); x.stroke(); }
     x.strokeStyle = '#475569'; x.lineWidth = 6;                              // balenler
     for (const t of [0.38, 0.66]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(420, y); x.lineTo(508, y); x.stroke(); }
@@ -209,7 +249,6 @@ function start() {
 
   // 2B yelken düzlemi: a = kıça mesafe, h = direk boyunca yükseklik (m)
   const V2 = (a, h) => ({ a, h });
-  const lerp = (p, q, t) => p + (q - p) * t;
   const mix = (p, q, t) => V2(lerp(p.a, q.a, t), lerp(p.h, q.h, t));
   function circles(A, r1, B, r2) {
     const dx = B.a - A.a, dy = B.h - A.h, d = Math.hypot(dx, dy);
@@ -264,10 +303,16 @@ function start() {
       (1 - t) * c0.h + t * c1.h + (1 - s) * d0.h + s * d1.h - ((1 - s) * (1 - t) * T.h + s * (1 - t) * C.h + (1 - s) * t * H.h + s * t * Pk.h));
   }
   const tmp = new THREE.Vector3();
+  const fx = { luff: 0, time: 0 };
   function sailPoint(e, g, sh, s, t, out) {
     const p = surf(e, g, s, t);
     const d0 = e.luff(t), d1 = e.leech(t), cl = Math.hypot(d1.a - d0.a, d1.h - d0.h);
-    const z = depthAt(sh, t) * cl * camber(s, sh.draftPos);
+    let z = depthAt(sh, t) * cl * camber(s, sh.draftPos);
+    if (fx.luff > 0) {                                                     // ön yaka pırpırı: kambur içeri çöker, dalgalanır
+      const f = Math.max(0, 1 - s / 0.5) ** 1.5;
+      z = z * (1 - fx.luff * f) - fx.luff * f * cl * 0.03 * (0.7 + 0.6 * Math.sin(fx.time * 26 + t * 16 + s * 10));
+      z += fx.luff * 0.012 * cl * Math.sin(fx.time * 19 + t * 9) * s;     // arka yaka da hafif titrer
+    }
     return to3(p, z, sh, g, out);
   }
 
@@ -337,6 +382,147 @@ function start() {
   new ResizeObserver(fit).observe(host);
   fit();
 
+  // ---------- arkadan ders: açan / kapatan rüzgar, sağanak ----------
+  // Açılar (derece): 0 = başlangıç rotası, + = rüzgarüstüne (-Z). W: rüzgarın geldiği yön, H: tekne başı, AWA = W - H.
+  // Tekne yerinde durur; su, rüzgar çizgileri ve dümen suyu hareketi gösterir. Kamera tekneye arkadan bakar.
+  const LS = { id: 'kapatti', t: 0, play: false, gust: 0.65, W: 45, H: 0, G: 0, tl: 0, sheetIn: 0, prevH: 0, done: false };
+  const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x);
+  const seg = (t, a, b) => ease((t - a) / (b - a));
+  const LESSONS = {
+    kapatti: {
+      name: 'Kapattı', sub: 'pırpır → kafayı aç', end: 10,
+      steps: [[0, 'Rüzgar sabit, dümen düz. Yelken dolu, şeritler akıyor.'],
+        [2.4, 'Rüzgar kapattı (header): baştan geliyor, yelkenin ön yakası pırpırlıyor.'],
+        [4, 'Yekeyi kendine çek: kafayı aç (rüzgaraltına dön).'],
+        [6.6, 'Yelken yeniden doldu. Dümen düz, yeni rotada devam.']],
+      at: t => ({ W: 45 - 12 * seg(t, 2.4, 3.4), H: -12 * seg(t, 4, 6.6), G: 0, sheetIn: 0 }),
+    },
+    acti: {
+      name: 'Açtı', sub: 'tüyler düştü → orsala', end: 10,
+      steps: [[0, 'Rüzgar sabit, dümen düz. Yelken dolu, şeritler akıyor.'],
+        [2.4, 'Rüzgar açtı (lift): yandan geliyor, arka yakadaki tüyler düştü, yelken fazla kapalı kaldı.'],
+        [4, 'Yekeyi karşıya it: orsala (rüzgarüstüne dön), rüzgar sana çektirdi.'],
+        [6.6, 'Şeritler yeniden akıyor. Daha yüksek rotada devam.']],
+      at: t => ({ W: 45 + 12 * seg(t, 2.4, 3.4), H: 12 * seg(t, 4, 6.6), G: 0, sheetIn: 0 }),
+    },
+    saganak: {
+      name: 'Sağanak', sub: 'iskotayı gücü kadar çek', end: 11,
+      steps: [[0, 'Sağanak geliyor: rüzgarüstünde suyun koyulaştığı yer.'],
+        [2.2, 'Sağanak vurdu: rüzgar arttı, tekne yatıyor.'],
+        [3.4, 'İskotayı sağanağın gücü kadar çek, yüklen: tekne doğrulup hızlanıyor.'],
+        [7.2, 'Sağanak geçti: iskotayı aynı ölçüde geri ver.']],
+      at: t => { const g = LS.gust * (seg(t, 2.2, 3.0) - seg(t, 7.2, 8.4)); return { W: 45, H: 0, G: g, sheetIn: LS.gust * (seg(t, 3.4, 4.8) - seg(t, 7.4, 8.8)) }; },
+    },
+  };
+  // su üstünde rüzgar çizgileri (rüzgar yönünde akar) ve sağanak lekesi
+  const streakMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.35, depthWrite: false });
+  const streaks = Array.from({ length: 70 }, () => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.025), streakMat); m.rotation.x = -Math.PI / 2;
+    m.position.set((Math.random() - 0.5) * 26, 0.03, (Math.random() - 0.5) * 26); m.visible = false; scene.add(m); return m;
+  });
+  const gustPatch = new THREE.Mesh(new THREE.CircleGeometry(4, 40), new THREE.MeshBasicMaterial({ color: 0x020617, transparent: true, opacity: 0.0, depthWrite: false }));
+  gustPatch.renderOrder = 3; gustPatch.rotation.x = -Math.PI / 2; gustPatch.position.y = 0.07; gustPatch.visible = false; scene.add(gustPatch);
+  // dümen suyu (köpük): kıçtan geriye iki çizgi
+  const wakeMat = new THREE.MeshBasicMaterial({ color: 0xf0f9ff, transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false });
+  const wake = new THREE.Group(); boat.add(wake); wake.visible = false;
+  for (const side of [-1, 1]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.03), wakeMat); m.rotation.x = -Math.PI / 2;
+    m.rotation.z = side * 0.18; m.position.set(xs(0) - 0.8, 0.02, side * 0.36); wake.add(m);
+  }
+  // yeke hareket oku
+  const tArrow = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.14, 12), new THREE.MeshBasicMaterial({ color: 0xfde047 }));
+  tArrow.visible = false; boat.add(tArrow);
+
+  const $ = id => document.getElementById(id);
+  const lessonEl = $('lessonList'), stepsEl = $('lessonSteps'), gustRow = $('gustRow');
+  function drawLessonUi() {
+    if (!lessonEl) return;
+    lessonEl.innerHTML = Object.entries(LESSONS).map(([k, l]) => `<button data-l="${k}" class="${LS.id === k ? 'on' : ''}"><b>${l.name}</b><small>${l.sub}</small></button>`).join('');
+    stepsEl.innerHTML = LESSONS[LS.id].steps.map(([t, x], i) => `<li data-i="${i}"><span>${String(Math.floor(t)).padStart(2, '0')} sn</span>${x}</li>`).join('');
+    gustRow.hidden = LS.id !== 'saganak';
+    for (const b of $('segGust').querySelectorAll('button')) b.classList.toggle('on', Number(b.dataset.g) === LS.gust);
+    $('btnPlay').textContent = LS.play ? 'Durdur' : LS.done ? 'Yeniden oynat' : 'Oynat';
+  }
+  function restart() { LS.t = 0; LS.play = true; LS.done = false; LS.prevH = 0; drawLessonUi(); }
+  if (lessonEl) {
+    lessonEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; LS.id = b.dataset.l; restart(); });
+    $('segGust').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; LS.gust = Number(b.dataset.g); restart(); });
+    $('btnPlay').addEventListener('click', () => { if (LS.done) restart(); else { LS.play = !LS.play; drawLessonUi(); } });
+    $('btnRestart').addEventListener('click', restart);
+    drawLessonUi();
+  }
+  let lessonCam = false;
+  function enterLesson(on) {
+    if (on === lessonCam) return;
+    lessonCam = on;
+    if (on) { cam.goal = { th: 3.0, ph: 0.24, zoom: 0.92 }; markCam(null); restart(); }
+    else { cam.goal = { th: PRESET['34'][0], ph: PRESET['34'][1], zoom: 1 }; markCam('34'); }
+    for (const m of streaks) m.visible = on;
+    wake.visible = on; tArrow.visible = on; gustPatch.visible = on;
+    boat.rotation.y = 0; rudderG.rotation.y = 0; LS.tl = 0;
+  }
+  const hud = $('lessonHud');
+  function lessonStep(dt) {
+    const L = LESSONS[LS.id];
+    if (LS.play) { LS.t += dt; if (LS.t >= L.end) { LS.t = L.end; LS.play = false; LS.done = true; drawLessonUi(); } }
+    const k = L.at(LS.t);
+    const dH = (k.H - LS.prevH) / Math.max(dt, 1e-3); LS.prevH = k.H;
+    LS.tl = LS.play ? Math.max(-0.5, Math.min(0.5, LS.tl + (dH * 0.05 - LS.tl) * Math.min(1, dt * 6))) : LS.tl * (1 - Math.min(1, dt * 6));
+    Object.assign(LS, k);
+    const awa = LS.W - LS.H;
+    const sheet = 11 - 4 * LS.sheetIn;                                     // bumbanın tekne eksenine açısı
+    const ideal = sheet + 34;
+    LS.luff = Math.max(0, Math.min(1, (ideal - 5 - awa) / 5));             // pırpır
+    LS.stall = Math.max(0, Math.min(1, (awa - ideal - 5) / 5));            // arka tüyler düşer
+    LS.heel = 9 + 22 * LS.G - 16 * LS.sheetIn * (LS.G > 0.05 ? 1 : 0) * 0.7 - 6 * LS.luff;
+    LS.speed = 1 + 0.6 * LS.G + 0.25 * LS.sheetIn - 0.5 * LS.luff - 0.35 * LS.stall;
+    // arayüz: o anki adım ve okumalar
+    let cur = 0; L.steps.forEach(([t], i) => { if (LS.t >= t) cur = i; });
+    const nowEl = $('lessonNow'); if (nowEl && nowEl.dataset.k !== LS.id + cur) { nowEl.dataset.k = LS.id + cur; nowEl.textContent = L.steps[cur][1]; }
+    if (stepsEl) for (const li of stepsEl.children) { const i = Number(li.dataset.i); li.classList.toggle('on', i === cur); li.classList.toggle('past', i < cur); }
+    if (hud) {
+      const tillerTxt = Math.abs(LS.tl) < 0.05 ? 'düz' : LS.tl < 0 ? 'kendine çekili (kafa açılıyor)' : 'karşıya itili (orsalıyor)';
+      const sailTxt = LS.luff > 0.2 ? 'ön yaka pırpır' : LS.stall > 0.2 ? 'arka tüyler düştü' : 'dolu, şeritler akıyor';
+      $('lrWind').textContent = `${Math.round(awa)}°${awa < 40 ? ' (kapattı)' : awa > 50 ? ' (açtı)' : ''}`;
+      $('lrTiller').textContent = tillerTxt;
+      $('lrSail').textContent = sailTxt;
+      $('lrSheet').textContent = LS.sheetIn > 0.05 ? `çekildi (${LS.sheetIn > 0.8 ? 'çok' : LS.sheetIn > 0.45 ? 'orta' : 'az'})` : 'normal';
+      $('lrGust').textContent = LS.G > 0.05 ? (LS.G > 0.8 ? 'güçlü' : LS.G > 0.45 ? 'orta' : 'hafif') : 'yok';
+      $('lrSail').className = LS.luff > 0.2 || LS.stall > 0.2 ? 'bad' : 'ok';
+      hud.querySelector('.hud-wind').setAttribute('transform', `rotate(${(-LS.W).toFixed(1)} 40 40)`);
+      hud.querySelector('.hud-boat').setAttribute('transform', `rotate(${(-LS.H).toFixed(1)} 40 40)`);
+    }
+    return { awa, sheet };
+  }
+  function lessonWorld(dt) {
+    // rüzgar çizgileri: rüzgarın estiği yöne akar (geldiği yönün tersi), tekne ilerledikçe su geriye kayar
+    const wr = LS.W * Math.PI / 180, hr = LS.H * Math.PI / 180;
+    const wx = -Math.cos(wr), wz = Math.sin(wr), ang = Math.atan2(-wz, wx);
+    const sp = 2.2 * (1 + LS.G), bs = 1.1 * LS.speed;
+    for (const m of streaks) {
+      m.position.x += (wx * sp - Math.cos(hr) * bs) * dt; m.position.z += (wz * sp + Math.sin(hr) * bs) * dt;
+      if (m.position.x < -14) m.position.x += 26; if (m.position.x > 12) m.position.x -= 26;
+      if (m.position.z < -13) m.position.z += 26; if (m.position.z > 13) m.position.z -= 26;
+      m.rotation.z = ang;
+    }
+    streakMat.opacity = 0.25 + 0.35 * LS.G;
+    // sağanak lekesi: rüzgarüstünden gelir
+    if (LS.id === 'saganak') {
+      const t = LS.t, f = t < 2.2 ? t / 2.2 : t < 7.2 ? 1 + (t - 7.2) * 0 : 1 + (t - 7.2) / 2;
+      const d = 9 * (1 - Math.min(f, 2)) ;
+      gustPatch.position.set(Math.cos(wr) * d + 1, 0.07, -Math.sin(wr) * d);
+      gustPatch.material.opacity = (0.35 + 0.3 * LS.gust) * (t > 7.2 ? Math.max(0, 1 - (t - 7.2) / 2.5) : Math.min(1, t / 0.6));
+      gustPatch.scale.setScalar(0.8 + 0.5 * LS.gust);
+    } else gustPatch.material.opacity = 0;
+    wakeMat.opacity = 0.1 + 0.25 * Math.min(1.5, LS.speed) / 1.5;
+    // yeke ve hareket oku
+    rudderG.rotation.y = -LS.tl;
+    const tip = new THREE.Vector3(0.68, 0.45, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), -LS.tl).add(rudderG.position);
+    tArrow.position.copy(tip);
+    tArrow.visible = Math.abs(LS.tl) > 0.06;
+    tArrow.rotation.set(Math.sign(LS.tl) * Math.PI / 2, 0, 0);
+  }
+
   // ---------- döngü ----------
   const HL = 0xfde047;
   const setCol = (m, on, c) => m.material.color.setHex(on ? HL : c);
@@ -346,8 +532,20 @@ function start() {
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, (now - last) / 1000); last = now; time += dt;
     const S = window.TrimState;
-    if (!S || document.body.dataset.view !== '3d' || document.hidden) return;
-    const { v, sh, wave, res } = S;
+    const view = document.body.dataset.view;
+    if (!S || (view !== '3d' && view !== 'ders') || document.hidden) return;
+    const ders = view === 'ders';
+    enterLesson(ders);
+    const { v, wave } = S;
+    let { sh, res } = S;
+    let L = null;
+    if (ders) {
+      L = lessonStep(dt);
+      sh = { ...sh, sheet: L.sheet, twist: sh.twist + 3 * LS.G - 2 * LS.sheetIn, lift: Math.max(0, sh.lift - 2 * LS.sheetIn) };
+      res = { ...res, heelDeg: LS.heel };
+      lessonWorld(dt);
+    }
+    fx.luff = ders ? LS.luff : 0; fx.time = time;
 
     // kamera
     if (cam.goal) {
@@ -370,11 +568,11 @@ function start() {
     wp.needsUpdate = true; waterGeo.computeVertexNormals();
 
     // tekne hareketi: yatma (rüzgaraltına), baş-kıç
-    boat.rotation.set(res.heelDeg * Math.PI / 180, 0, S.pitch * Math.PI / 180 * 1.2, 'XZY');
+    boat.rotation.set(res.heelDeg * Math.PI / 180, ders ? LS.H * Math.PI / 180 : 0, S.pitch * Math.PI / 180 * 1.2, 'YXZ');
     boat.position.y = S.bob * 0.008;
     rig.rotation.z = S.rakeDeg * Math.PI / 180;
 
-    const key = JSON.stringify(v) + JSON.stringify(sh) + S.active + S.focusTie + (S.ghost ? 1 : 0);
+    const key = ders ? 'ders' + time : JSON.stringify(v) + JSON.stringify(sh) + S.active + S.focusTie + (S.ghost ? 1 : 0);
     if (key !== lastKey) {
       lastKey = key;
       const { g } = buildSail(v, sh);
@@ -404,10 +602,12 @@ function start() {
       });
       // iskota: bumbadan teknenin ortasına
       rig.updateMatrix();
-      const ms = P3(V2(1.3, G_H + 1.3 * Math.sin(sh.lift * Math.PI / 180)), sh, g).applyMatrix4(rig.matrix);
-      place(sheetLine, ms, new THREE.Vector3(-0.25, 0.3, 0));
+      const onBoom = a => P3(V2(a * Math.cos(sh.lift * Math.PI / 180), G_H + a * Math.sin(sh.lift * Math.PI / 180)), sh, g).applyMatrix4(rig.matrix);
+      const mEnd = onBoom(1.75), mRat = onBoom(1.0);
+      ratchet.position.copy(mRat);
+      place(sheetSeg[0], mEnd, BRIDLE); place(sheetSeg[1], BRIDLE, mRat); place(sheetSeg[2], mRat, new THREE.Vector3(-0.35, 0.32, -0.22));
       // orijinal (kılavuz) ayarın hayaleti
-      if (S.ghost) {
+      if (S.ghost && !ders) {
         const pts = outline(S.ghost.v, S.ghost.sh);
         ghostLine.geometry.dispose();
         ghostLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
@@ -417,18 +617,18 @@ function start() {
       tells.forEach((m, k) => { m.userData.base = sailPointLeech(v, sh, [0.3, 0.55, 0.82][k]); });
     }
     // rüzgar gülü (rüzgarüstü, baştan ~35°) ve arka yaka şeritleri
-    vane.rotation.y = 0.62 + Math.sin(time * 3.1) * 0.05;
+    vane.rotation.y = (ders ? L.awa * Math.PI / 180 : 0.62) + Math.sin(time * 3.1) * 0.05;
     tells.forEach((m, k) => {
       const b = m.userData.base; if (!b) return;
       m.position.copy(b.p);
       let yaw = b.yaw, droop = 0;
       const top = k === 2;
-      const stall = res.dt < -2.5 && (top || res.dt < -5);
-      const fast = res.dt > 4;
+      const stall = ders ? LS.stall > 0.3 && (k > 0 || LS.stall > 0.6) : res.dt < -2.5 && (top || res.dt < -5);
+      const fast = ders ? LS.luff > 0.3 : res.dt > 4;
       if (stall) { yaw += -1.5 + Math.sin(time * 2 + k) * 0.25; droop = -0.9; }
       else if (fast) { yaw += Math.sin(time * 22 + k * 2) * 0.35; }
       else yaw += Math.sin(time * 6 + k * 1.7) * 0.08;
-      m.rotation.set(0, yaw, droop);
+      m.rotation.set(0, yaw, droop); m.scale.setScalar(ders ? 1.7 : 1);
     });
     renderer.render(scene, camera);
   }
