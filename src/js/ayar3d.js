@@ -283,12 +283,20 @@ function start() {
   boat.add(rig);
   const metal = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.35, metalness: 0.55 });
   const MAST = 2.35, MR = 0.022;
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(MR, MR * 1.05, MAST, 16), metal(0x6b7280));
+  const SILVER = 0xc3c9d0;
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(MR, MR * 1.05, MAST, 16), metal(SILVER));
   mast.position.y = MAST / 2; rig.add(mast);
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(MR * 1.2, MR * 1.2, 0.04, 12), metal(0x0f172a));
   cap.position.y = MAST; rig.add(cap);
-  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 12), metal(0x4b5563)); rig.add(boom);
-  const sprit = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 1, 10), metal(0x6b7280)); rig.add(sprit);
+  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 12), metal(0xb4bbc3)); rig.add(boom);
+  // bumba ucu: renkli bant (sarı-yeşil-kırmızı) ve tıpa
+  const boomEnd = (() => {
+    const c = document.createElement('canvas'); c.width = 8; c.height = 64; const x = c.getContext('2d');
+    [['#111827', 0, 10], ['#dc2626', 10, 24], ['#16a34a', 24, 40], ['#facc15', 40, 56], ['#b4bbc3', 56, 64]].forEach(([col, a, b]) => { x.fillStyle = col; x.fillRect(0, a, 8, b - a); });
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1, 12), new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 })); rig.add(m); return m;
+  })();
+  const sprit = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 1, 10), metal(SILVER)); rig.add(sprit);
   const halyard = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 1, 6), new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.8 })); rig.add(halyard);
   place(halyard, new THREE.Vector3(0.03, MAST - 0.06, 0), new THREE.Vector3(0.03, 0.3, 0.01));
   const lineMat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8 });
@@ -301,9 +309,10 @@ function start() {
   // ana iskota: bumba ucundan kıç köprüsündeki makaraya, oradan bumbadaki cırcır makaraya, oradan yelkencinin eline
   const sheetSeg = [0, 1, 2].map(() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 1, 6), lineMat(0xe2e8f0)); boat.add(m); return m; });
   const ratchet = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), metal(0x0f172a)); boat.add(ratchet);
+  const TIE_COL = 0xa3c615;                                            // direk bağları: sarı-yeşil ip (fotoğraftaki gibi)
   const ties = Array.from({ length: 8 }, () => {
     const tg = new THREE.TorusGeometry(1, 0.12, 6, 18); tg.rotateX(Math.PI / 2);
-    const m = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 }));
+    const m = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ color: TIE_COL, roughness: 0.6 }));
     rig.add(m); return m;
   });
   // rüzgar gülü (direk tepesinde): ok rüzgarın geldiği yönü gösterir
@@ -315,14 +324,27 @@ function start() {
     head.rotation.z = -Math.PI / 2; head.position.x = 0.21; vane.add(head);
     const fin = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 0.004), new THREE.MeshStandardMaterial({ color: 0xf472b6 }));
     fin.position.x = -0.09; vane.add(fin);
+    // direk tepesinde Türk bayrağı (rüzgar gülü çubuğunda)
+    const fc = document.createElement('canvas'); fc.width = 96; fc.height = 64; const f = fc.getContext('2d');
+    f.fillStyle = '#e30a17'; f.fillRect(0, 0, 96, 64);
+    f.fillStyle = '#fff'; f.beginPath(); f.arc(36, 32, 16, 0, Math.PI * 2); f.fill();
+    f.fillStyle = '#e30a17'; f.beginPath(); f.arc(40, 32, 12.8, 0, Math.PI * 2); f.fill();
+    f.fillStyle = '#fff'; f.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? 2.6 : 6.6; f.lineTo(56 + r * Math.cos(a), 32 + r * Math.sin(a)); } f.fill();
+    const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace;
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.066), new THREE.MeshBasicMaterial({ map: ft, side: THREE.DoubleSide }));
+    flag.position.set(-0.03, -0.045, 0); vane.add(flag);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.1, 6), metal(0x0f172a)); pole.position.set(0.02, -0.04, 0); vane.add(pole);
   }
 
   // ---------- yelken (Coons yüzeyi, kambur + twist) ----------
   const NS = 26, NT = 22;
   const sailGeo = new THREE.PlaneGeometry(1, 1, NS, NT);
-  const sailTex = makeSailTexture();
-  const sailTexPlain = makeSailTexture(false);
-  const sail = new THREE.Mesh(sailGeo, new THREE.MeshStandardMaterial({ map: sailTex, side: THREE.DoubleSide, roughness: 0.9, transparent: true, opacity: 0.94, emissive: 0x94a3b8, emissiveIntensity: 0.28 }));
+  // iki yüz ayrı doku: numara her iki yandan da okunur (sınıf kuralındaki gibi yanlarda farklı yükseklikte)
+  const sailTex = makeSailTexture(true, false), sailTexPlain = makeSailTexture(false, false);
+  const sailTexB = makeSailTexture(true, true), sailTexPlainB = makeSailTexture(false, true);
+  const sailMat = side => new THREE.MeshStandardMaterial({ map: side === THREE.FrontSide ? sailTex : sailTexB, side, roughness: 0.9, transparent: true, opacity: 0.95, emissive: 0x94a3b8, emissiveIntensity: 0.28 });
+  const sail = new THREE.Mesh(sailGeo, sailMat(THREE.FrontSide));
+  const sailBack = new THREE.Mesh(sailGeo, sailMat(THREE.BackSide)); sail.add(sailBack);
   rig.add(sail);
   const ghostMat = new THREE.LineDashedMaterial({ color: 0xfbbf24, dashSize: 0.06, gapSize: 0.04 });
   const ghostLine = new THREE.Line(new THREE.BufferGeometry(), ghostMat); ghostLine.visible = false; rig.add(ghostLine);
@@ -333,36 +355,59 @@ function start() {
     rig.add(m); return m;
   });
 
-  function makeSailTexture(stripes = true) {
-    const c = document.createElement('canvas'); c.width = c.height = 512;
-    const x = c.getContext('2d');
-    x.fillStyle = '#f8fafc'; x.fillRect(0, 0, 512, 512);
-    x.strokeStyle = 'rgba(100,116,139,.35)'; x.lineWidth = 2;                // panel dikişleri (çapraz kesim)
-    for (let i = 1; i < 9; i++) { const y = 512 - i * 512 / 9; x.beginPath(); x.moveTo(0, y + 26); x.lineTo(512, y - 26); x.stroke(); }
-    x.fillStyle = 'rgba(148,163,184,.35)';                                   // köşe takviyeleri
-    for (const [a, b, cc] of [[[0, 512], [90, 512], [0, 430]], [[512, 512], [420, 512], [512, 430]], [[512, 0], [430, 0], [512, 80]], [[0, 0], [70, 0], [0, 70]]]) {
+  function makeSailTexture(stripes = true, back = false) {
+    // doku: x 0 = orsa yakası (direk), x 1024 = arka yaka; y 0 = tepe yakası (gırcala), y 1024 = alt yaka (bumba)
+    const c = document.createElement('canvas'); c.width = c.height = 1024;
+    const x = c.getContext('2d'), K = 2;
+    x.scale(K, K);
+    x.fillStyle = '#fbfcfd'; x.fillRect(0, 0, 512, 512);
+    x.strokeStyle = 'rgba(100,116,139,.28)'; x.lineWidth = 1.5;               // panel dikişleri (yatay kesim, arka yakaya dik)
+    for (let i = 1; i < 8; i++) { const y = 512 - i * 512 / 8; x.beginPath(); x.moveTo(0, y + 14); x.lineTo(512, y - 14); x.stroke(); }
+    x.fillStyle = 'rgba(203,213,225,.55)';                                   // köşe takviyeleri (çok katlı)
+    for (const [a, b, cc] of [[[0, 512], [80, 512], [0, 440]], [[512, 512], [430, 512], [512, 440]], [[512, 0], [440, 0], [512, 70]], [[0, 0], [70, 0], [0, 70]]]) {
       x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.lineTo(...cc); x.fill();
     }
-    x.fillStyle = '#334155'; x.fillRect(0, 0, 7, 512);                       // orsa yakası şeridi
-    x.strokeStyle = 'rgba(100,116,139,.55)'; x.lineWidth = 3;               // kenar dikişleri (yaka bantları)
-    x.strokeRect(9, 3, 500, 506);
-    // pencere (şeffaf panel), alt yarıda yatık dikdörtgen
-    x.save(); x.translate(300, 365); x.rotate(-0.13);
-    x.fillStyle = 'rgba(186,200,216,.75)'; x.fillRect(-120, -26, 240, 52);
-    x.strokeStyle = 'rgba(100,116,139,.8)'; x.lineWidth = 3; x.strokeRect(-120, -26, 240, 52); x.restore();
-    // sınıf rozeti: kırmızı daire (karula yakını)
-    x.fillStyle = '#c2410c'; x.beginPath(); x.ellipse(60, 455, 22, 16, 0, 0, Math.PI * 2); x.fill();
-    // alt yaka bumbaya bağlı: bağ izleri
-    x.strokeStyle = '#1f2937'; x.lineWidth = 4;
-    for (let i = 1; i < 8; i++) { const px = i * 512 / 8; x.beginPath(); x.moveTo(px, 512); x.lineTo(px, 494); x.stroke(); }
-    for (let i = 1; i < 8; i++) { const py = i * 512 / 8; x.beginPath(); x.moveTo(0, py); x.lineTo(16, py); x.stroke(); }
-    x.strokeStyle = '#38bdf8'; x.lineWidth = 4;                              // derinlik şeritleri (draft stripes)
+    x.fillStyle = '#e5e9ee'; x.fillRect(0, 0, 8, 512); x.fillRect(0, 504, 512, 8); x.fillRect(0, 0, 512, 6);   // yaka bantları
+    x.strokeStyle = 'rgba(100,116,139,.45)'; x.lineWidth = 1.5; x.strokeRect(9, 7, 499, 496);
+    // sınıf logosu (kırmızı halka + dikey çizgi), tepe köşesine yakın
+    x.strokeStyle = '#d61f2c'; x.lineWidth = 7;
+    x.beginPath(); x.ellipse(408, 64, 26, 30, 0, 0, Math.PI * 2); x.stroke();
+    x.beginPath(); x.moveTo(406, 44); x.lineTo(410, 118); x.stroke();
+    // yelken numarası: TUR / 1923 (kırmızı)
+    x.save(); if (back) { x.translate(512, 0); x.scale(-1, 1); }            // arka yüz: yazı ayna, böylece o yandan düz okunur
+    const nx = back ? 512 - 300 : 300, ny = back ? 250 : 160;
+    x.fillStyle = '#d61f2c'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = 'bold 68px Arial, Helvetica, sans-serif'; x.fillText('TUR', nx, ny);
+    x.font = 'bold 60px Arial, Helvetica, sans-serif'; x.fillText('1923', nx + (back ? -18 : 18), ny + 72);
+    x.restore();
+    // tüyler (luff telltales): orsa yakasına yakın kırmızı nokta + ip
+    for (const [px, py] of [[118, 300], [104, 400]]) {
+      x.fillStyle = '#c81e2a'; x.beginPath(); x.arc(px, py, 6, 0, Math.PI * 2); x.fill();
+      x.strokeStyle = 'rgba(127,29,29,.8)'; x.lineWidth = 1.4;
+      x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + 22, py + 3, px + 46, py - 1); x.stroke();
+      x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + 20, py + 7, px + 40, py + 8); x.stroke();
+    }
+    // pencere: alt yakaya yakın, yatay
+    x.fillStyle = 'rgba(176,190,205,.8)'; x.fillRect(205, 452, 150, 20);
+    x.strokeStyle = 'rgba(100,116,139,.7)'; x.lineWidth = 1.5; x.strokeRect(205, 452, 150, 20);
+    // yelkenci logosu (karula yakınında küçük kırmızı)
+    x.fillStyle = '#d61f2c'; x.beginPath(); x.moveTo(52, 482); x.lineTo(76, 438); x.lineTo(84, 446); x.lineTo(66, 482); x.closePath(); x.fill();
+    // alt yaka bumbaya bağlı: sarı-yeşil bağlar; orsa yakası kuşgözleri
+    x.strokeStyle = '#9bbd12'; x.lineWidth = 3;
+    for (let i = 1; i < 9; i++) { const px = i * 512 / 9; x.beginPath(); x.moveTo(px - 5, 512); x.lineTo(px, 498); x.lineTo(px + 5, 512); x.stroke(); }
+    x.fillStyle = '#94a3b8';
+    for (let i = 1; i < 8; i++) { const py = 20 + i * 470 / 8; x.beginPath(); x.arc(12, py, 3.2, 0, Math.PI * 2); x.fill(); }
+    x.strokeStyle = '#38bdf8'; x.lineWidth = 4;                              // derinlik şeritleri (draft stripes, ayar görünümünde)
     if (stripes) for (const t of [0.25, 0.5, 0.78]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(14, y); x.lineTo(500, y); x.stroke(); }
-    x.strokeStyle = '#475569'; x.lineWidth = 6;                              // balenler
-    for (const t of [0.38, 0.66]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(420, y); x.lineTo(508, y); x.stroke(); }
+    // çıtalar (battens): arka yakada 2 kısa çıta, iç ucunda yuvarlak takviye
+    for (const t of [0.33, 0.72]) {
+      const y = 512 - t * 512;
+      x.fillStyle = 'rgba(203,213,225,.9)'; x.beginPath(); x.arc(432, y + 5, 15, 0, Math.PI * 2); x.fill();
+      x.strokeStyle = '#7b8794'; x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.moveTo(436, y + 5); x.lineTo(506, y - 8); x.stroke(); x.lineCap = 'butt';
+    }
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 4;
+    tex.anisotropy = 8;
     return tex;
   }
 
@@ -667,7 +712,7 @@ function start() {
     }
     fx.luff = ders ? LS.luff : 0; fx.time = time;
     const wantMap = ders ? sailTexPlain : sailTex;
-    if (sail.material.map !== wantMap) { sail.material.map = wantMap; sail.material.needsUpdate = true; }
+    if (sail.material.map !== wantMap) { sail.material.map = wantMap; sail.material.needsUpdate = true; sailBack.material.map = ders ? sailTexPlainB : sailTexB; sailBack.material.needsUpdate = true; }
 
     // kamera
     if (cam.goal) {
@@ -700,6 +745,7 @@ function start() {
       const { g } = buildSail(v, sh);
       const G3 = P3(g.G, sh, g), BE3 = P3(g.BE, sh, g), C3 = P3(g.C, sh, g), Pk3 = P3(g.Pk, sh, g), S3 = P3(g.S, sh, g), T3 = P3(g.T, sh, g);
       place(boom, G3, BE3);
+      place(boomEnd, BE3.clone().lerp(G3, 0.07), BE3.clone().lerp(G3, -0.012));
       place(sprit, S3, Pk3);
       snotter.position.copy(S3);
       // palanga: bumbadan direk dibine 3 kat
@@ -709,8 +755,8 @@ function start() {
       vang.forEach((m, i) => { const o = (i - 1) * 0.012; place(m, vb.clone().add(new THREE.Vector3(0, 0, o)), vm.clone().add(new THREE.Vector3(0, 0, o * 0.5))); setCol(m, S.active === 'vang', 0xeab308); });
       place(cunning, T3, new THREE.Vector3(-0.02, 0.42, 0)); setCol(cunning, S.active === 'luff', 0xf97316);
       place(outhaul, C3, BE3); setCol(outhaul, S.active === 'out', 0xf97316);
-      setCol(sprit, S.active === 'sprit', 0x6b7280);
-      setCol(mast, S.active === 'rake', 0x6b7280);
+      setCol(sprit, S.active === 'sprit', SILVER);
+      setCol(mast, S.active === 'rake', SILVER);
       // direk bağları: direk ile kuşgözü arasında halka
       g.luff.forEach((p, i) => {
         const e3 = P3(p, sh, g), m3 = new THREE.Vector3(0, p.h, 0);
@@ -720,7 +766,7 @@ function start() {
         const r = dl / 2 + 0.006;
         m.scale.set(r, 0.05, r * 0.6);
         m.rotation.set(0, Math.atan2(-d.z, d.x), 0);
-        m.material.color.setHex(S.active === 'ties' && S.focusTie === i ? HL : S.active === 'ties' ? 0xfbbf24 : 0x334155);
+        m.material.color.setHex(S.active === 'ties' && S.focusTie === i ? HL : S.active === 'ties' ? 0xfbbf24 : TIE_COL);
       });
       // iskota: bumbadan teknenin ortasına
       rig.updateMatrix();
