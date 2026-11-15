@@ -61,26 +61,27 @@ function start() {
   const ys = u => 0.27 + 0.03 * u + 0.06 * u ** 4;                                                                 // küpeşte (başa doğru kalkar)
   const xs = u => -L / 2 + u * L;
   const section = u => {
-    const h = hs(u), b = yb(u), c = hcF(u), yc = b + 0.04;
-    return [[-h, ys(u)], [-c, yc], [0, b], [c, yc], [h, ys(u)]];        // [z, y] iskeleden sancağa
+    const h = hs(u), b = yb(u), c = hcF(u), yc = b + 0.04, top = ys(u);
+    const half = [[h, top], [c + (h - c) * 0.45, yc + (top - yc) * 0.45], [c + (h - c) * 0.08, yc + 0.03], [c * 0.93, b + 0.016], [c * 0.6, b + 0.004]];
+    return [...half.map(([z, y]) => [-z, y]), [0, b], ...half.reverse().map(([z, y]) => [z, y])];   // [z, y] iskeleden sancağa, yuvarlatılmış kine
   };
   {
-    const N = 40, pos = [];
+    const N = 40, pos = [], NSEC = section(0.5).length;
     const P = (u, k) => { const s = section(u)[k]; return [xs(u), s[1], s[0]]; };
     for (let i = 0; i < N; i++) {
       const u0 = i / N, u1 = (i + 1) / N;
-      for (let k = 0; k < 4; k++) {
+      for (let k = 0; k < NSEC - 1; k++) {
         const a = P(u0, k), b = P(u1, k), c = P(u1, k + 1), d = P(u0, k + 1);
         pos.push(...a, ...b, ...c, ...a, ...c, ...d);
       }
     }
     for (const u of [0, 1]) {                                            // kıç ve baş aynası
       const s = section(u), cy = (ys(u) + yb(u)) / 2, x = xs(u);
-      for (let k = 0; k < 4; k++) {
+      for (let k = 0; k < NSEC - 1; k++) {
         const a = [x, cy, 0], b = [x, s[k][1], s[k][0]], c = [x, s[k + 1][1], s[k + 1][0]];
         if (u === 0) pos.push(...a, ...c, ...b); else pos.push(...a, ...b, ...c);
       }
-      pos.push(x, cy, 0, x, s[4][1], s[4][0], x, s[0][1], s[0][0]);
+      pos.push(x, cy, 0, x, s[NSEC - 1][1], s[NSEC - 1][0], x, s[0][1], s[0][0]);
     }
     // her üçgenin yüzü dışa baksın (dış beyaz, iç gri malzeme için)
     for (let i = 0; i < pos.length; i += 9) {
@@ -109,21 +110,32 @@ function start() {
       new THREE.MeshStandardMaterial({ color, roughness: rough }));
     parent.add(m); return m;
   };
-  // usturmaça: küpeşte boyunca kalın lastik (iki yanda, baş ve kıç aynasında)
+  // küpeşte: beyaz, dışa kıvrık kalın kenar (GRP gövde) + içte ince dudak
+  const white = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.32 });
+  // Kenar profili küpeşte çevresi boyunca süpürülür: dışta yuvarlak kıvrım, içte düz pervaz. Köşeler yuvarlatılır.
   {
-    const rim = [];
-    for (let i = 0; i <= 24; i++) { const u = i / 24; rim.push(new THREE.Vector3(xs(u), ys(u) + 0.008, -hs(u))); }
-    for (let i = 0; i <= 8; i++) { const z = lerp(-hs(1), hs(1), i / 8); rim.push(new THREE.Vector3(xs(1) + 0.005, ys(1) + 0.008, z)); }
-    for (let i = 24; i >= 0; i--) { const u = i / 24; rim.push(new THREE.Vector3(xs(u), ys(u) + 0.008, hs(u))); }
-    for (let i = 0; i <= 8; i++) { const z = lerp(hs(0), -hs(0), i / 8); rim.push(new THREE.Vector3(xs(0) - 0.005, ys(0) + 0.008, z)); }
-    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rim, true, 'catmullrom', 0.1), 240, 0.026, 8, true),
-      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85 }));
-    boat.add(m);
-  }
-  // iç küpeşte (ahşap şerit)
-  for (const side of [-1, 1]) {
-    const pts = []; for (let i = 0; i <= 20; i++) { const u = 0.02 + i / 20 * 0.96; pts.push(new THREE.Vector3(xs(u), ys(u) - 0.035, side * (hs(u) - 0.045))); }
-    tubeAlong(pts, 0.012, 0xb45309, boat, 0.7);
+    const RC = 0.07, per = [];                                            // [x, y, z, nx, nz]
+    const add = (x, y, z, a) => per.push([x, y, z, Math.cos(a), -Math.sin(a)]);
+    const side = (sgn, u0, u1, n) => { for (let i = 0; i <= n; i++) { const u = lerp(u0, u1, i / n); add(xs(u), ys(u), sgn * (hs(u) - 0.004), sgn > 0 ? -Math.PI / 2 : Math.PI / 2); } };
+    const corner = (cx, cy, cz, a0, a1) => { for (let i = 1; i < 8; i++) { const a = lerp(a0, a1, i / 8); add(cx + RC * Math.cos(a), cy, cz - RC * Math.sin(a), a); } };
+    const du0 = RC / L, du1 = RC / L;
+    side(1, du0, 1 - du1, 26);                                            // sancak: kıçtan başa
+    corner(xs(1) - RC, ys(1), hs(1) - RC, -Math.PI / 2, 0);
+    for (let i = 0; i <= 6; i++) add(xs(1), ys(1), lerp(hs(1) - RC, -hs(1) + RC, i / 6), 0);
+    corner(xs(1) - RC, ys(1), -hs(1) + RC, 0, Math.PI / 2);
+    side(-1, 1 - du1, du0, 26);                                           // iskele: baştan kıça
+    corner(xs(0) + RC, ys(0), -hs(0) + RC, Math.PI / 2, Math.PI);
+    for (let i = 0; i <= 6; i++) add(xs(0), ys(0), lerp(-hs(0) + RC, hs(0) - RC, i / 6), Math.PI);
+    corner(xs(0) + RC, ys(0), hs(0) - RC, Math.PI, 1.5 * Math.PI);
+    const PROF = [[0.012, -0.05], [0.03, -0.03], [0.036, -0.004], [0.028, 0.016], [0.006, 0.026], [-0.03, 0.024], [-0.07, 0.016], [-0.078, 0.0], [-0.074, -0.014]];
+    const pos = [], n = per.length, m = PROF.length;
+    const V = (i, k) => { const [x, y, z, nx, nz] = per[i % n], [o, h] = PROF[k]; return [x + nx * o, y + h, z + nz * o]; };
+    for (let i = 0; i < n; i++) for (let k = 0; k < m - 1; k++) {
+      const a = V(i, k), b = V(i + 1, k), c = V(i + 1, k + 1), d = V(i, k + 1);
+      pos.push(...a, ...b, ...c, ...a, ...c, ...d);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+    boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, side: THREE.DoubleSide })));
   }
   const box = (w, h, d, color, x, y, z, parent = boat, rough = 0.6) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: rough }));
@@ -131,44 +143,47 @@ function start() {
   };
   const uM = 0.79;                                                       // direk yeri (baştan ~0,48 m)
   const MF = new THREE.Vector3(xs(uM), yb(uM) + 0.02, 0);                // direk ayağı
-  box(0.16, 0.035, hs(uM) * 2 - 0.06, 0xd6a36a, xs(uM), ys(uM) - 0.05, 0, boat, 0.7);     // direk oturağı (ahşap thwart)
+  // direk oturağı: beyaz kalıp, altında bölme
+  box(0.17, 0.05, hs(uM) * 2 - 0.05, 0xf1f5f9, xs(uM), ys(uM) - 0.045, 0, boat, 0.35);
+  box(0.03, ys(uM) - yb(uM) - 0.09, hs(uM) * 1.4, 0xe2e8f0, xs(uM) - 0.07, (ys(uM) + yb(uM)) / 2 - 0.02, 0, boat, 0.4);
   box(0.07, 0.07, 0.07, 0x1e293b, xs(uM), yb(uM) + 0.05, 0);                            // direk ıskaçası (step)
-  // salma kutusu + üst kapak
-  box(0.36, 0.34, 0.075, 0xf1f5f9, 0.02, yb(0.5) + 0.17, 0);
-  box(0.4, 0.03, 0.1, 0xd6a36a, 0.02, yb(0.5) + 0.355, 0, boat, 0.7);
-  // yüzdürme torbaları: iki yanda uzun, başta enine (gri, yuvarlak)
-  const bagMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.55 });
+  // salma kutusu: beyaz kalıp, üstte yuva
+  box(0.42, 0.36, 0.11, 0xf1f5f9, 0.02, yb(0.5) + 0.18, 0, boat, 0.35);
+  box(0.32, 0.012, 0.03, 0x0f172a, 0.02, yb(0.5) + 0.366, 0);
+  // yüzdürme torbaları: kırmızı, koyu kayışlı (iki yanda uzun, başta enine)
+  const bagMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.45 });
+  const strapMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.7 });
+  const bag = (r, len, pos, rot) => {
+    const g2 = new THREE.Group(); g2.position.copy(pos); g2.rotation.set(...rot); boat.add(g2);
+    g2.add(new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 8, 18), bagMat));
+    for (const f of [-0.28, 0.28]) { const t = new THREE.Mesh(new THREE.TorusGeometry(r * 1.02, 0.009, 6, 24), strapMat); t.rotation.x = Math.PI / 2; t.position.y = f * len; g2.add(t); }
+  };
+  for (const side of [-1, 1]) bag(0.095, 0.78, new THREE.Vector3(-0.2, yb(0.4) + 0.15, side * 0.41), [0, 0, Math.PI / 2]);
+  bag(0.09, 0.42, new THREE.Vector3(xs(0.9), yb(0.9) + 0.12, 0), [Math.PI / 2, 0, 0]);
+  // ayak kayışları (hiking straps): kıçtan salma kutusuna, koyu gri
   for (const side of [-1, 1]) {
-    const bg = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.82, 6, 14), bagMat);
-    bg.rotation.z = Math.PI / 2; bg.position.set(-0.1, yb(0.45) + 0.14, side * 0.4); bg.scale.set(1, 1, 1.1); boat.add(bg);
-  }
-  {
-    const bg = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.36, 6, 14), bagMat);
-    bg.rotation.x = Math.PI / 2; bg.position.set(xs(0.92), yb(0.92) + 0.1, 0); boat.add(bg);
-  }
-  // ayak kayışları (hiking straps): kıçtan salma kutusuna, lacivert
-  for (const side of [-1, 1]) {
-    const a = xs(0.06), b2 = -0.17;
-    tubeAlong([new THREE.Vector3(a, yb(0.06) + 0.05, side * 0.13), new THREE.Vector3((a + b2) / 2, yb(0.25) + 0.11, side * 0.14), new THREE.Vector3(b2, yb(0.43) + 0.06, side * 0.06)], 0.01, 0x1e3a8a, boat, 0.8);
+    const a2 = xs(0.06), b2 = -0.17;
+    tubeAlong([new THREE.Vector3(a2, yb(0.06) + 0.05, side * 0.13), new THREE.Vector3((a2 + b2) / 2, yb(0.25) + 0.11, side * 0.14), new THREE.Vector3(b2, yb(0.43) + 0.06, side * 0.06)], 0.013, 0x1f2937, boat, 0.8);
   }
   // salma (daggerboard): kutudan aşağı, tutamak üstte
   const foilMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
   const dagger = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.18, 0.018), foilMat);
   dagger.position.set(0.02, yb(0.5) - 0.2, 0); boat.add(dagger);
-  box(0.12, 0.05, 0.03, 0x1e293b, 0.02, yb(0.5) + 0.41, 0);
-  // iskota köprüsü (bridle): kıç aynasında köşeden köşeye halat, ortada makara
+  box(0.12, 0.05, 0.03, 0x1e293b, 0.02, yb(0.5) + 0.42, 0);
+  // iskota köprüsü (bridle): kokpitin ortasında bordadan bordaya halat, ortada makaralar
   const xT = xs(0);
-  const BRIDLE = new THREE.Vector3(xT + 0.02, ys(0) + 0.1, 0);
-  tubeAlong([new THREE.Vector3(xT + 0.02, ys(0) + 0.02, -hs(0) + 0.06), BRIDLE, new THREE.Vector3(xT + 0.02, ys(0) + 0.02, hs(0) - 0.06)], 0.005, 0xe2e8f0);
-  const bridleBlock = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+  const BRIDLE = new THREE.Vector3(-0.42, yb(0.32) + 0.24, 0);
+  tubeAlong([new THREE.Vector3(-0.42, ys(0.32) - 0.08, -hs(0.32) + 0.07), BRIDLE, new THREE.Vector3(-0.42, ys(0.32) - 0.08, hs(0.32) - 0.07)], 0.005, 0xe2e8f0);
+  const bridleBlock = new THREE.Mesh(new THREE.SphereGeometry(0.026, 12, 10), new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4 }));
   bridleBlock.position.copy(BRIDLE); boat.add(bridleBlock);
   // dümen grubu: iğneli kafa, uzun dar pala, yeke + uzatma (yeke grubun +X yönünde; rotation.y ile döner)
   const rudderG = new THREE.Group(); rudderG.position.set(xT - 0.05, 0, 0); boat.add(rudderG);
   const rudder = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.95, 0.02), foilMat);
   rudder.position.set(-0.1, -0.2, 0); rudderG.add(rudder);
-  box(0.12, 0.2, 0.05, 0x334155, -0.03, 0.3, 0, rudderG);
+  box(0.13, 0.22, 0.045, 0xf1f5f9, -0.04, 0.29, 0, rudderG, 0.35);
+  for (const y of [0.05, 0.24]) box(0.06, 0.02, 0.05, 0x64748b, 0.02, y, 0, rudderG, 0.3);   // iğne-yuva
   const rod = (a, b, r, color, parent) => {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.2 }));
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 10), new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.3 }));
     place(m, a, b); parent.add(m); return m;
   };
   function place(m, a, b) {
@@ -177,25 +192,27 @@ function start() {
     m.scale.set(1, l, 1);
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.multiplyScalar(1 / l));
   }
-  rod(new THREE.Vector3(0, 0.38, 0), new THREE.Vector3(0.68, 0.41, 0), 0.017, 0xa16207, rudderG);         // yeke
-  rod(new THREE.Vector3(0.68, 0.41, 0), new THREE.Vector3(1.2, 0.36, -0.12), 0.009, 0x0f172a, rudderG);   // uzatma (rüzgarüstüne)
+  rod(new THREE.Vector3(0, 0.4, 0), new THREE.Vector3(0.72, 0.43, 0), 0.015, 0x1f2937, rudderG);          // yeke (siyah alüminyum)
+  rod(new THREE.Vector3(0.72, 0.43, 0), new THREE.Vector3(1.25, 0.36, -0.12), 0.009, 0x111827, rudderG);  // uzatma (rüzgarüstüne)
   // su çıkarma kovası (bailer)
-  box(0.12, 0.08, 0.1, 0x38bdf8, -0.55, yb(0.25) + 0.06, 0.24, boat, 0.5);
+  box(0.12, 0.08, 0.1, 0x38bdf8, -0.6, yb(0.25) + 0.06, 0.24, boat, 0.5);
   // ---------- teçhizat (direk çerçevesi: Y direk boyunca, -X kıça) ----------
   const rig = new THREE.Group();
   rig.position.copy(MF);
   boat.add(rig);
   const metal = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.35, metalness: 0.55 });
   const MAST = 2.35, MR = 0.022;
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(MR, MR * 1.05, MAST, 16), metal(0xcbd5e1));
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(MR, MR * 1.05, MAST, 16), metal(0x6b7280));
   mast.position.y = MAST / 2; rig.add(mast);
   const cap = new THREE.Mesh(new THREE.CylinderGeometry(MR * 1.2, MR * 1.2, 0.04, 12), metal(0x0f172a));
   cap.position.y = MAST; rig.add(cap);
-  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 12), metal(0xcbd5e1)); rig.add(boom);
-  const sprit = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 1, 10), metal(0xe2e8f0)); rig.add(sprit);
+  const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 12), metal(0x4b5563)); rig.add(boom);
+  const sprit = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 1, 10), metal(0x6b7280)); rig.add(sprit);
+  const halyard = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 1, 6), new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.8 })); rig.add(halyard);
+  place(halyard, new THREE.Vector3(0.03, MAST - 0.06, 0), new THREE.Vector3(0.03, 0.3, 0.01));
   const lineMat = c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.8 });
   const mkLine = (r, c) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 6), lineMat(c)); rig.add(m); return m; };
-  const vang = [mkLine(0.005, 0xef4444), mkLine(0.005, 0xef4444), mkLine(0.005, 0xef4444)];
+  const vang = [mkLine(0.005, 0xeab308), mkLine(0.005, 0xeab308), mkLine(0.005, 0xeab308)];
   const vangBlock = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), metal(0x0f172a)); rig.add(vangBlock);
   const cunning = mkLine(0.005, 0xf97316);
   const outhaul = mkLine(0.005, 0xf97316);
@@ -205,7 +222,7 @@ function start() {
   const ratchet = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), metal(0x0f172a)); boat.add(ratchet);
   const ties = Array.from({ length: 8 }, () => {
     const tg = new THREE.TorusGeometry(1, 0.12, 6, 18); tg.rotateX(Math.PI / 2);
-    const m = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 }));
+    const m = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 }));
     rig.add(m); return m;
   });
   // rüzgar gülü (direk tepesinde): ok rüzgarın geldiği yönü gösterir
@@ -246,6 +263,18 @@ function start() {
       x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.lineTo(...cc); x.fill();
     }
     x.fillStyle = '#334155'; x.fillRect(0, 0, 7, 512);                       // orsa yakası şeridi
+    x.strokeStyle = 'rgba(100,116,139,.55)'; x.lineWidth = 3;               // kenar dikişleri (yaka bantları)
+    x.strokeRect(9, 3, 500, 506);
+    // pencere (şeffaf panel), alt yarıda yatık dikdörtgen
+    x.save(); x.translate(300, 365); x.rotate(-0.13);
+    x.fillStyle = 'rgba(186,200,216,.75)'; x.fillRect(-120, -26, 240, 52);
+    x.strokeStyle = 'rgba(100,116,139,.8)'; x.lineWidth = 3; x.strokeRect(-120, -26, 240, 52); x.restore();
+    // sınıf rozeti: kırmızı daire (karula yakını)
+    x.fillStyle = '#c2410c'; x.beginPath(); x.ellipse(60, 455, 22, 16, 0, 0, Math.PI * 2); x.fill();
+    // alt yaka bumbaya bağlı: bağ izleri
+    x.strokeStyle = '#1f2937'; x.lineWidth = 4;
+    for (let i = 1; i < 8; i++) { const px = i * 512 / 8; x.beginPath(); x.moveTo(px, 512); x.lineTo(px, 494); x.stroke(); }
+    for (let i = 1; i < 8; i++) { const py = i * 512 / 8; x.beginPath(); x.moveTo(0, py); x.lineTo(16, py); x.stroke(); }
     x.strokeStyle = '#38bdf8'; x.lineWidth = 4;                              // derinlik şeritleri (draft stripes)
     if (stripes) for (const t of [0.25, 0.5, 0.78]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(14, y); x.lineTo(500, y); x.stroke(); }
     x.strokeStyle = '#475569'; x.lineWidth = 6;                              // balenler
@@ -595,11 +624,11 @@ function start() {
       const vb = P3(V2(0.32 * Math.cos(sh.lift * Math.PI / 180), G_H + 0.32 * Math.sin(sh.lift * Math.PI / 180)), sh, g);
       const vm = new THREE.Vector3(-0.03, 0.2, 0);
       vangBlock.position.copy(vm);
-      vang.forEach((m, i) => { const o = (i - 1) * 0.012; place(m, vb.clone().add(new THREE.Vector3(0, 0, o)), vm.clone().add(new THREE.Vector3(0, 0, o * 0.5))); setCol(m, S.active === 'vang', 0xef4444); });
+      vang.forEach((m, i) => { const o = (i - 1) * 0.012; place(m, vb.clone().add(new THREE.Vector3(0, 0, o)), vm.clone().add(new THREE.Vector3(0, 0, o * 0.5))); setCol(m, S.active === 'vang', 0xeab308); });
       place(cunning, T3, new THREE.Vector3(-0.02, 0.42, 0)); setCol(cunning, S.active === 'luff', 0xf97316);
       place(outhaul, C3, BE3); setCol(outhaul, S.active === 'out', 0xf97316);
-      setCol(sprit, S.active === 'sprit', 0xe2e8f0);
-      setCol(mast, S.active === 'rake', 0xcbd5e1);
+      setCol(sprit, S.active === 'sprit', 0x6b7280);
+      setCol(mast, S.active === 'rake', 0x6b7280);
       // direk bağları: direk ile kuşgözü arasında halka
       g.luff.forEach((p, i) => {
         const e3 = P3(p, sh, g), m3 = new THREE.Vector3(0, p.h, 0);
@@ -609,14 +638,14 @@ function start() {
         const r = dl / 2 + 0.006;
         m.scale.set(r, 0.05, r * 0.6);
         m.rotation.set(0, Math.atan2(-d.z, d.x), 0);
-        m.material.color.setHex(S.active === 'ties' && S.focusTie === i ? HL : S.active === 'ties' ? 0xfbbf24 : 0xf59e0b);
+        m.material.color.setHex(S.active === 'ties' && S.focusTie === i ? HL : S.active === 'ties' ? 0xfbbf24 : 0x334155);
       });
       // iskota: bumbadan teknenin ortasına
       rig.updateMatrix();
       const onBoom = a => P3(V2(a * Math.cos(sh.lift * Math.PI / 180), G_H + a * Math.sin(sh.lift * Math.PI / 180)), sh, g).applyMatrix4(rig.matrix);
-      const mEnd = onBoom(1.75), mRat = onBoom(1.0);
-      ratchet.position.copy(mRat);
-      place(sheetSeg[0], mEnd, BRIDLE); place(sheetSeg[1], BRIDLE, mRat); place(sheetSeg[2], mRat, new THREE.Vector3(-0.35, 0.32, -0.22));
+      const mA = onBoom(1.12), mB = onBoom(1.2);
+      ratchet.position.copy(mB);
+      place(sheetSeg[0], mA, BRIDLE); place(sheetSeg[1], BRIDLE, mB); place(sheetSeg[2], BRIDLE, new THREE.Vector3(-0.15, 0.3, -0.25));
       // orijinal (kılavuz) ayarın hayaleti
       if (S.ghost && !ders) {
         const pts = outline(S.ghost.v, S.ghost.sh);
