@@ -94,7 +94,15 @@ function start() {
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.computeVertexNormals();
     boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3, metalness: 0.02, side: THREE.FrontSide })));
-    boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.7, side: THREE.BackSide })));
+    boat.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.85, side: THREE.BackSide })));
+    // su maskesi: teknenin içinde su görünmesin (yalnız derinlik yazar, renk yazmaz; opak çizimden sonra, sudan önce)
+    const sh = new THREE.Shape();
+    const ym = 0.1, wAt = u => { const h = hs(u), c = hcF(u), t = Math.max(0, Math.min(1, (ym - yb(u) - 0.04) / (ys(u) - yb(u) - 0.04))); return c + (h - c) * t - 0.015; };
+    for (let i = 0; i <= 30; i++) { const u = 0.01 + i / 30 * 0.98; const p = [xs(u), -wAt(u)]; i ? sh.lineTo(...p) : sh.moveTo(...p); }
+    for (let i = 30; i >= 0; i--) { const u = 0.01 + i / 30 * 0.98; sh.lineTo(xs(u), wAt(u)); }
+    const mg = new THREE.ShapeGeometry(sh); mg.rotateX(Math.PI / 2);
+    const mask = new THREE.Mesh(mg, new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide }));
+    mask.position.y = ym; mask.renderOrder = 10; boat.add(mask);
   }
   const tubeAlong = (pts, r, color, parent = boat, rough = 0.6) => {
     const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, r, 8, false),
@@ -215,7 +223,8 @@ function start() {
   const NS = 26, NT = 22;
   const sailGeo = new THREE.PlaneGeometry(1, 1, NS, NT);
   const sailTex = makeSailTexture();
-  const sail = new THREE.Mesh(sailGeo, new THREE.MeshStandardMaterial({ map: sailTex, side: THREE.DoubleSide, roughness: 0.8, transparent: true, opacity: 0.84, emissive: 0x64748b, emissiveIntensity: 0.32 }));
+  const sailTexPlain = makeSailTexture(false);
+  const sail = new THREE.Mesh(sailGeo, new THREE.MeshStandardMaterial({ map: sailTex, side: THREE.DoubleSide, roughness: 0.9, transparent: true, opacity: 0.94, emissive: 0x94a3b8, emissiveIntensity: 0.28 }));
   rig.add(sail);
   const ghostMat = new THREE.LineDashedMaterial({ color: 0xfbbf24, dashSize: 0.06, gapSize: 0.04 });
   const ghostLine = new THREE.Line(new THREE.BufferGeometry(), ghostMat); ghostLine.visible = false; rig.add(ghostLine);
@@ -226,7 +235,7 @@ function start() {
     rig.add(m); return m;
   });
 
-  function makeSailTexture() {
+  function makeSailTexture(stripes = true) {
     const c = document.createElement('canvas'); c.width = c.height = 512;
     const x = c.getContext('2d');
     x.fillStyle = '#f8fafc'; x.fillRect(0, 0, 512, 512);
@@ -238,7 +247,7 @@ function start() {
     }
     x.fillStyle = '#334155'; x.fillRect(0, 0, 7, 512);                       // orsa yakası şeridi
     x.strokeStyle = '#38bdf8'; x.lineWidth = 4;                              // derinlik şeritleri (draft stripes)
-    for (const t of [0.25, 0.5, 0.78]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(14, y); x.lineTo(500, y); x.stroke(); }
+    if (stripes) for (const t of [0.25, 0.5, 0.78]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(14, y); x.lineTo(500, y); x.stroke(); }
     x.strokeStyle = '#475569'; x.lineWidth = 6;                              // balenler
     for (const t of [0.38, 0.66]) { const y = 512 - t * 512; x.beginPath(); x.moveTo(420, y); x.lineTo(508, y); x.stroke(); }
     const tex = new THREE.CanvasTexture(c);
@@ -546,6 +555,8 @@ function start() {
       lessonWorld(dt);
     }
     fx.luff = ders ? LS.luff : 0; fx.time = time;
+    const wantMap = ders ? sailTexPlain : sailTex;
+    if (sail.material.map !== wantMap) { sail.material.map = wantMap; sail.material.needsUpdate = true; }
 
     // kamera
     if (cam.goal) {
