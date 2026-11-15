@@ -247,6 +247,10 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-15 · Sade yarış ekranı, en çok 3 hak
+- Kullanıcı: antrenör yarışında üst çubuk ve gereksiz şeyler olmasın; sol üstte geri oku; durdurma yok; tekrar yapılabilir ama en çok 3 hak (antrenör formdan 1-3 seçer).
+- Yapılan: `body.task-race` (yarışta, tekrar izlemede değil): üst çubuk, zaman kutusu (Durdur/hız/Yeni yarış), ayar rayı, panel, mod şeridi, yarış çipi gizli; sol üstte `#taskBack` (iki dokunuş, yarış kartına döner; denemede forma), rüzgar + saat ortada (`placeHud` task-race'te sahneye taşır). Hak = başlatılan yarış: `D.triesOf` en çok 3 (eski 0/5 = 3), başlatma sayısı cihazda `ps.task.starts.{KOD}.{uid}`; bitince "Tekrar yap (N hak)" + "Antrenörüme gönder". Form deneme hakkı 1/2/3.
+
 ### 2026-11-15 · Yarışlar sayfasında Firestore kuralı kartı
 - Kullanıcı: "yarış oluşturulamadı, Firestore kuralı okunamadı". Kural metni yalnız simülatördeki kurulum kartındaydı (oluşturma taşınınca ulaşılmaz oldu). `rulesText` → `gorev-data.js`; Yarışlar sayfası okuma/oluşturma reddedilince kartı gösterir (antrenörün uid'iyle kural, Kopyala, konsol bağlantısı, adımlar).
 

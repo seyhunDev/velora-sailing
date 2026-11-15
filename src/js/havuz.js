@@ -80,7 +80,7 @@
         <span class="hv-chev">${open ? '▾' : '▸'}</span>
       </button>
       ${open ? `<div class="hv-body">
-        <div class="rec-sum">${setupChips(su)}<span class="rc">${t.tries ? `${t.tries} deneme hakkı` : 'sınırsız deneme'}</span><span class="rc">${{ all: 'tekrarları herkes görür', after: 'gönderen görür', coach: 'yalnız antrenör görür' }[t.vis] || ''}</span>${t.due ? `<span class="rc">son: ${esc(dateTxt(t.due))}</span>` : ''}</div>
+        <div class="rec-sum">${setupChips(su)}<span class="rc">${D.triesOf(t)} deneme hakkı</span><span class="rc">${{ all: 'tekrarları herkes görür', after: 'gönderen görür', coach: 'yalnız antrenör görür' }[t.vis] || ''}</span>${t.due ? `<span class="rc">son: ${esc(dateTxt(t.due))}</span>` : ''}</div>
         ${t.note ? `<p class="task-note">${esc(t.note)}</p>` : ''}
         <div class="hv-actions">
           <a class="tb primary" href="${esc(D.taskLink(t.code))}"><svg class="ci"><use href="#i-play"/></svg>Yarış sayfası</a>

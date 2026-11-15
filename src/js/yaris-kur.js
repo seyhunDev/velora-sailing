@@ -33,7 +33,7 @@
       ['cur', 'Akıntı', [[0, 'Yok'], [1, 'Hafif'], [2, 'Orta'], [3, 'Güçlü']]]
     ]],
     ['Gönderim', [
-      ['tries', 'Deneme hakkı', [[1, '1'], [3, '3'], [5, '5'], [0, 'Sınırsız']]],
+      ['tries', 'Deneme hakkı', [[1, '1'], [2, '2'], [3, '3']]],
       ['vis', 'Tekrarları kim görür', [['all', 'Herkes'], ['after', 'Gönderen görür'], ['coach', 'Yalnız ben']]],
       ['due', 'Son tarih', [[0, 'Yok'], [1, '1 gün'], [3, '3 gün'], [7, '1 hafta'], [14, '2 hafta']]]
     ]]

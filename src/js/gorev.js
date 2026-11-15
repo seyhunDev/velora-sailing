@@ -40,7 +40,11 @@
   const GHOST = ['#fb923c', '#38bdf8', '#a78bfa', '#4ade80'];
   T.pick = [];
   const myRuns = () => (be ? T.runs.filter(r => r.uid === be.uid()) : []);
-  const triesLeft = () => !T.task || !T.task.tries ? Infinity : Math.max(0, T.task.tries - myRuns().length);
+  // hak = başlatılan yarış (kullanıcı 2026-11-15: en çok 3; göndermeden yeniden denemek de hak yer). Başlatma sayısı cihazda tutulur.
+  const startKey = () => `ps.task.starts.${T.task.code}.${(be && be.uid()) || 'misafir'}`;
+  const startsUsed = () => Math.max(myRuns().length, +store.get(startKey(), 0) || 0);
+  const triesLeft = () => !T.task ? 0 : T.task.preview ? Infinity : Math.max(0, D.triesOf(T.task) - startsUsed());
+  const canSend = () => !!T.task && !T.task.preview && myRuns().length < D.triesOf(T.task);
 
   // ---------- Arayüz ----------
   const btn = html('<button id="btnTask" class="tool task-tool" title="Antrenör yarışları: oluştur, gönder, sıralama ve tekrarlar"><svg><use href="#i-flag"/></svg><span class="lbl">Yarışlar</span></button>');
@@ -73,8 +77,21 @@
     body.innerHTML = v === 'wait' ? `<p class="net-wait">${esc(T.err || 'Yükleniyor…')}</p>`
       : v === 'task' ? taskHtml() : v === 'end' ? endHtml() : v === 'setup' ? setupHtml() : homeHtml();
   }
+  // Yarış ekranı sade (kullanıcı 2026-11-15): üst çubuk, zaman kutusu (durdur/hız/yeni yarış), ayar rayı yok;
+  // sol üstte geri oku, ortada rüzgar + saat. Tekrar izleme / karşılaştırmada eski düzen (oynatma denetimleri gerekli).
+  const backBtn = html('<button id="taskBack" class="task-back" title="Yarıştan çık" aria-label="Geri"><svg><use href="#i-back"/></svg></button>');
+  stage.appendChild(backBtn);
+  let backArm = 0;
+  backBtn.addEventListener('click', () => {
+    const tk = api.st.task; if (!tk) return;
+    if (tk.preview) { leave(); return; }
+    if (!tk.ended && Date.now() - backArm > 3000) { backArm = Date.now(); toast('Çıkmak için yeniden dokun · bu yarış hakkından sayılır, gönderilmez'); return; }
+    api.taskStop(); chipUpdate(); T.view = 'task'; show(true); loadRuns();
+  });
   function chipUpdate() {
     const st = api.st, on = !!st.task;
+    const race = on && !st.task.watch, bc = document.body.classList;
+    if (bc.contains('task-race') !== race) { bc.toggle('task-race', race); if (api.placeHud) api.placeHud(); }
     chip.classList.toggle('hidden', !on);
     btn.classList.toggle('on', on);
     if (!on) return;
@@ -123,12 +140,12 @@
         <tbody>${rows.map((x, i) => runRow(x.best, i, x.runs) + (T.open[x.best.uid] ? x.runs.filter(r => r !== x.best).map(r => runRow(r, null)).join('') : '')).join('')}</tbody></table></div>`
       : '<p class="net-empty">Henüz gönderilmiş yarış yok.</p>';
     return `<div class="task-card">
-        <div class="rec-sum">${setupChips(su)}<span class="rc">${t.tries ? `${t.tries} deneme hakkı` : 'sınırsız deneme'}</span>${t.due ? `<span class="rc">son: ${esc(dateTxt(t.due))}</span>` : ''}${shut ? '<span class="rc bad">kapandı</span>' : ''}</div>
+        <div class="rec-sum">${setupChips(su)}<span class="rc">${D.triesOf(t)} deneme hakkı</span>${t.due ? `<span class="rc">son: ${esc(dateTxt(t.due))}</span>` : ''}${shut ? '<span class="rc bad">kapandı</span>' : ''}</div>
         ${t.note ? `<p class="task-note">${esc(t.note)}</p>` : ''}
         ${hints.length ? `<div class="net-h">İpuçları</div><ul class="task-hints">${hints.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}
         <div class="dlg-actions task-go">
           ${own ? `<a class="tb" href="${hubUrl()}">Yarışlar</a><button class="tb" data-act="copy">Bağlantıyı kopyala</button><button class="tb" data-act="${t.state === 'closed' ? 'reopen' : 'close'}">${t.state === 'closed' ? 'Yeniden aç' : 'Yarışı kapat'}</button><button class="tb task-del" data-delcode="${esc(t.code)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button>` : ''}
-          ${shut ? '' : left > 0 ? `<button class="tb primary net-go" data-act="start"><svg class="ci"><use href="#i-play"/></svg>${mine.length ? 'Yeniden dene' : 'Yarışa başla'}${Number.isFinite(left) ? ` <small>(${left} hak)</small>` : ''}</button>` : '<span class="dlg-note">Deneme hakkın bitti.</span>'}
+          ${shut ? '' : left > 0 ? `<button class="tb primary net-go" data-act="start"><svg class="ci"><use href="#i-play"/></svg>${startsUsed() ? 'Tekrar yap' : 'Yarışa başla'}${Number.isFinite(left) ? ` <small>(${left} hak)</small>` : ''}</button>` : '<span class="dlg-note">Deneme hakkın bitti.</span>'}
         </div>
       </div>
       <div class="net-h">Sıralama <small>${T.runs.length ? `${rows.length} sporcu · ${T.runs.length} yarış` : ''}</small> <button class="tb tb-reload" data-act="reload">Yenile</button>
@@ -151,15 +168,15 @@
       <div class="rec-sum">${chips.map(c => `<span class="rc">${esc(c)}</span>`).join('')}</div>
       ${preview ? '<p class="dlg-note">Deneme: bu yarış gönderilmez. Forma dönüp yarışı oluşturabilir ya da yeniden deneyebilirsin.</p>'
         : T.sent ? '<p class="dlg-note"><b>Gönderildi.</b> Yarış sayfasında sıralamayı görebilirsin.</p>'
-        : left <= 0 ? '<p class="dlg-note">Deneme hakkın bitti; bu yarış gönderilemez.</p>'
+        : !canSend() ? '<p class="dlg-note">Deneme hakkın bitti; bu yarış gönderilemez.</p>'
         : closed(t) ? '<p class="dlg-note">Yarış kapandı; bu yarış gönderilemez.</p>'
-        : velora ? `<p class="dlg-note">Velora hesabınla gönderilecek: <b>${esc(a.name || '')}</b>${Number.isFinite(left) ? ` · ${left} hakkın var` : ''}.</p>`
-        : `<label class="dlg-lbl" for="taskName">Adın (sıralamada görünür)</label><input id="taskName" class="name-in dlg-in" maxlength="24" autocomplete="off" value="${esc(nm)}">${Number.isFinite(left) ? `<p class="dlg-note">${left} hakkın var. Gönderdiğin her yarış saklanır, en iyisi sayılır.</p>` : ''}`}
+        : velora ? `<p class="dlg-note">Velora hesabınla gönderilecek: <b>${esc(a.name || '')}</b>${left > 0 ? ` · ${left} yarış hakkın daha var` : ' · bu son hakkındı'}.</p>`
+        : `<label class="dlg-lbl" for="taskName">Adın (sıralamada görünür)</label><input id="taskName" class="name-in dlg-in" maxlength="24" autocomplete="off" value="${esc(nm)}"><p class="dlg-note">${left > 0 ? `${left} yarış hakkın daha var.` : 'Bu son hakkındı.'} Gönderdiğin her yarış saklanır, en iyisi sayılır.</p>`}
       <p class="net-err" id="taskErr">${esc(T.err)}</p>
       <div class="dlg-actions">
         ${preview ? '<button class="tb" data-act="previewAgain">Yeniden dene</button><button class="tb primary" data-act="backForm">Forma dön</button>'
-          : `<button class="tb" data-act="again">${T.sent ? 'Yeniden dene' : 'Göndermeden yeniden dene'}</button>
-             ${T.sent ? '<button class="tb primary" data-act="toTask">Sıralama</button>' : left > 0 && !closed(t) ? `<button class="tb primary net-go" data-act="send" ${T.busy ? 'disabled' : ''}><svg class="ci"><use href="#i-upload"/></svg>Antrenörüme gönder</button>` : '<button class="tb primary" data-act="toTask">Yarış sayfası</button>'}`}
+          : `${left > 0 && !closed(t) ? `<button class="tb" data-act="again">Tekrar yap <small>(${left} hak)</small></button>` : ''}
+             ${T.sent ? '<button class="tb primary" data-act="toTask">Sıralama</button>' : canSend() && !closed(t) ? `<button class="tb primary net-go" data-act="send" ${T.busy ? 'disabled' : ''}><svg class="ci"><use href="#i-upload"/></svg>Antrenörüme gönder</button>` : '<button class="tb primary" data-act="toTask">Yarış sayfası</button>'}`}
       </div></div>`;
   }
 
@@ -228,6 +245,7 @@
     const t = T.task; if (!t) return;
     if (triesLeft() <= 0) { setErr('Deneme hakkın bitti.'); return; }
     T.result = null; T.sent = false;
+    store.set(startKey(), startsUsed() + 1);
     const ok = api.taskStart({ code: t.code, name: t.name, setup: taskSetup(t), sailor: sailorName().slice(0, 18), onEnd: onEnd,
       msg: `${t.name} · start'a ${Math.round(((taskSetup(t).boat || {}).pre || 120) / 60)} dk · İskota Çek ile yelkeni doldur` });
     if (!ok) { setErr('Online yarıştayken bu yarış başlatılamaz.'); return; }
@@ -247,7 +265,7 @@
       const uid = be.uid() || await be.anon();
       const mine = await be.listRuns(t.code, uid).catch(() => myRuns());
       const n = mine.reduce((m, x) => Math.max(m, x.n || 0), 0) + 1;
-      if (t.tries && n > t.tries) { busy(false); setErr('Deneme hakkın bitti.'); return; }
+      if (!canSend() || n > D.triesOf(t)) { busy(false); setErr('Deneme hakkın bitti.'); return; }
       const { ops, ...sum } = r;
       await be.addRun(t.code, `${uid}_${n}`, { v: 1, uid, n, name, via: velora ? 'velora' : 'ad', ...sum, rec: JSON.stringify({ ops }) });
       T.sent = true; busy(false); render();
@@ -265,7 +283,7 @@
   function preview() {
     const d = store.get('ps.task.preview', null);
     if (!d || !d.setup || !Array.isArray(d.setup.fleet)) { toast('Denenecek yarış taslağı bulunamadı'); return; }
-    T.task = { code: 'TASLAK', name: d.name || 'Yarış taslağı', note: d.note, hints: d.hints, setup: d.setup, tries: 0, state: 'open' };
+    T.task = { code: 'TASLAK', name: d.name || 'Yarış taslağı', note: d.note, hints: d.hints, setup: d.setup, tries: 0, state: 'open', preview: true };
     const ok = api.taskStart({ code: 'TASLAK', name: T.task.name, setup: d.setup, preview: true, sailor: sailorName().slice(0, 18), onEnd: res => { T.result = res; T.view = 'end'; show(true); },
       msg: 'Deneme: yarışı kendin koş · gönderilmez' });
     if (ok) { show(false); chipUpdate(); }

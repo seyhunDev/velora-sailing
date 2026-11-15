@@ -503,7 +503,7 @@
   // gösterge yeri: yatay telefonda elle sürerken üst çubuk kalkar, gösterge sahnenin sol üstüne geçer
   const phoneLand = matchMedia('(max-height: 500px) and (orientation: landscape)');
   function placeHud() {
-    const hud = $('raceHud'), onStage = phoneLand.matches && document.body.classList.contains('driving');
+    const bc = document.body.classList, hud = $('raceHud'), onStage = (phoneLand.matches && bc.contains('driving')) || bc.contains('task-race');   // antrenör yarışında üst çubuk yok
     const want = onStage ? document.querySelector('main.stage') : document.querySelector('.sim-top');
     if (hud.parentElement !== want) { if (onStage) want.appendChild(hud); else want.insertBefore(hud, want.querySelector('.spacer').nextSibling); }
     hud.classList.toggle('on-stage', onStage);
@@ -2109,7 +2109,7 @@
   }
 
   window.SimApi = {
-    S, st, toast, taskStart, taskStop, taskWatch, taskCompare, currentSetup, taskResult,
+    S, st, toast, taskStart, taskStop, taskWatch, taskCompare, currentSetup, taskResult, placeHud,
     replay: rec => replay(rec),
     netStart(setup, net) {
       if (st.drawMode) endDraw(false);

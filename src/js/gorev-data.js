@@ -114,6 +114,9 @@
   }
   const resTxt = r => r.dsq ? r.dsq : r.fin ? `${r.fin}./${r.boats}` : 'bitirmedi';
 
+  // deneme hakkı en çok 3 (kullanıcı 2026-11-15); eski 'sınırsız' (0) ve 5 hakkı yarışlar da 3 sayılır
+  const MAX_TRIES = 3;
+  const triesOf = t => Math.min(MAX_TRIES, (t && +t.tries) || MAX_TRIES);
   const taskSetup = t => { try { return typeof t.setup === 'string' ? JSON.parse(t.setup) : t.setup; } catch (e) { return null; } };
   const closed = t => !!t && (t.state === 'closed' || (t.due && Date.now() > t.due));
   // Sıralama: kişi başı en iyi (bitiren, en kısa süre), sonra bitirmeyenler
@@ -159,6 +162,6 @@
       }
     }`;
   }
-  window.SailTaskData = { rulesText, esc, jcopy, acc, store, PROJECT, COL, mode, CODE_OK, makeBackend, isCoach, isDenied, clock, parseClock, dateTxt, clsName,
+  window.SailTaskData = { rulesText, MAX_TRIES, triesOf, esc, jcopy, acc, store, PROJECT, COL, mode, CODE_OK, makeBackend, isCoach, isDenied, clock, parseClock, dateTxt, clsName,
     planLines, setupChips, resTxt, taskSetup, closed, board, taskLink };
 })();

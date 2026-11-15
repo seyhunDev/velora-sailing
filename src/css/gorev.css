@@ -92,3 +92,15 @@ body.task-on:not(.task-watch) #speedSeg { display: none !important; }
 .tb.task-del.armed, .tb.hv-del.armed { background: #7f1d1d; color: #fff; border-color: #f87171; }
 .task-li .task-del { flex: 0 0 auto; height: auto; min-height: 0; padding: 0 12px; font-size: 13px; }
 .task-board .tb-acts { display: flex; gap: 6px; align-items: center; }
+/* Yarış ekranı (body.task-race): yalnız sahne + kumanda; sol üstte geri oku, ortada rüzgar ve saat (kullanıcı 2026-11-15) */
+.task-back { display: none; }
+body.task-race .sim-top, body.task-race #driveBar, body.task-race #catRail, body.task-race #panel, body.task-race #modeStrip,
+body.task-race .task-chip, body.task-race #btnReport, body.task-race #hpReset { display: none !important; }
+body.task-race .stage { padding-top: var(--sat); }
+body.task-race .task-back { display: inline-flex; align-items: center; justify-content: center; position: absolute; z-index: 16;
+  top: calc(10px + var(--sat)); left: calc(10px + var(--sal)); width: 44px; height: 44px; border-radius: 12px; padding: 0;
+  background: rgba(11,23,36,.72); border: 1px solid rgba(148,178,208,.35); color: var(--text); cursor: pointer;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+body.task-race .task-back svg { width: 22px; height: 22px; }
+body.task-race .task-back:hover { background: rgba(30,48,68,.85); }
+body.task-race .race-hud.on-stage { top: calc(10px + var(--sat)); left: 50%; transform: translateX(-50%); }
