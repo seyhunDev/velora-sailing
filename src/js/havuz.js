@@ -99,7 +99,7 @@
     return `<b>Yarışlar için Firestore kuralı gerekli (bir kerelik).</b>
       <ol class="hv-steps">
         <li><a href="https://console.firebase.google.com/project/${D.PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore → Kurallar</a> sekmesini aç.</li>
-        <li>Oradaki kuralları <b>silme</b>. Aşağıdaki bloğu kopyala, <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır. (Daha önce yapıştırdığın <code>match /sailChallenges</code> bloğu varsa onu bununla değiştir.)</li>
+        <li>Oradaki kuralları <b>silme</b>. Aşağıdaki bloğu kopyala, <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır: başka bir <code>match</code> bloğunun (ör. <code>match /orgs/{orgId}</code>) <b>içine değil</b>, en üst seviyeye. (Daha önce yapıştırdığın <code>match /sailChallenges</code> bloğu varsa onu bununla değiştir.)</li>
         <li><b>Yayınla</b>'ya bas, 1 dakika bekle, bu sayfayı yenile.</li>
       </ol>
       <div class="hv-rules-h"><span>Kural (yarış oluşturma yetkisi: senin Velora hesabın)</span><button class="tb" id="hvCopyRules">Kuralı kopyala</button></div>
