@@ -295,3 +295,6 @@ body[data-view="ders"] .trim-panel > :not(.lesson-card) { display: none; }
   .lesson-read { font-size: 12px; }
   .lesson-card .sec-head span { display: none; }
 }
+
+/* 2D yedek çizimde etiketler gösterilmez (yerleri hatalıydı; kullanıcı 2026-11-15) */
+#callouts { display: none; }
