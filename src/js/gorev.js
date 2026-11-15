@@ -164,34 +164,7 @@
   }
 
   // ---------- Kurulum (Firestore kuralları + anonim giriş) ----------
-  function rulesText(uid) {
-    return `    // Velora Sailing görevleri: antrenör görev açar, sporcular yarışını gönderir (js/gorev.js)
-    match /sailChallenges/{code} {
-      function ch() { return get(/databases/$(database)/documents/sailChallenges/$(code)).data; }
-      allow get: if true;
-      allow list: if request.auth != null && resource.data.owner == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.owner == request.auth.uid
-        && (request.auth.uid == '${uid}' || exists(/databases/$(database)/documents/sailCoaches/$(request.auth.uid)))
-        && code.matches('[A-Z0-9]{6}') && request.resource.data.setup is string && request.resource.data.setup.size() < 300000;
-      allow update: if request.auth != null && resource.data.owner == request.auth.uid
-        && request.resource.data.owner == resource.data.owner && request.resource.data.setup == resource.data.setup;
-      allow delete: if request.auth != null && resource.data.owner == request.auth.uid;
-      match /runs/{rid} {
-        allow create: if request.auth != null
-          && request.resource.data.uid == request.auth.uid
-          && request.resource.data.n is int && request.resource.data.n >= 1
-          && rid == request.auth.uid + '_' + string(request.resource.data.n)
-          && (ch().tries == 0 || request.resource.data.n <= ch().tries)
-          && ch().state == 'open' && (ch().due == 0 || request.time.toMillis() < ch().due)
-          && request.resource.data.name is string && request.resource.data.name.size() <= 24
-          && request.resource.data.rec is string && request.resource.data.rec.size() < 900000;
-        allow read: if request.auth != null && (resource.data.uid == request.auth.uid || ch().owner == request.auth.uid
-          || ch().vis == 'all'
-          || (ch().vis == 'after' && exists(/databases/$(database)/documents/sailChallenges/$(code)/runs/$(request.auth.uid + '_1'))));
-        allow delete: if request.auth != null && ch().owner == request.auth.uid;
-      }
-    }`;
-  }
+  const rulesText = D.rulesText;
   function setupHtml() {
     const uid = be && be.uid();
     if (!uid || !isCoach()) return `<p class="net-empty">Antrenör yarışları henüz açılmadı (site sahibinin Firebase'de bir kez kurulum yapması gerekiyor).${beErr ? ` <small>(${esc(beErr)})</small>` : ''}</p>`;

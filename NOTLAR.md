@@ -247,6 +247,9 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-15 · Yarışlar sayfasında Firestore kuralı kartı
+- Kullanıcı: "yarış oluşturulamadı, Firestore kuralı okunamadı". Kural metni yalnız simülatördeki kurulum kartındaydı (oluşturma taşınınca ulaşılmaz oldu). `rulesText` → `gorev-data.js`; Yarışlar sayfası okuma/oluşturma reddedilince kartı gösterir (antrenörün uid'iyle kural, Kopyala, konsol bağlantısı, adımlar).
+
 ### 2026-11-14 · Yarış oluşturma Yarışlar sayfasına taşındı
 - Kullanıcı: Firebase kuralı ve Anonim giriş açıldı; yarış oluşturma/bağlantı gönderme simülatörden değil ana sayfadan (Simülatör'ün yanında düğme) yapılsın. Tasarımlar soruldu: üst çubuk/saat/rüzgar tasarımı v1.139'da bitti, alt denetimler tasarımı kullanıcı erteledi (başlamadı); sporcunun yarış ekranı simülatörün kendisi (aynı yeni düzen).
 - Yapılanlar: Güncel durum → "oluşturma Yarışlar sayfasında". `npm run smoke` temiz (rastgele tıklama `btnTask`'ı atlar: artık sayfa değiştiriyor), check-sim temiz.

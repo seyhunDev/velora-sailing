@@ -94,3 +94,10 @@ body.havuz { display: block; background: var(--bg); }
 .havuz .tp-row .dlg-in { width: auto; height: 34px; }
 .havuz .tp-row .tp-at { width: 72px; }
 .havuz .tp-row .icon.sm { margin-left: auto; }
+/* Firestore kuralı kurulum kartı */
+.hv-setup { display: grid; gap: 8px; }
+.hv-setup a { color: #fde68a; }
+.hv-steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; line-height: 1.5; }
+.hv-setup code { font-size: 12px; background: #06111c; padding: 1px 5px; border-radius: 5px; }
+.hv-rules-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-weight: 600; color: var(--text); }
+.hv-rules { margin: 0; max-height: 260px; overflow: auto; padding: 10px 12px; border-radius: 10px; background: #06111c; border: 1px solid var(--border); font-size: 11.5px; line-height: 1.45; color: #cbd5e1; white-space: pre; }

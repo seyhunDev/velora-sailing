@@ -79,8 +79,8 @@
   // ---------- Durum ----------
   const K = { f: null, busy: false, err: '', made: null, host: null, onMade: null, be: null };
   const save = () => store.set(DRAFT, K.f);
-  function open(host, be, onMade) {
-    K.host = host; K.be = be; K.onMade = onMade; K.made = null; K.err = '';
+  function open(host, be, onMade, onDenied) {
+    K.onDenied = onDenied; K.host = host; K.be = be; K.onMade = onMade; K.made = null; K.err = '';
     const d = store.get(DRAFT, null);
     K.f = d && typeof d === 'object' ? { ...blank(), ...d } : blank();
     if (!Array.isArray(K.f.plan)) K.f.plan = [];
@@ -188,7 +188,8 @@
       if (K.onMade) K.onMade(K.made);
     } catch (e) {
       K.busy = false; render();
-      setErr(isDenied(e) ? 'Yarış oluşturulamadı: yetki yok. Firestore kuralı yayında mı, Velora hesabıyla mı girdin?' : 'Yarış oluşturulamadı. İnternetini kontrol et.');
+      setErr(isDenied(e) ? 'Yarış oluşturulamadı: Firestore kuralı yayında değil ya da eski. Sayfanın üstündeki kural kartını izle.' : 'Yarış oluşturulamadı. İnternetini kontrol et.');
+      if (isDenied(e) && K.onDenied) K.onDenied();
     }
   }
   function preview() {

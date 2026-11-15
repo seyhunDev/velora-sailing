@@ -6,7 +6,7 @@
   const D = window.SailTaskData;
   const { esc, clock, dateTxt, setupChips, resTxt, taskSetup, closed, board, isDenied } = D;
   const $ = id => document.getElementById(id);
-  const H = { be: null, tasks: [], runs: {}, open: {}, pick: {}, loading: true, err: '' };
+  const H = { denied: false, be: null, tasks: [], runs: {}, open: {}, pick: {}, loading: true, err: '' };
   let arm = { key: '', at: 0 };                       // silme: iki dokunuş (3 sn içinde)
 
   async function backend() {
@@ -20,7 +20,7 @@
   let wantNew = params.has('yeni');
   function openNew() {
     if (!window.SailRaceForm) return;
-    SailRaceForm.open($('hvNew'), H.be, t => { H.tasks = [t, ...H.tasks.filter(x => x.code !== t.code)]; H.runs[t.code] = []; H.err = ''; render(); });
+    SailRaceForm.open($('hvNew'), H.be, t => { H.denied = false; H.tasks = [t, ...H.tasks.filter(x => x.code !== t.code)]; H.runs[t.code] = []; H.err = ''; render(); }, () => { H.denied = true; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
   }
   $('hvNewBtn').addEventListener('click', openNew);
 
@@ -30,7 +30,7 @@
     if (!be) { H.loading = false; H.err = 'Bağlantı kurulamadı. İnternetini kontrol et.'; render(); return; }
     if (coach()) {
       try { H.tasks = (await be.listMine(be.uid())).sort((a, b) => (b.at || 0) - (a.at || 0)); }
-      catch (e) { H.tasks = []; H.err = isDenied(e) ? 'Yarışlar okunamadı: Firestore kuralı yayında mı?' : 'Yarışlar okunamadı.'; }
+      catch (e) { H.tasks = []; H.denied = isDenied(e); H.err = H.denied ? '' : 'Yarışlar okunamadı. İnternetini kontrol et.'; }
       await Promise.all(H.tasks.map(t => loadRuns(t.code)));
     }
     H.loading = false; render();
@@ -93,11 +93,24 @@
       </div>` : ''}
     </article>`;
   }
+  // Firestore kuralı yayında değil / eski: kurulum kartı (antrenörün uid'iyle kural, kopyala, konsol bağlantısı)
+  function setupCard() {
+    const uid = H.be && H.be.uid();
+    return `<b>Yarışlar için Firestore kuralı gerekli (bir kerelik).</b>
+      <ol class="hv-steps">
+        <li><a href="https://console.firebase.google.com/project/${D.PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore → Kurallar</a> sekmesini aç.</li>
+        <li>Oradaki kuralları <b>silme</b>. Aşağıdaki bloğu kopyala, <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır. (Daha önce yapıştırdığın <code>match /sailChallenges</code> bloğu varsa onu bununla değiştir.)</li>
+        <li><b>Yayınla</b>'ya bas, 1 dakika bekle, bu sayfayı yenile.</li>
+      </ol>
+      <div class="hv-rules-h"><span>Kural (yarış oluşturma yetkisi: senin Velora hesabın)</span><button class="tb" id="hvCopyRules">Kuralı kopyala</button></div>
+      <pre class="hv-rules" id="hvRules">${esc(D.rulesText(uid))}</pre>`;
+  }
   function render() {
     const note = $('hvNote'), list = $('hvList');
     const c = coach();
     $('hvNewBtn').classList.toggle('hidden', !c);
-    if (H.err) { note.className = 'hv-note'; note.innerHTML = esc(H.err); }
+    if (H.denied && c) { note.className = 'hv-note hv-setup'; note.innerHTML = setupCard(); }
+    else if (H.err) { note.className = 'hv-note'; note.innerHTML = esc(H.err); }
     else if (!H.loading && !c && !H.tasks.length) { note.className = 'hv-note'; note.innerHTML = window.SailAccess && SailAccess.role() === 'sahip' && D.mode === 'firebase' ? 'Bütün yarışlarını görmek için hesap menüsünden <b>Velora hesabıyla gir</b>.' : 'Antrenörünün gönderdiği bağlantıyı açabilir ya da kodu yukarıya yazabilirsin.'; }
     else note.className = 'hv-note hidden';
     list.innerHTML = H.loading ? '<p class="net-wait">Yükleniyor…</p>'
@@ -128,6 +141,11 @@
     render();
   });
   $('hvOpen').addEventListener('click', openCode);
+  $('hvNote').addEventListener('click', async e => {
+    if (e.target.id !== 'hvCopyRules') return;
+    const t = $('hvRules').textContent;
+    try { await navigator.clipboard.writeText(t); e.target.textContent = 'Kopyalandı'; } catch (x) { prompt('Kopyala:', t); }
+  });
   $('hvCode').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
   $('hvCode').addEventListener('keydown', e => { if (e.key === 'Enter') openCode(); });
   document.addEventListener('sail-access', () => { H.be = null; load(); });
