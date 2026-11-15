@@ -421,13 +421,13 @@ function start() {
     const p1 = V2(xm + h * dy / d, ym - h * dx / d), p2 = V2(xm - h * dy / d, ym + h * dx / d);
     return p1.h > p2.h ? p1 : p2;
   }
-  const TIE_SC = 0.012, G_H = 0.56, TACK_H = 0.59, HEAD_H = TACK_H + 1.73;
+  const TIE_SC = 0.001, G_H = 0.56, TACK_H = 0.59, HEAD_H = TACK_H + 1.73;
   function plan(v, sh) {
     const la = sh.lift * Math.PI / 180;
     const G = V2(0, G_H), bdir = V2(Math.cos(la), Math.sin(la));
     const C = V2(G.a + bdir.a * 1.9, G.h + bdir.h * 1.9);
     const BE = V2(G.a + bdir.a * 2.01, G.h + bdir.h * 2.01);
-    const luff = v.ties.map((g, i) => V2(MR + 0.006 + g * TIE_SC, lerp(HEAD_H, TACK_H, i / 7)));
+    const luff = v.ties.map((g, i) => V2(MR + 0.012 + g * TIE_SC, lerp(HEAD_H, TACK_H, i / 7)));
     let Pk = circles(V2(MR, HEAD_H), 1.24, C, 2.8);
     const S = V2(0, Pk.h - Math.sqrt(Math.max(0, 2.286 ** 2 - Pk.a ** 2)));
     const ul = Math.hypot(Pk.a - S.a, Pk.h - S.h), push = (v.sprit - 0.5) * 0.08;
