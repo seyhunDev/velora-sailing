@@ -1130,8 +1130,12 @@
   function backToggle() {
     const d = st.drive, m = driveBoat(); if (!m) return;
     d.back = !d.back; d.hold = null; m.helm = null;
-    if (d.back) toast('Yelken ters: tekne frenliyor, durunca geri gider. Geri giderken dümen ters çalışır. Bırakmak için yeniden dokun ya da Çek');
-    else { m.sheetOff = 0; m.sheet = null; }
+    if (d.back) toast('Yelken ters: tekne frenliyor, durunca geri gider. Geri giderken dümen ters çalışır. Yeniden dokun: yelken salık kalır (durursun) · Çek: yelken dolar');
+    else {   // tersi bırakınca yelken salık kalır (kullanıcı 2026-11-16): tekne yavaşlar, durur; ilerlemek için Çek
+      const ideal = S.idealSheet(Math.abs(E.norm180(m.h - driveCtx().wind)));
+      if (d.autoTrim) m.sheetOff = S.SHEET_OFF_MAX; else m.sheet = Math.min(S.SHEET_MAX, ideal + S.SHEET_OFF_MAX);
+      toast('Yelken bırakıldı: salık, tekne duruyor · ilerlemek için Çek');
+    }
     lastHelmKey = '';
   }
   // dümen paneli (en altta, yalnız elle sürerken)
