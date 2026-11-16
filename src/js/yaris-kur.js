@@ -24,7 +24,7 @@
     ['Parkur', [
       ['course', 'Parkur', [['trapez', 'Trapez (1-2-kapı-finiş)'], ['orsa', 'Yalnız orsa']]],
       ['line', 'Start hattı boyu', [[400, '8 boy'], [550, '11 boy'], [700, '14 boy']]],
-      ['mark', 'Orsa şamandırası uzaklığı', [[650, '13 boy'], [950, '19 boy'], [1200, '24 boy']]]
+      ['mark', 'Orsa şamandırası uzaklığı', [[700, '14 boy'], [950, '19 boy'], [1200, '24 boy'], [1500, '30 boy'], [1800, '36 boy'], [2000, '40 boy']]]
     ]],
     ['Rüzgar ve deniz', [
       ['windKn', 'Rüzgar hızı', S.WIND_KN.map(v => [v, v + ' kn'])],
@@ -43,7 +43,8 @@
   const POS = [[-0.8, 'Sol'], [-0.4, 'Orta-sol'], [0, 'Orta'], [0.4, 'Orta-sağ'], [0.8, 'Sağ']];
   const PASS = [[60, 'Hızlı (1 dk)'], [90, 'Orta (1,5 dk)'], [150, 'Yavaş (2,5 dk)']];
   const blank = () => ({ name: `${new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} antrenman yarışı`, note: '', hints: true,
-    n: 8, cls: 'optimist', pre: 120, flag: 'P', course: 'trapez', line: 550, mark: 950, windKn: 8, bias: 0, gust: 'yok', cur: 0,
+    v: 2, n: 8, cls: 'optimist', pre: 120, flag: 'P', course: 'trapez', line: 550, mark: 1500,   // 2026-11-16 (kullanıcı): parkur uzun, daha çok tramola (eski 950)
+    windKn: 8, bias: 0, gust: 'yok', cur: 0,
     tries: 3, vis: 'all', due: 7, plan: [] });
 
   // ---------- Kurulum ----------
@@ -111,6 +112,7 @@
     K.onDenied = onDenied; K.host = host; K.be = be; K.onMade = onMade; K.made = null; K.err = '';
     const d = store.get(DRAFT, null);
     K.f = d && typeof d === 'object' ? { ...blank(), ...d } : blank();
+    if (d && typeof d === 'object' && !d.v) { K.f.mark = blank().mark; K.f.v = 2; }   // eski taslak: yeni varsayılan uzunluk
     if (!Array.isArray(K.f.plan)) K.f.plan = [];
     host.classList.remove('hidden'); render();
     host.scrollIntoView({ block: 'start', behavior: 'smooth' });

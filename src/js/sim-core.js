@@ -573,6 +573,7 @@
   // İdeal iskota = rüzgar açısına göre bumba açısı (engine.sailState: orsada ~10°, apazda ~35°, pupada ~85°).
   // Fazla salınmış yelken pırpırlar (40° fazlası: neredeyse durur), fazla çekik yelken boğulur (en çok %65 kayıp).
   const SHEET_MAX = 88, SHEET_OFF_MAX = 36;
+  const OCS_SLOW = 0.6;   // erken çıkan (OCS / I bayrağı) teknenin hızı geri dönüp start edene kadar %60
   const idealSheet = abs => E.sailState(abs, 0).boom;
   const trimEff = d => (d >= 0 ? Math.max(0, 1 - d / 36) : Math.max(0.35, 1 + d / 45));   // tamamen boş yelken (36°) itmez: tekne süzülüp durur
   // Elle sürme: zaman durur, diğer tekneler yerinde kalır; yalnız `b` hareket eder (dt sim. saniyesi kadar).
@@ -629,6 +630,7 @@
           (1 - upw * ((SEA.waveLoss[sea.waves] || 0) + (SEA.boatLoss[b.drift || 0] || 0)));
         tau = vt > b.v ? TAU : TAU * 1.4;                                   // yelkeni boşaltınca tekne kısa süre süzülür
       }
+      if (b.phase === 'ocs' && vt > 0) vt *= OCS_SLOW;                     // erken çıkan: geri dönüp yeniden start edene kadar yavaş (kullanıcı 2026-11-16)
       b.v += (vt - b.v) * Math.min(1, H / tau);
       if (vt === 0 && Math.abs(b.v) < 0.5) b.v = 0;                        // süzülme biter: tam durur
       const f = E.fwd(b.h), dv = driftVec(s, b, w), x0 = b.x, y0 = b.y;
@@ -732,14 +734,20 @@
         b.zPen = true; note(b, s, 'Z · %20 puan cezası', 'bad', 3.5);
         log(s, `${b.id} son dakikada üçgene girdi (Z bayrağı): %20 puan cezası (K30.2). Start'ta hattın üstündeyse yine geri dönmeli`, 'bad');
       } else {
-        b.dsq = f === 'U' ? 'UFD' : 'BFD'; note(b, s, `${b.dsq} · diskalifiye`, 'bad', 4);
-        log(s, `${b.id} son dakikada üçgene girdi (${f === 'U' ? 'U bayrağı' : 'siyah bayrak'}): ${b.dsq}, diskalifiye (K30.${f === 'U' ? 3 : 4}). Geri dönmesi bir şey değiştirmez`, 'bad');
+        b.dsq = f === 'U' ? 'UFD' : 'BFD'; note(b, s, `${b.dsq} · ${f === 'U' ? 'U bayrağı' : 'siyah bayrak'} · diskalifiye`, 'bad', 6);
+        log(s, `${b.id} son dakikada üçgene girdi (${f === 'U' ? 'U bayrağı' : 'siyah bayrak'}): ${b.dsq}, diskalifiye (K30.${f === 'U' ? 3 : 4}). Geri dönmesi bir şey değiştirmez, start'ta yarıştan çıkarılır`, 'bad');
       }
     }
   }
   // Start anında teknenin evresi (bekleyen tekne için)
   function startPhase(b, s) {
-    if (b.dsq) { b.phase = 'race'; if (lineSide(b) === -1) b.started = true; return; }   // diskalifiye: geri dönmez, yarışa devam eder (sayılmaz)
+    if (b.dsq) {                                             // U / siyah bayrak: start işaretiyle yarıştan çıkarılır (kullanıcı 2026-11-16)
+      b.phase = 'done'; b.finish = finishNo(b, s); b.finishT = null; b.doneAt = s.t; b.out = true;
+      const why = b.dsq === 'BFD' ? 'siyah bayrak' : 'U bayrağı';
+      note(b, s, `${b.dsq} · ${why} · yarıştan çıktı`, 'bad', 6);
+      log(s, `${b.id} ${why} nedeniyle diskalifiye (${b.dsq}): start'ta yarıştan çıkarıldı (K30.${b.dsq === 'BFD' ? 4 : 3})`, 'bad');
+      return;
+    }
     if (b.iFlag) { b.phase = 'ocs'; b.go = true; note(b, s, 'I bayrağı · uçlardan dolaş', 'bad', 3.5); return; }
     b.phase = overLine(b, s.wind) ? 'ocs' : 'race'; if (b.phase === 'ocs') ocs(b, s);
   }
@@ -925,6 +933,7 @@
           log(s, `${b.id} cezasını tamamladı, ${b.dsq ? b.dsq + ' (sayılmaz)' : b.finish + '. sırada bitirdi'}`, 'good');
         } else if (b.penTurn >= 720) { b.phase = 'race'; note(b, s, 'Ceza tamam, yarışa dönüyor', 'good', 2); log(s, `${b.id} cezasını tamamladı`, 'good'); }
       }
+      if (b.phase === 'ocs') speedK *= OCS_SLOW;                          // erken çıkan yavaş döner (elle sürülenle aynı)
       if (b.phase === 'ocs' && b.iFlag) target = roundEndsTarget(b, w);   // I bayrağı: uçların dışından dolaş
       else if (b.phase === 'ocs') {
         target = w + 180;
@@ -1085,7 +1094,7 @@
         }
       }
       if (!(was === 1 && side === -1)) continue;
-      if (b.phase === 'wait' && t < s.startAt) { if (!b.dsq) ocs(b, s); continue; }
+      if (b.phase === 'wait' && t < s.startAt) { if (!b.dsq && !b.hand) ocs(b, s); continue; }   // elle sürülen: start'tan önce hattın üstü serbest, OCS start işaretinde bakılır
       if ((b.phase === 'race' || b.phase === 'wait' || b.phase === 'penalty') && !b.started) {
         if (b.dsq) { b.started = true; continue; }          // diskalifiye: start sayılmaz zaten, uçtan geçmesi fark etmez
         const u = R.lineParam(LINE, b);
@@ -1272,7 +1281,7 @@
     const s = clone(s0), frames = [clone(s)];
     // sınır start'a göre: gerçek zamanlı 5 dk geri sayımda (ILCA, sert rüzgar) start ~200 sim. sn'ye düşer; eski sabit 200
     // sınırı yarışı start'ta / ortasında kesiyordu (ayar kombinasyonu testi buldu, 2026-11-13)
-    maxT = maxT || (s.startAt || 0) + (s.course && s.course.type === 'trapez' ? RACE_MAX * 3 : RACE_MAX);   // trapez ~4 ayak
+    maxT = maxT || (s.startAt || 0) + (s.course && s.course.type === 'trapez' ? RACE_MAX * 3 : RACE_MAX) * Math.max(1, ((s.course && s.course.markDist) || 950) / 1200);   // uzun parkur (40 boy) da sığsın   // trapez ~4 ayak
     while (s.t < maxT && !s.boats.every(b => b.finish || b.gone)) {
       step(s);
       if (Math.round(s.t / DT) % 2 === 0) frames.push(clone(s));

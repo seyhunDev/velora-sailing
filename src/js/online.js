@@ -120,7 +120,7 @@
   const newCode = () => { const A = 'ABCDEFGHJKLMNPRSTUVYZ23456789'; let s = ''; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
 
   // ---------- Oda ayarları ----------
-  const CFG0 = { max: 8, cls: 'optimist', windKn: 8, pre: 180, flag: 'P', line: 400, mark: 650, course: 'trapez', bias: 0,
+  const CFG0 = { max: 8, cls: 'optimist', windKn: 8, pre: 180, flag: 'P', line: 500, mark: 1500, course: 'trapez', bias: 0,
     shiftDir: 0, shiftDeg: 10, shiftAt: 2, shiftRamp: 40, osc: 0, oscPer: 2, gust: 'yok', cur: 0 };
   // seçenekler: [anahtar, başlık, [[değer, yazı], …]]
   const FORM = [
@@ -133,7 +133,7 @@
     ['Parkur', [
       ['course', 'Parkur', [['trapez', 'Trapez (1-2-kapı-finiş)'], ['orsa', 'Yalnız orsa']]],
       ['line', 'Start hattı boyu', [[300, '6 boy'], [400, '8 boy'], [500, '10 boy'], [600, '12 boy']]],
-      ['mark', 'Orsa şamandırası uzaklığı', [[450, '9 boy'], [650, '13 boy'], [850, '17 boy'], [1100, '22 boy']]]
+      ['mark', 'Orsa şamandırası uzaklığı', [[700, '14 boy'], [950, '19 boy'], [1200, '24 boy'], [1500, '30 boy'], [1800, '36 boy'], [2000, '40 boy']]]
     ]],
     ['Rüzgar', [
       ['windKn', 'Rüzgar hızı', S.WIND_KN.map(v => [v, v + ' kn'])],

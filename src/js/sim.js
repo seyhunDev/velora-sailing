@@ -383,10 +383,40 @@
   }
 
   const boomSm = { beta: null, ts: 0, k: 0.45 };          // derece / ms
+  // teknenin üstündeki kırmızı rozet: OCS geri dönmeli, I uçtan dolaşmalı, U / siyah bayrak diskalifiye
+  const ocsFlag = b => b.dsq ? (b.dsq === 'BFD' ? 'BFD · siyah bayrak' : 'UFD · U bayrağı')
+    : b.phase === 'ocs' ? (b.iFlag ? 'I · uçtan dolaş' : b.outside ? 'Hattın dışından · geri' : 'OCS · geri dön') : '';
+  // senin teknen için sahnede kalıcı şerit (not kısa sürer, kural durumu dönene kadar görünsün)
+  const ocsBan = document.createElement('div'); ocsBan.id = 'ocsBan'; ocsBan.className = 'ocs-ban hidden'; ocsBan.setAttribute('role', 'status');
+  document.querySelector('.stage').appendChild(ocsBan);
+  function ocsBanner(v) {
+    const m = v.boats.find(b => b.mine);
+    let txt = '';
+    const two = (l, sh) => `<span class="l">${l}</span><span class="s">${sh}</span>`;   // telefonda kısa (teknenin üstünü kapatmasın)
+    if (m && m.dsq && (m.out || v.t >= v.startAt)) txt = two(`${m.dsq === 'BFD' ? 'Siyah bayrak' : 'U bayrağı'}: son dakikada üçgene girdin. <b>${m.dsq} · diskalifiye</b>, yarıştan çıktın`, `<b>${m.dsq} · diskalifiye</b> · yarıştan çıktın`);
+    else if (m && m.dsq) txt = two(`${m.dsq === 'BFD' ? 'Siyah bayrak' : 'U bayrağı'}: son dakikada üçgene girdin. <b>${m.dsq}</b>, start'ta yarıştan çıkarılacaksın`, `<b>${m.dsq}</b> · start'ta yarıştan çıkacaksın`);
+    else if (m && m.phase === 'ocs' && m.iFlag) txt = two('<b>I bayrağı</b>: hattın üstüne geçtin. Bir ucun uzantısından dolaşıp hattın altına geç, sonra start et. O zamana kadar yavaşsın', '<b>I bayrağı</b> · uçtan dolaş, yavaşsın');
+    else if (m && m.phase === 'ocs') txt = two(`<b>${m.outside ? 'Hattı uçların dışından geçtin' : 'ERKEN ÇIKTIN (OCS)'}</b>: teknenin tamamıyla hattın altına dön, sonra yeniden start et. O zamana kadar yavaşsın`, `<b>${m.outside ? 'Uçların dışından' : 'OCS'}</b> · hattın altına tamamen dön`);
+    if (ocsBan.dataset.t !== txt) { ocsBan.dataset.t = txt; ocsBan.innerHTML = txt; ocsBan.classList.toggle('hidden', !txt); }
+    if (txt) {                                            // rüzgar/saat göstergesinin ve altındaki hız şeridinin hemen altına
+      const stg = ocsBan.parentElement.getBoundingClientRect(); let y = 0;
+      for (const e of document.querySelectorAll('.race-hud, #hpMid')) { const r = e.getBoundingClientRect(); if (r.height && r.top < stg.top + stg.height / 2) y = Math.max(y, r.bottom - stg.top); }
+      ocsBan.style.top = Math.round((y || 56) + 8) + 'px';
+    }
+  }
   function drawBoat(parent, b, w, t, sel, cls) {
     const sail = E.sailState(b.h, w);
-    const op = b.phase === 'done' ? Math.max(0.15, 1 - (t - b.doneAt) / 5) : 1;
+    // erken çıkan (OCS / I bayrağı) ve diskalifiye (U / siyah) tekne yanıp söner (kullanıcı 2026-11-16)
+    const flag = ocsFlag(b), blink = flag && Math.floor(performance.now() / 380) % 2 === 1;
+    const op = b.phase === 'done' ? Math.max(b.out ? 0.35 : 0.15, 1 - (t - b.doneAt) / 5) : blink ? 0.4 : 1;
     const wrap = el('g', { opacity: op.toFixed(2), 'data-boat': b.id, class: 'boat' }, parent);
+    if (flag) {
+      el('circle', { cx: b.x.toFixed(1), cy: b.y.toFixed(1), r: 30, fill: blink ? 'rgba(239,68,68,.10)' : 'rgba(239,68,68,.28)', stroke: '#ef4444', 'stroke-width': 3, 'stroke-dasharray': blink ? '5 5' : '' }, wrap);
+      const fw = 9 + 7.2 * flag.length;
+      const bg = el('g', { transform: `translate(${b.x.toFixed(1)},${(b.y - 44).toFixed(1)})` }, wrap);
+      el('rect', { x: -fw / 2, y: -10, width: fw, height: 20, rx: 6, fill: '#dc2626', stroke: '#fff', 'stroke-width': 1.2 }, bg);
+      el('text', { x: 0, y: 4.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 12, 'font-weight': 900 }, bg).textContent = flag;
+    }
     if (b.mine && !sel) el('circle', { cx: b.x.toFixed(1), cy: b.y.toFixed(1), r: 31, fill: 'rgba(251,146,60,.12)', stroke: 'rgba(251,146,60,.7)', 'stroke-width': 1.5, 'stroke-dasharray': '4 4' }, wrap);
     if (sel) {                                           // seçili: dolu mavi halka + dışa yayılan nabız
       const ph = (performance.now() / 1400) % 1;
@@ -522,6 +552,7 @@
     for (const b of order) drawBoat(bl, b, w, v.t, st.sel === b.id, (v.boat || st.boat).cls);
     if (st.ghosts) for (const g of st.ghosts) drawBoat(bl, ghostAt(g, v.t), w, v.t, false, (v.boat || st.boat).cls);
     drawNotes(bl, order, v.t);
+    ocsBanner(v);
     drawHud(v);
     updateBar(v);
   }
@@ -835,7 +866,7 @@
       st.playT += dt * playSpeed() / S.CLOCK_SCALE;   // 1× = gerçek zaman (start → şamandıra ~15 dk); geri sayım hızlı geçebilir
       if (st.task && !st.task.watch && !st.task.ended && st.sim) {   // görev: teknen bitirince sonucu hemen göster (filonun bitmesi beklenmez)
         const me = st.sim.boats.find(b => b.mine);
-        if (me && (me.finish || me.dsq || me.gone)) taskEnd();
+        if (me && (me.finish || me.gone)) taskEnd();   // diskalifiye: start'ta yarıştan çıkınca (finish 900+)
       }
       if (st.playT >= lastT()) {
         st.playT = lastT(); st.mode = 'end';
@@ -1021,7 +1052,7 @@
     if (k === d.hk) return;
     const [r0, p0, f0] = d.hk.split('|'); d.hk = k;
     if (m.finish && String(m.finish) !== f0) {
-      toast(m.dsq ? `Finişi geçtin · ${m.dsq}, sıraya girmez` : `Bitirdin · ${m.finish}. oldun${st.task && !st.task.watch ? ' · Sonucu gör ile yarışı kapat' : ' · dümen hâlâ sende'}`);
+      toast(m.out ? `${m.dsq} · ${m.dsq === 'BFD' ? 'siyah bayrak' : 'U bayrağı'}: diskalifiye, yarıştan çıktın` : m.dsq ? `Finişi geçtin · ${m.dsq}, sıraya girmez` : `Bitirdin · ${m.finish}. oldun${st.task && !st.task.watch ? ' · Sonucu gör ile yarışı kapat' : ' · dümen hâlâ sende'}`);
       if (st.task && !st.task.watch && !d.net) finBtn.classList.remove('hidden');
       updatePanel(true);
     } else if (m.rnd && m.rnd.no + '/' + m.rnd.n !== r0) toast(`${m.rnd.no} numaralı şamandırayı ${m.rnd.n}. sırada döndün`);
@@ -1260,7 +1291,7 @@
     $('gbMinus').disabled = pct <= 40; $('gbPlus').disabled = pct >= 250; $('gbReset').disabled = pct === 100;
   }
   // ---------- Parkur: start hattı boyu ve şamandıra uzaklığı (yalnız kurulumda) ----------
-  const COURSE_LIM = { lineLen: [200, 1000, 50], markDist: [400, 1500, 50] };
+  const COURSE_LIM = { lineLen: [200, 1000, 50], markDist: [400, 2000, 50] };
   function changeCourse(next) {
     if (st.mode !== 'setup') return;
     const c = { lineLen: Math.max(COURSE_LIM.lineLen[0], Math.min(COURSE_LIM.lineLen[1], next.lineLen)), markDist: Math.max(COURSE_LIM.markDist[0], Math.min(COURSE_LIM.markDist[1], next.markDist)), flag: next.flag || st.course.flag || 'P', type: next.type || st.course.type || S.COURSE_DEFAULT.type };

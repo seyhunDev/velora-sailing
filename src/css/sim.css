@@ -703,3 +703,11 @@ body.driving .toast { top: auto; right: auto; left: 50%; transform: translateX(-
 }
 @media (max-width: 640px) { body.driving .drive-bar { top: calc(8px + var(--sat)); bottom: auto; } }
 .helm-pad button:focus:not(:focus-visible) { outline: none; }
+/* erken çıkış / diskalifiye şeridi (senin teknen, kullanıcı 2026-11-16) */
+.ocs-ban { position: absolute; z-index: 15; left: 50%; transform: translateX(-50%); top: 64px; max-width: min(560px, calc(100% - 140px));
+  padding: 8px 14px; border-radius: 12px; background: rgba(185,28,28,.92); border: 1.5px solid #fecaca; color: #fff; font-size: 14px; line-height: 1.35; text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,.35); animation: ocsPulse 1s ease-in-out infinite; pointer-events: none; }
+.ocs-ban b { font-weight: 900; }
+@keyframes ocsPulse { 50% { background: rgba(127,29,29,.92); } }
+.ocs-ban .s { display: none; }
+@media (max-height: 520px) { .ocs-ban { font-size: 12.5px; padding: 5px 10px; white-space: nowrap; } .ocs-ban .l { display: none; } .ocs-ban .s { display: inline; } }

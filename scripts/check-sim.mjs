@@ -13,6 +13,9 @@ const cases = [
   { name: 'yarışta rüzgar 12° sağa döner', wind: 0, shift: { at: 25, to: 12 } },
   { name: 'kısa hat (5 boy), yakın şamandıra (8 boy)', wind: 0, course: { lineLen: 250, markDist: 400 } },
   { name: 'uzun hat (16 boy), uzak şamandıra (24 boy), trapez', wind: 8, course: { lineLen: 800, markDist: 1200, type: 'trapez' } },
+  { name: 'antrenör yarışı varsayılanı: şamandıra 30 boy, trapez', wind: 0, course: { lineLen: 550, markDist: 1500, type: 'trapez' } },
+  { name: 'en uzun: şamandıra 40 boy, hat 14 boy, rüzgar -10°', wind: -10, course: { lineLen: 700, markDist: 2000, type: 'trapez' } },
+  { name: 'en kısa: şamandıra 14 boy, hat 8 boy', wind: 6, course: { lineLen: 400, markDist: 700, type: 'trapez' } },
   { name: 'yalnız orsa parkur (eski)', wind: 0, course: { lineLen: 550, markDist: 950, type: 'orsa' } },
   { name: 'orta akıntı + büyük dalga, 3 numara sürükleniyor', wind: 0, sea: { current: 2, waves: 2 }, drift: '3' },
   { name: 'senin teknen sağa rota çizdi', wind: 0, route: [{ x: 560, y: 700 }, { x: 800, y: 560 }, { x: 820, y: 300 }, { x: 600, y: 150 }] },
@@ -422,6 +425,34 @@ for (const cls of ['optimist', 'ilca7']) {
   if (clear.phase === 'ocs') bad.push('tamamı hattın altındaki tekne OCS sayıldı');
   const side = at(9, 90);                   // hatta paralel, gövdenin yarısı geniş: yan kenar/yelken hattın üstünde
   if (side.phase !== 'ocs') bad.push(`yan yatan teknenin kenarı hattın üstünde ama OCS sayılmadı (${side.phase})`);
+  // elle sürülen: start'tan önce hattın üstüne geçip geri dönen OCS değil; start'ta üstte olan yavaşlar, tamamen dönünce
+  // yeniden start eder; siyah bayrakta son dakikada üçgene giren BFD olur ve start'ta yarıştan çıkar
+  const hx = (S.LINE.pin.x + S.LINE.boat.x) / 2, hy = S.LINE.pin.y;
+  const handRace = flag => { const h = S.newRace(S.defaultFleet(4), { wind: 0, course: { ...S.COURSE_DEFAULT, flag } }), m = h.boats.find(b => b.mine);
+    Object.assign(m, { hand: true, drv: true, manual: true, x: hx, y: hy + 40, h: 0, v: 0 }); return { h, m }; };
+  const put = (h, m, y, until) => { while (h.t < until) { Object.assign(m, { x: hx, y, h: 0, hand: true }); S.step(h); } };
+  { const { h, m } = handRace('P');
+    put(h, m, hy - 30, h.startAt - 40 / S.CLOCK_SCALE);       // 40 sn kala hattın üstünde
+    if (m.phase === 'ocs') bad.push('start\'tan önce hattın üstüne geçen elle sürülen tekne OCS sayıldı');
+    put(h, m, hy + 40, h.startAt + S.DT);                      // start'ta altta
+    if (m.phase !== 'race') bad.push(`start'tan önce geri dönen tekne start'ta ${m.phase}`); }
+  { const { h, m } = handRace('P');
+    put(h, m, hy + 10, h.startAt + S.DT);                      // burnu üstte
+    if (m.phase !== 'ocs') bad.push(`elle: burnu üstte start → ${m.phase}`);
+    const ocsV = (() => { const c = S.clone(h), cm = c.boats.find(b => b.mine); cm.h = 45; cm.v = 0; S.drive(c, cm, { autoTrim: true }, 8); return cm.v; })();
+    const okV = (() => { const c = S.clone(h), cm = c.boats.find(b => b.mine); cm.phase = 'race'; cm.h = 45; cm.v = 0; S.drive(c, cm, { autoTrim: true }, 8); return cm.v; })();
+    if (!(ocsV < okV * 0.7)) bad.push(`OCS'de hız düşmedi (${ocsV.toFixed(1)} / ${okV.toFixed(1)})`);
+    put(h, m, hy + 15, h.t + 1);                               // yarı dönmüş: hâlâ OCS
+    if (m.phase !== 'ocs') bad.push('tamamı dönmeden OCS kalktı');
+    put(h, m, hy + 40, h.t + 0.5);                             // tamamı altta
+    if (m.phase !== 'race' || m.started) bad.push(`tamamen dönünce yeniden start beklenmeli (${m.phase}, started ${m.started})`);
+    put(h, m, hy - 30, h.t + 0.5);
+    if (!m.started) bad.push('geri dönüp hattı geçen start etmiş sayılmadı'); }
+  { const { h, m } = handRace('Siyah');
+    put(h, m, hy - 30, h.startAt - 30 / S.CLOCK_SCALE);       // son dakikada üçgende
+    if (m.dsq !== 'BFD') bad.push(`siyah bayrakta üçgene giren BFD olmadı (${m.dsq})`);
+    put(h, m, hy + 40, h.startAt + S.DT);
+    if (m.phase !== 'done' || !m.out) bad.push(`BFD tekne start'ta yarıştan çıkmadı (${m.phase})`); }
   console.log(`• Erken çıkış (herhangi bir parça): ${bad.length ? 'SORUN' : 'burnu ya da kenarı hattın üstünde → OCS, tamamı altta → temiz'}`);
   if (bad.length) { problems++; console.log('  ⚠ OCS:', bad.join(', ')); }
 }
