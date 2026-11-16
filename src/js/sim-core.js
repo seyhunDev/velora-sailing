@@ -212,11 +212,20 @@
     if (b.manual) b.manual = false;   // manuel (tramolaları sen at) yalnız ilk orsada: sonrası otomatik; elle sürmeye dönünce yine manuel olur
     b.sideDone = false; b.gateMk = null; b.zoneT = null; b.zoneLeg = null; b.rMk = null; b.man = null; b.escH = null;
     const n = (s.roundN && s.roundN[i] || 0) + 1; s.roundN = { ...(s.roundN || {}), [i]: n };
-    note(b, s, `${m.no} döndü`, 'good', 2);
+    b.rnd = { no: m.no, n, t };
+    // kullanıcı 2026-11-16: eskiden "1 döndü" yazıyordu (şamandıra no), herkes "birinci döndü" diye okuyordu
+    note(b, s, `Şamandıra ${m.no}: ${n}. sırada`, 'good', 2);
     if (b.mine || n === 1) log(s, `${b.id} ${m.no} numaralı şamandırayı ${n}. sırada döndü`, b.mine ? 'good' : '');
   }
   // finiş hattını rüzgaraltından geçti
   function finishBoat(b, s, t) {
+    if (b.hand) {                                             // elle sürülen: bitirince de dümen sende (kullanıcı 2026-11-16: hiçbir şey otomatik değil)
+      if (b.penaltyAt != null) { note(b, s, 'Önce cezanı at: iki tur (720°), sonra finişi yeniden geç', 'bad', 3.5); log(s, `${b.id} finişi geçti ama cezası atılmadı: sayılmaz, önce iki tur`, 'bad', 'fpen' + b.id); return false; }
+      b.phase = 'done'; b.finish = finishNo(b, s); b.finishT = t - s.startAt; b.doneAt = t;
+      note(b, s, finNote(b), b.dsq ? 'bad' : 'good', 4);
+      log(s, b.dsq ? `${b.id} ${CRS.type === 'trapez' ? 'finişi geçti' : 'şamandırayı döndü'} ama ${b.dsq} (diskalifiye), sıraya girmez` : `${b.id} ${CRS.type === 'trapez' ? 'finişi' : 'şamandırayı'} ${b.finish}. sırada ${CRS.type === 'trapez' ? 'geçti' : 'döndü'}`, b.dsq ? '' : 'good');
+      return true;
+    }
     if (b.penaltyAt != null) {                                // cezası bekliyorsa önce cezasını atar, sonra bitirir
       b.phase = 'penalty'; b.penWait = true; b.penTurn = 0; b.penaltyAt = null; b.man = null; b.penFinish = true; b.hand = false;
       note(b, s, 'Önce cezasını atmalı', 'bad', 2.5); return;
@@ -693,7 +702,12 @@
     if (crossed(0)) { log(s, `Start (0:00): sınıf bayrağı indi, 1 ses${FLAG_RULE[f] ? '. Yasaklı bölge kalktı' : ''}`, 'flag'); at(0); }
   }
   // Gövdenin noktaları (burun, orta, kıç): "gövdenin herhangi bir parçası" için
-  const hullPts = b => { const f = E.fwd(b.h); return [{ x: b.x + f.x * BOW, y: b.y + f.y * BOW }, b, { x: b.x - f.x * BOW, y: b.y - f.y * BOW }]; };
+  // Teknenin dış hattı: gövde + bumba + yelken (K29.1 / K30: "gövdesinin, ekibinin ya da donanımının herhangi bir parçası").
+  // Kullanıcı 2026-11-16: eskiden yalnız teknenin ortası sayılıyordu; burnu ya da yelkeni hattın üstündeki tekne erken sayılmıyordu.
+  const bodyPts = (b, w) => E.boatOutline(BOAT.cls, b.x, b.y, b.h, w, { v: b.hand || b.drv ? null : b.v, base: BASE, sheet: b.hand ? b.sheet : null, back: !!b.back && !!b.hand });
+  const startDist = p => { const n = lineN(); return (p.x - LINE.pin.x) * n.x + (p.y - LINE.pin.y) * n.y; };   // + start tarafı (px)
+  const overLine = (b, w) => bodyPts(b, w).some(p => startDist(p) < 0);           // herhangi bir parçası yarış tarafında
+  const clearOfLine = (b, w) => bodyPts(b, w).every(p => startDist(p) > 1);       // tamamı start tarafında (geri dönüş tamam)
   const lineN = () => { const p = LINE.pin, q = LINE.boat, L = Math.hypot(q.x - p.x, q.y - p.y); return { x: -(q.y - p.y) / L, y: (q.x - p.x) / L }; };   // start tarafı
   const courseSide = p => { const n = lineN(); return (p.x - LINE.pin.x) * n.x + (p.y - LINE.pin.y) * n.y < 0; };
   function inTriangle(p) {
@@ -706,7 +720,7 @@
   function zoneCheck(s, b) {
     const f = flagOf(s), rule = FLAG_RULE[f];
     if (!rule || b.gone || b.phase === 'done') return;
-    const pts = hullPts(b);
+    const pts = bodyPts(b, s.wind);
     if (rule === 'I') {
       if (b.iFlag || !pts.some(courseSide)) return;
       b.iFlag = true;
@@ -727,7 +741,7 @@
   function startPhase(b, s) {
     if (b.dsq) { b.phase = 'race'; if (lineSide(b) === -1) b.started = true; return; }   // diskalifiye: geri dönmez, yarışa devam eder (sayılmaz)
     if (b.iFlag) { b.phase = 'ocs'; b.go = true; note(b, s, 'I bayrağı · uçlardan dolaş', 'bad', 3.5); return; }
-    b.phase = lineSide(b) === -1 ? 'ocs' : 'race'; if (b.phase === 'ocs') ocs(b, s);
+    b.phase = overLine(b, s.wind) ? 'ocs' : 'race'; if (b.phase === 'ocs') ocs(b, s);
   }
   // I bayrağında dolaşma rotası: hattın üstündeyken yakın ucun dışına, uzantıyı geçince rüzgaraltına
   function roundEndsTarget(b, w) {
@@ -766,6 +780,8 @@
       b.shadow = sh.k; b.shadowBy = sh.by ? sh.by.id : null;
       if (CRS.type === 'trapez') zoneUpd(b, t);
       if (b.hand) { handPhase(b, s, t, w, remain); continue; }   // elle sürülen tekne: dümen/iskota kullanıcıda (drive), yalnız evre geçişleri
+      // start etmiş ama (ceza turu, kaçınma) hattın altına geri düşmüş otomatik tekne: hattı yeniden arar (yoksa hakem botunun dibinde dönüp duruyordu)
+      if (b.phase === 'race' && b.started && !(b.leg > 0) && t > s.startAt + 1 && lineSide(b) === 1 && distToLine(b, w) > 12) b.started = false;
       let target = b.h, speedK = 1, holding = false, turnDir = 0, creepV = null;
 
       if (b.phase === 'wait') {
@@ -912,7 +928,7 @@
       if (b.phase === 'ocs' && b.iFlag) target = roundEndsTarget(b, w);   // I bayrağı: uçların dışından dolaş
       else if (b.phase === 'ocs') {
         target = w + 180;
-        if (lineSide(b) === 1 && distToLine(b, w) > 8) { b.phase = 'race'; b.started = false; note(b, s, b.outside ? 'Geri döndü, şimdi hattın içinden' : 'Geri döndü, şimdi start', '', 2); }
+        if (lineSide(b) === 1 && clearOfLine(b, w)) { b.phase = 'race'; b.started = false; note(b, s, b.outside ? 'Geri döndü, şimdi hattın içinden' : 'Geri döndü, şimdi start', '', 2); }
       }
 
       // akıntı: hedef yöne yere göre gidebilmek için burnu akıntıya karşı tut (orsa açısından dar olmadan)
@@ -1051,7 +1067,7 @@
       }
     }
     // start'tan önce hattı yalnız manuel (ya da elle sürülen) tekne geçebilir: diğerlerinin burnu hattın altında kalır
-    if (t < s.startAt) for (const b of active) if (b.phase === 'wait' && !b.manual) keepBehindLine(b);
+    if (t < s.startAt) for (const b of active) if (b.phase === 'wait' && !b.manual) keepBehindLine(b, w);
     // son dakika: hazırlık bayrağının yasaklı bölgesi (I: hattın/uzantılarının üstü; Z, U, Siyah: üçgen)
     const rem1 = remReal(s, t);
     if (rem1 <= 60 && rem1 > 0) for (const b of active) zoneCheck(s, b);
@@ -1103,28 +1119,71 @@
     return fetch ? brg : w + (b.tack === 'starboard' ? -160 : 160);
   }
   // Elle sürülen tekne (canlı elle sürme): hareketi drive() yapar; burada yalnız yarış evreleri ilerler.
-  // Şamandıra dönüşü ve ceza turu otomatiğe geçer (b.hand kalkar, arayüz elle sürmeyi bitirir).
+  // Kullanıcı 2026-11-16: "otomatik hiçbir şey olmasın, her zaman kullanıcı kullanacak". Şamandırayı sen dönersin, ceza turunu
+  // sen atarsın, finişi sen geçersin; burada yalnız fark edilir (dümen hiç elinden alınmaz).
+  // Şamandıra dönüşü: şamandıradan geliş yönünde (ayağın ileri ucu) uzanan 12 boyluk ışını doğru yönde kesmek. Şamandıra iskelede
+  // bırakılacaksa (dir +1) ışını sağından soluna, sancakta (−1) solundan sağına. Ters yönde kesmek (yanlış taraftan geçmek) −1 sayar:
+  // geri dönüp doğru taraftan dolaşmak gerekir (ipin şamandıranın doğru yanından geçmesi, K28).
+  const RAY = 12 * HULL;   // uzak dolaşan (layline'ı aşan) tekne de sayılsın
+  function rayCross(b, m, inB) {
+    const f = E.fwd(inB), r = E.fwd(inB + 90);
+    const a0 = (b.hpx - m.x) * f.x + (b.hpy - m.y) * f.y, a1 = (b.x - m.x) * f.x + (b.y - m.y) * f.y;
+    const s0 = (b.hpx - m.x) * r.x + (b.hpy - m.y) * r.y, s1 = (b.x - m.x) * r.x + (b.y - m.y) * r.y;
+    if ((s0 > 0) === (s1 > 0) || s0 === s1) return 0;
+    const k = s0 / (s0 - s1), al = a0 + (a1 - a0) * k;                     // kesişme noktası ışın üstünde mi (şamandıranın ötesinde, 12 boy içinde)
+    if (al < 0 || al > RAY) return 0;
+    return s0 > 0 ? 1 : -1;                                                 // +1: sağdan sola (iskeleden dönüş yönü)
+  }
+  function handRound(b, s, t, m) {
+    const i = b.leg || 0, lg = legOf(b);
+    if (lg.last) { finishBoat(b, s, t); return; }                           // yalnız orsa parkuru: şamandıra = bitiş
+    b.leg = i + 1; b.rc = null; b.gateMk = lg.k === 'gate' ? m.no : null; b.zoneT = null; b.zoneLeg = null; b.sideDone = false;
+    const n = (s.roundN && s.roundN[i] || 0) + 1; s.roundN = { ...(s.roundN || {}), [i]: n };
+    b.rnd = { no: m.no, n, t };
+    note(b, s, `Şamandıra ${m.no}: ${n}. sırada döndün`, 'good', 3);
+    log(s, `${b.id} ${m.no} numaralı şamandırayı ${n}. sırada döndü`, b.mine ? 'good' : '');
+  }
   function handPhase(b, s, t, w, remain) {
     if (b.phase === 'wait' && remain <= 0) startPhase(b, s);
-    else if (b.phase === 'ocs' && !b.iFlag && lineSide(b) === 1 && distToLine(b, w) > 8) { b.phase = 'race'; b.started = false; note(b, s, b.outside ? 'Geri döndü, şimdi hattın içinden' : 'Geri döndü, şimdi start', '', 2); }
-    if (b.phase === 'race' && b.started) {
-      const wp = waypoint(w), dWp = Math.hypot(wp.x - b.x, wp.y - b.y), dM = Math.hypot(b.x - MARK.x, b.y - MARK.y), phi = markAngle(b, w);
-      // şamandıraya ~1.5 boy yaklaşınca (hangi yandan gelirse gelsin) dönüşü otomatik yapar
-      const level = dot({ x: b.x - MARK.x, y: b.y - MARK.y }, E.fwd(w)) > -15;   // şamandıranın hizasına gelmiş (altından kesmiyor)
+    else if (b.phase === 'ocs' && !b.iFlag && lineSide(b) === 1 && clearOfLine(b, w)) { b.phase = 'race'; b.started = false; note(b, s, b.outside ? 'Geri döndü, şimdi hattın içinden' : 'Geri döndü, şimdi start', '', 2); }
+    if (b.phase === 'round') { b.phase = 'race'; }                          // eski kayıt / otomatikten devralma: dönüş yarıda kaldıysa elle sürdür
+    if (b.phase === 'penalty') { b.phase = 'race'; b.penaltyAt = b.penaltyAt != null ? b.penaltyAt : t; b.penFinish = false; }
+    // ceza: iki tur (720°) aynı yöne, sen atarsın; yalnız sayılır (K44.2)
+    if (b.penHand && b.penaltyAt == null) b.penHand = false;
+    if (b.penaltyAt != null && t >= b.penaltyAt && b.phase !== 'done') {
+      if (!b.penHand) {
+        b.penHand = true; b.penAcc = 0; b.penH = b.h;
+        note(b, s, 'Ceza: iki tur at (720°)', 'bad', 4);
+        log(s, `${b.id} iki tur ceza atmalı (K${b.penaltyRule || ''}): dümenle aynı yöne iki tam tur`, 'bad');
+      } else {
+        const dh = E.norm180(b.h - b.penH); b.penH = b.h;
+        const was = Math.floor(Math.abs(b.penAcc) / 360);
+        b.penAcc += dh;
+        const now = Math.floor(Math.abs(b.penAcc) / 360);
+        if (Math.abs(b.penAcc) >= 710) {
+          b.penaltyAt = null; b.penHand = false; b.penAcc = 0;
+          note(b, s, 'Ceza tamam', 'good', 2.5); log(s, `${b.id} cezasını tamamladı (iki tur)`, 'good');
+        } else if (now > was) note(b, s, '1. tur tamam · bir tur daha', 'bad', 2.5);
+      }
+    }
+    // şamandıra dönüşü (sen dönersin; burada yalnız fark edilir)
+    if (b.phase === 'race' && b.started && b.hpx != null && Math.abs(t - b.hpt - DT) < 1e-3) {   // bir önceki adım da elle (atlama yok)
       const lg = legOf(b);
-      let rm = null;
-      if ((b.leg || 0) === 0) { if (dWp < 20 || (level && dM < R_ROUND + 40) || (phi > -10 && phi < 110 && dM < R_ROUND + 26)) rm = MARK; }
-      else if (lg.k !== 'fin') {
-        // 2 ve kapı (trapez): şamandıranın hizasına gelip ~1.5 boy yaklaşınca; kapıda yaklaştığın şamandıra seçilir
-        const inB = legIn(lg), fi = E.fwd(inB);
-        for (const m of (lg.k === 'gate' ? lg.ms.slice().sort((a, c) => Math.hypot(b.x - a.x, b.y - a.y) - Math.hypot(b.x - c.x, b.y - c.y)) : [lg.m])) {
-          const e = entryOf(m, m.dir, inB), dMk = Math.hypot(b.x - m.x, b.y - m.y), al = dot({ x: b.x - m.x, y: b.y - m.y }, fi);
-          if (Math.hypot(e.x - b.x, e.y - b.y) < 20 || (al > -15 && dMk < R_ROUND + 40)) { rm = m; if (lg.k === 'gate') b.gateMk = m.no; break; }
+      if (lg.k === 'mark' || lg.k === 'gate') {
+        const inB = (b.leg || 0) === 0 ? bearing({ x: (LINE.pin.x + LINE.boat.x) / 2, y: (LINE.pin.y + LINE.boat.y) / 2 }, lg.m || MARK) : legIn(lg);
+        for (const m of (lg.k === 'gate' ? lg.ms : [lg.m])) {
+          const c = rayCross(b, m, inB); if (!c) continue;
+          const rc = b.rc && b.rc.leg === (b.leg || 0) ? b.rc : (b.rc = { leg: b.leg || 0 });
+          rc[m.no] = (rc[m.no] || 0) + c * (m.dir || 1);
+          if (rc[m.no] >= 1) { handRound(b, s, t, m); break; }
+          if (c * (m.dir || 1) < 0) {
+            note(b, s, `Şamandıra ${m.no} yanlış taraftan: ${(m.dir || 1) > 0 ? 'iskelende (solunda)' : 'sancağında (sağında)'} kalmalı`, 'bad', 4);
+            log(s, `${b.id} ${m.no} numaralı şamandırayı yanlış taraftan geçti: geri dönüp doğru taraftan dolaşmalı`, 'bad', 'yanlis' + b.id + m.no);
+          }
         }
       }
-      if (rm) { startRound(b, rm, w, t); b.hand = false; }
-      else if (b.penaltyAt != null && t >= b.penaltyAt) b.hand = false;      // ceza turunu otomatik atar
     }
+    b.hpx = b.x; b.hpy = b.y; b.hpt = t;
   }
   // Canlı elle sürme: önce senin teknen dümen/iskotayla bir adım (DT) ilerler, sonra yarışın geri kalanı bir adım.
   // Herkes aynı zamanda hareket eder (eskiden zaman donuyordu, teknen tek başına öne fırlıyordu).
@@ -1160,9 +1219,9 @@
   }
   // Burnu (ve kıçı) hattın start tarafında tut: hat çizgisine dik uzaklık en az 2 px
   const BOW = 24;
-  function keepBehindLine(b) {
+  function keepBehindLine(b, w) {
     const p = LINE.pin, q = LINE.boat, lx = q.x - p.x, ly = q.y - p.y, L = Math.hypot(lx, ly), nx = -ly / L, ny = lx / L;   // n: start tarafı
-    const f = E.fwd(b.h), sd = Math.min(...[BOW, -BOW].map(k => ((b.x + f.x * k - p.x) * nx + (b.y + f.y * k - p.y) * ny)));
+    const sd = Math.min(...bodyPts(b, w).map(startDist));   // gövde, bumba ve yelkenin hiçbir yeri hattı geçmesin (K29.1)
     if (sd >= 2) return;
     if ((b.x - p.x) * nx + (b.y - p.y) * ny < -BOW) return;     // kurulumda hattın üstüne konmuş: OCS kalır
     b.x += nx * (2 - sd); b.y += ny * (2 - sd); b.v *= 0.5;

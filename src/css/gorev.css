@@ -104,3 +104,7 @@ body.task-race .task-back { display: inline-flex; align-items: center; justify-c
 body.task-race .task-back svg { width: 22px; height: 22px; }
 body.task-race .task-back:hover { background: rgba(30,48,68,.85); }
 body.task-race .race-hud.on-stage { top: calc(10px + var(--sat)); left: 50%; transform: translateX(-50%); }
+/* finişten sonra yarışı kapatma (dümen finişte de sende kalır, kullanıcı 2026-11-16) */
+.task-fin { display: none; }
+body.task-race .task-fin:not(.hidden) { display: inline-flex; align-items: center; gap: 6px; position: absolute; z-index: 16;
+  top: calc(10px + var(--sat)); right: calc(12px + var(--sar, 0px)); min-height: 44px; padding: 0 16px; font-weight: 700; }

@@ -632,10 +632,7 @@
       N.resAuto = true;
       setTimeout(() => { if (!N.s) return; N.view = 'res'; N.resOpen = true; show(true); }, 1800);
     }
-    if (m.phase === 'round') toast(`${m.rMk || 'Şamandıra'} dönüşü otomatik, bitince dümen yine sende`);
-    if (was === 'round' && m.phase === 'race') toast(`${S.CRS.legs[m.leg || 0] && S.CRS.legs[m.leg || 0].k === 'fin' ? 'Finişe' : 'Sonraki şamandıraya'}: dümen sende`);
-    if (m.phase === 'penalty') toast('İki tur ceza: otomatik atılıyor, bitince dümen yine sende');
-    if (was === 'penalty' && m.phase === 'race') toast('Ceza tamam: dümen sende');
+    // şamandıra dönüşü, ceza turu ve finiş elle (kullanıcı 2026-11-16); bildirimleri sim.js handNotes verir
   }
   function chipUpdate() {
     const on = !!N.key;

@@ -96,6 +96,25 @@
     const r = Math.round(Math.max(...m.plan.map(p => p[1])) * K * 0.9 * 10) / 10;
     return { r, half: BOAT_LEN_PX / 2 - r };
   }
+  // Teknenin dünyadaki dış hattı (gövde planı + bumba ucu + yelken karnı): "gövdenin, donanımın herhangi bir parçası"
+  // (K29.1 erken çıkış, K30 yasaklı bölge) için. Çizimle aynı ölçüler (boat-draw: baş −y, 1 boy = 50 px).
+  // opts: { v, base, sheet, back } (sailPose ile aynı; zaman titreşimi yok, deterministik)
+  function boatOutline(cls, x, y, h, windFrom, opts) {
+    const m = boatModel(cls), K = BOAT_LEN_PX / m.loa, Y = s => -BOAT_LEN_PX / 2 + s * K;
+    const loc = [];
+    for (const [s, hw] of m.plan) { loc.push([hw * K, Y(s)]); if (hw > 0) loc.push([-hw * K, Y(s)]); }
+    const pose = sailPose(h, windFrom, opts || {}), b = pose.beta * DEG, my = Y(m.mast), L = m.boom * K;
+    const tx = Math.sin(b) * L, ty = my + Math.cos(b) * L, nx = Math.cos(b), ny = -Math.sin(b), bl = pose.belly * L / 27;
+    loc.push([tx, ty]);
+    // yelken karnı (sailShape'in kübik eğrisi, titreşimsiz): 1/3, 1/2, 2/3
+    const c1 = [tx / 3 + nx * bl * 1.1, my + (ty - my) / 3 + ny * bl * 1.1], c2 = [tx * 2 / 3 + nx * bl * 0.9, my + (ty - my) * 2 / 3 + ny * bl * 0.9];
+    for (const u of [1 / 3, 0.5, 2 / 3]) {
+      const a = (1 - u) ** 3, bb = 3 * (1 - u) ** 2 * u, c = 3 * (1 - u) * u * u, d = u ** 3;
+      loc.push([bb * c1[0] + c * c2[0] + d * tx, a * my + bb * c1[1] + c * c2[1] + d * ty]);
+    }
+    const f = fwd(h), r = fwd(h + 90);
+    return loc.map(([lx, ly]) => ({ x: x + r.x * lx - f.x * ly, y: y + r.y * lx - f.y * ly }));
+  }
   function upwindKn(cls, wind) {
     const t = (BOAT_CLASSES[cls] || BOAT_CLASSES.optimist).up;
     if (wind <= t[0][0]) return t[0][1];
@@ -492,6 +511,6 @@
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
     windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,
     CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU,
-    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf, CB_HULL
+    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf, boatOutline, CB_HULL
   };
 })(typeof window !== 'undefined' ? window : globalThis);

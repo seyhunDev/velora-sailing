@@ -713,7 +713,7 @@
     catDots(v, mine);
     $('btnMineRules').disabled = !mine || (!setup && (mine.phase === 'done' || !!mine.finish));
     $('btnDrive').classList.toggle('on', !!st.drive); $('btnDrive').setAttribute('aria-pressed', !!st.drive);
-    $('btnDrive').disabled = !mine || (!st.drive && !setup && !['wait', 'race', 'ocs'].includes(mine.phase));
+    $('btnDrive').disabled = !mine || (!st.drive && !setup && !['wait', 'race', 'ocs', 'round', 'penalty'].includes(mine.phase));
     if (st.drive) { $('btnTack').disabled = false; $('btnTack').classList.remove('pulse'); }
     helmUpdate(v);
     stateUpdate(v, mine);
@@ -946,7 +946,7 @@
     } else {
       if (!st.frames.length) return;
       const i = frameIndexAt(st.playT), s = S.clone(st.frames[i]), m = s.boats.find(b => b.mine);
-      if (!m || !['wait', 'race', 'ocs'].includes(m.phase)) { toast(m && m.phase === 'penalty' ? 'Ceza turundayken elle sürülemez' : 'Teknen şamandırayı döndü: elle sürülemez'); return; }
+      if (!m || !['wait', 'race', 'ocs', 'round', 'penalty'].includes(m.phase)) { toast(m && m.finish ? 'Teknen bitirdi: elle sürülemez' : 'Teknen yarışta değil: elle sürülemez'); return; }
       const prev = { manual: !!m.manual, route: null };   // yarışta rota geri gelmez (tekne yolundan çıktı); Manuel eski haline döner
       m.manual = true; m.route = null; m.man = null; m.escH = null; m.sheet = null; m.hand = true;
       if (m.phase === 'wait' && Math.abs(E.norm180(m.h - s.wind)) < 40) { m.h = s.wind + (m.tack === 'starboard' ? -45 : 45); m.sheetOff = S.SHEET_OFF_MAX; }   // beklerken yelken boştu
@@ -967,6 +967,7 @@
   // keep: kurulumdan Start ▶ ile çıkınca elle sürmeye yarışta devam et
   function exitDrive(play, keep) {
     const d = st.drive; if (!d) return;
+    finBtn.classList.add('hidden');
     const ctx = driveCtx(), m = ctx.boats.find(b => b.mine);
     st.drive = null;
     if (st.camPrev && !st.camPrev.follow && !keep) { Object.assign(st.cam, st.camPrev); applyCam(); }
@@ -1008,12 +1009,31 @@
       }
     }
   }
+  // Antrenör yarışında finişten sonra: dümen sende kalır, yarışı "Sonucu gör" ile sen kapatırsın (kullanıcı 2026-11-16)
+  const finBtn = document.createElement('button');
+  finBtn.id = 'taskFin'; finBtn.className = 'tb primary task-fin hidden'; finBtn.innerHTML = '<svg class="ci"><use href="#i-check"/></svg>Sonucu gör';
+  document.querySelector('.stage').appendChild(finBtn);
+  finBtn.addEventListener('click', () => { finBtn.classList.add('hidden'); if (st.drive && st.drive.live && !st.drive.net) exitDrive(true); });
+  // Elle sürerken yarış olayları (dönüş sırası, ceza, finiş) kısa bildirim olarak; dümen hep sende kalır
+  function handNotes(m) {
+    const d = st.drive, k = [m.rnd ? m.rnd.no + '/' + m.rnd.n : '', m.penaltyAt != null ? 'p' : '', m.finish || ''].join('|');
+    if (d.hk == null) { d.hk = k; return; }
+    if (k === d.hk) return;
+    const [r0, p0, f0] = d.hk.split('|'); d.hk = k;
+    if (m.finish && String(m.finish) !== f0) {
+      toast(m.dsq ? `Finişi geçtin · ${m.dsq}, sıraya girmez` : `Bitirdin · ${m.finish}. oldun${st.task && !st.task.watch ? ' · Sonucu gör ile yarışı kapat' : ' · dümen hâlâ sende'}`);
+      if (st.task && !st.task.watch && !d.net) finBtn.classList.remove('hidden');
+      updatePanel(true);
+    } else if (m.rnd && m.rnd.no + '/' + m.rnd.n !== r0) toast(`${m.rnd.no} numaralı şamandırayı ${m.rnd.n}. sırada döndün`);
+    else if (p0 && m.penaltyAt == null) toast('Ceza tamam · iki tur atıldı');
+    else if (!p0 && m.penaltyAt != null) toast('Protesto: iki tur ceza at (720°, aynı yöne). Atmadan finiş sayılmaz');
+  }
   function driveTick(dt) {
     const d = st.drive, ctx = driveCtx(), m = ctx.boats.find(b => b.mine); if (!m) return;
     const inp = { rudder: Math.max(-1, Math.min(1, d.keyRud + d.touchRud)), autoTrim: d.autoTrim, hold: d.back ? null : d.hold, back: !!d.back };
     if (inp.rudder && d.hold) { d.hold = null; lastHelmKey = ''; }   // dümene dokununca Orsa bırakır
     if (!d.live) driveEvents(m, S.drive(ctx, m, inp, dt * DRIVE_TEMPO));
-    else if (d.net) d.net.tick(d, m, inp, dt, ev => driveEvents(m, ev));   // online: saat ortak, öbür tekneler ağdan (js/online.js)
+    else if (d.net) { d.net.tick(d, m, inp, dt, ev => driveEvents(m, ev)); handNotes(m); }   // online: saat ortak, öbür tekneler ağdan (js/online.js)
     else if (!d.paused) {
       // canlı yarış: sabit adımlarla (DT) herkes birlikte ilerler; ekran karesi başına en çok 8 adım
       const tempo = Math.min(st.speed, 5) / S.CLOCK_SCALE;   // saat hızı (1× = gerçek zaman); teknenin ekrandaki hızı S.CLOCK_SCALE'den (Ekranda hız)
@@ -1026,7 +1046,8 @@
         driveEvents(m, S.handStep(d.s, m, sinp, d.path));
         d.n++;
         if (d.n % 2 === 0) d.frames.push(S.clone(d.s));
-        if (!m.hand || d.s.boats.every(b => b.finish || b.gone)) {      // şamandıra dönüşü / ceza turu: otomatik devralır
+        handNotes(m);
+        if (!m.hand) {      // (eski) dümen elden çıktıysa; kullanıcı 2026-11-16'dan beri dönüş, ceza, finiş hep elle: dümen elden alınmaz
           if (d.n % 2) d.frames.push(S.clone(d.s));
           const lastLeg = S.CRS.type !== 'trapez' || (m.leg || 0) >= S.CRS.legs.length - 1;
           const why = m.phase === 'round' ? `${m.rMk || 'Şamandıra'} dönüşü otomatik` : m.phase === 'penalty' || m.penaltyAt != null ? 'Ceza turunu otomatik atıyor' : m.finish ? `Bitirdin · ${finTxt(m)}` : 'Elle sürme bitti';

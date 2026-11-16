@@ -357,24 +357,73 @@ for (const cls of ['optimist', 'ilca7']) {
     if (!b.finish) bad.push(`${b.id} bitirmedi`);
   }
   if (!gate['3S'] || !gate['3P']) bad.push(`kapı tek taraflı (3S ${gate['3S']}, 3P ${gate['3P']})`);
-  // elle sürme: hedefe dümen tut (orsada 45°, pupada 160°), dönüş otomatik, sonra dümen yine elde
+  // elle sürme (kullanıcı 2026-11-16: hiçbir şey otomatik değil): şamandırayı, cezayı, finişi sen yaparsın; çekirdek yalnız fark eder.
+  // Teknen şamandıraların çevresinde doğru taraftan çember çizen bir yolda (konum adım adım) gezdirilir: her dönüş sayılmalı,
+  // dümen hiç elden çıkmamalı; yanlış taraftan geçen sayılmamalı; ceza 720° dönünce kalkmalı; finişte dümen elde kalmalı.
   S.setCourse(S.COURSE_DEFAULT);
-  const h = S.newRace(S.defaultFleet(10), { wind: 0 }), m = h.boats.find(b => b.mine); let rounds = 0;
-  Object.assign(m, { manual: true, sheetOff: 0 });
-  while (h.t < h.startAt + 500 && !m.finish) {
-    if (h.t < h.startAt + 1 || !['race', 'wait', 'ocs'].includes(m.phase)) { if (m.phase === 'round') rounds += m.hand ? 0 : 0; m.hand = false; S.step(h); continue; }
-    const a = S.aimOf(m, h.wind), brg = (Math.atan2(a.x - m.x, -(a.y - m.y)) / EN.DEG + 360) % 360, r = EN.norm180(brg - h.wind);
-    const want = Math.abs(r) < 45 ? h.wind + (m.tack === 'port' ? 45 : -45) : brg;
-    const dif = EN.norm180(want - m.h);
-    const was = m.phase; S.handStep(h, m, { rudder: Math.max(-1, Math.min(1, dif / 15)), autoTrim: true }, null);
-    if (was === 'race' && m.phase === 'round') rounds++;
-    // orsada kontra seçimi: hedef öbür kontrada tutuyorsa tramola (dümenle)
-    if (Math.abs(r) < 45 && m.phase === 'race' && Math.abs(EN.norm180(m.h - h.wind)) > 40 && ((m.tack === 'starboard' && r > 44) || (m.tack === 'port' && r < -44))) m.tack = m.tack === 'port' ? 'starboard' : 'port';
-  }
+  const brgOf = (p, q) => (Math.atan2(q.x - p.x, -(q.y - p.y)) / EN.DEG + 360) % 360;
+  const fresh = () => {
+    const fr = S.runToEnd(S.newRace(S.defaultFleet(10), { wind: 0 })), k = fr.findIndex(f => f.t >= f.startAt + 2);
+    const h = S.clone(fr[k]), m = h.boats.find(b => b.mine);
+    Object.assign(m, { manual: true, hand: true, drv: true, phase: 'race', started: true, leg: 0, finish: null, penaltyAt: null, dsq: null });
+    return { h, m };
+  };
+  const walk = (h, m, pts) => { let lost = 0; for (const p of pts) { m.x = p.x; m.y = p.y; m.h = p.h; m.hand = true; S.step(h); if (!m.hand) lost++; } return lost; };
+  // şamandıra m çevresinde: geliş yönünden (inB) 3 boy önce başla, dir yönünde 60 px yarıçapla dolaş, ~200° dön
+  const arc = (mk, inB, dir) => {
+    const pts = [], c = { x: mk.x, y: mk.y }, R = 60, a0 = inB + 180;       // başlangıç: şamandıranın geliş tarafı
+    const side = EN.fwd(inB + 90 * dir);
+    for (let i = 0; i <= 30; i++) { const back = EN.fwd(inB + 180); pts.push({ x: mk.x + back.x * (150 - i * 5) + side.x * R, y: mk.y + back.y * (150 - i * 5) + side.y * R, h: inB }); }
+    for (let i = 0; i <= 60; i++) { const a = inB + 90 * dir - dir * i * 3.5, f = EN.fwd(a); pts.push({ x: c.x + f.x * R, y: c.y + f.y * R, h: a - 90 * dir }); }
+    return pts;
+  };
+  let { h, m } = fresh(); let lost = 0, rounds = 0;
+  const mid = { x: (S.LINE.pin.x + S.LINE.boat.x) / 2, y: (S.LINE.pin.y + S.LINE.boat.y) / 2 };
+  const legs = [[S.MARK, brgOf(mid, S.MARK)], [S.M2, brgOf(S.MARK, S.M2)], [S.G3P, brgOf(S.M2, { x: (S.G3S.x + S.G3P.x) / 2, y: S.G3S.y })]];
+  for (const [mk, inB] of legs) { const l0 = m.leg || 0; lost += walk(h, m, arc(mk, inB, mk.dir || 1)); if ((m.leg || 0) > l0) rounds++; }
+  // ceza: 720° aynı yöne, yerinde
+  m.penaltyAt = h.t; m.penaltyRule = 10; S.step(h);
+  const hp = m.h; for (let i = 1; i <= 150; i++) { m.h = hp + i * 5; S.step(h); }
+  const penOk = m.penaltyAt == null;
+  // finiş: hattın altından yukarı, uçların arasından
+  const fc = { x: (S.FIN.pin.x + S.FIN.boat.x) / 2, y: S.FIN.pin.y };
+  lost += walk(h, m, Array.from({ length: 40 }, (_, i) => ({ x: fc.x, y: fc.y + 100 - i * 5, h: 0 })));
   if (rounds < 3) bad.push(`elle sürme: ${rounds} dönüş (3 olmalı)`);
+  if (lost) bad.push(`elle sürme: dümen ${lost} adım elden çıktı (otomatik devraldı)`);
+  if (!penOk) bad.push('elle sürme: 720° dönünce ceza kalkmadı');
   if (!m.finish) bad.push(`elle sürme: bitirmedi (${m.phase}, ayak ${m.leg})`);
-  console.log(`• Trapez parkur: ${bad.length ? 'SORUN' : `12 tekne 1-2-kapı-finiş, kapı 3S ${gate['3S']} / 3P ${gate['3P']}, elle sürülen ${m.finish}. bitirdi`}`);
+  if (m.finish && !m.hand) bad.push('elle sürme: finişte dümen elden çıktı');
+  const handFin = m.finish;
+  // yanlış taraftan: 1 numarayı sancakta bırakarak geçen dönmüş sayılmaz
+  ({ h, m } = fresh()); walk(h, m, arc(S.MARK, brgOf(mid, S.MARK), -1));
+  if ((m.leg || 0) !== 0) bad.push('elle sürme: yanlış taraftan geçen tekne dönmüş sayıldı');
+  // ceza atılmadan finiş sayılmaz
+  ({ h, m } = fresh()); m.leg = 3; m.penaltyAt = h.t - 1; m.penaltyRule = 10;
+  walk(h, m, Array.from({ length: 40 }, (_, i) => ({ x: fc.x, y: fc.y + 100 - i * 5, h: 0 })));
+  if (m.finish) bad.push('elle sürme: cezasını atmayan finiş saydırdı');
+  console.log(`• Trapez parkur: ${bad.length ? 'SORUN' : `12 tekne 1-2-kapı-finiş, kapı 3S ${gate['3S']} / 3P ${gate['3P']}, elle sürülen 3 şamandırayı kendi döndü, 720° ceza attı, ${handFin}. bitirdi (dümen hep elde)`}`);
   if (bad.length) { problems++; console.log('  ⚠ Trapez:', bad.join(', ')); }
+}
+// Erken çıkış (K29.1, kullanıcı 2026-11-16): start işaretinde gövdenin ya da yelkenin HERHANGİ bir parçası hattın yarış
+// tarafındaysa OCS (eskiden yalnız teknenin ortası sayılıyordu). Geri dönüşte teknenin tamamı start tarafına geçmeli.
+{
+  S.setCourse(S.COURSE_DEFAULT);
+  const bad = [];
+  const at = (dy, hd) => {
+    const h = S.newRace(S.defaultFleet(4), { wind: 0 }), m = h.boats.find(b => b.mine);
+    const x = (S.LINE.pin.x + S.LINE.boat.x) / 2, y = S.LINE.pin.y + dy;     // hat yatay (rüzgar 0°)
+    while (h.t < h.startAt - S.DT * 0.5) { Object.assign(m, { x, y, h: hd, v: 0, hand: true, drv: true, manual: true, phase: 'wait' }); S.step(h); }
+    Object.assign(m, { x, y, h: hd, v: 0, hand: true }); S.step(h);
+    return m;
+  };
+  const bow = at(14, 0);                    // ortası 14 px altta, burnu ~11 px hattın üstünde
+  if (bow.phase !== 'ocs') bad.push(`burnu hattın üstündeki tekne OCS sayılmadı (${bow.phase})`);
+  const clear = at(32, 0);                  // tamamı altta
+  if (clear.phase === 'ocs') bad.push('tamamı hattın altındaki tekne OCS sayıldı');
+  const side = at(9, 90);                   // hatta paralel, gövdenin yarısı geniş: yan kenar/yelken hattın üstünde
+  if (side.phase !== 'ocs') bad.push(`yan yatan teknenin kenarı hattın üstünde ama OCS sayılmadı (${side.phase})`);
+  console.log(`• Erken çıkış (herhangi bir parça): ${bad.length ? 'SORUN' : 'burnu ya da kenarı hattın üstünde → OCS, tamamı altta → temiz'}`);
+  if (bad.length) { problems++; console.log('  ⚠ OCS:', bad.join(', ')); }
 }
 // Görev yarış akışı (sim-core runPlan): rüzgar zamanında döner ve geri gelir, sağanak şamandıranın arkasından doğup
 // aşağı iner ve hattı geçince kaybolur; aynı kurulum iki kez aynı yarışı verir (tekrar oynatma deterministik)
