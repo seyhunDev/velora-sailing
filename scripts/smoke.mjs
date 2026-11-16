@@ -70,7 +70,7 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
   // doğrudan elle sürüş (2026-11-14): açılınca yarış başlar, dümen sende, yelken boş
   const driving = () => p.evaluate(() => document.body.classList.contains('driving'));
   ok(await driving(), 'simülatör doğrudan elle sürüşle açıldı');
-  const luff = await p.$eval('#hpTrimTxt', e => e.textContent);
+  const luff = await p.$eval('#hpState', e => e.textContent);
   ok(/salık|pırpır/i.test(luff), `başta yelken boş: "${luff}"`);
 
   // yarışta zorlaştıran ayarlar: rüzgar, sağanak → rozet görünür
@@ -99,12 +99,14 @@ const shot = async (p, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursive: 
 
   await shot(p, 'sim-elle.png');
   await p.keyboard.press('i'); await p.waitForTimeout(2500);         // iskotayı çek, hızlan
-  await p.keyboard.press('b'); await p.waitForTimeout(5000);         // yelkeni tersle: fren, dur, geri
+  await p.keyboard.down('b'); await p.waitForTimeout(5000);          // yelkeni tersle (basılı tut): fren, dur, geri
   const backTxt = await p.$eval('#hpSpeed', e => e.textContent), backOn = await p.$eval('#hpBack', e => e.classList.contains('on'));
   ok(backOn && /geri/.test(backTxt), `Tersle (B): ${backTxt}`);
-  await p.keyboard.press('b');
+  await p.keyboard.up('b'); await p.waitForTimeout(400);
+  const relTxt = await p.$eval('#hpState', e => e.textContent), relOn = await p.$eval('#hpBack', e => e.classList.contains('on'));
+  ok(!relOn && /salık|karşı/i.test(relTxt), `Tersle bırakınca yelken salık: ${relTxt}`);
   await p.keyboard.press('r'); await p.waitForTimeout(400);
-  ok(await driving() && /salık|pırpır/i.test(await p.$eval('#hpTrimTxt', e => e.textContent)), 'Yeni yarış (R): yine elle, yelken boş');
+  ok(await driving() && /salık/i.test(await p.$eval('#hpState', e => e.textContent)), 'Yeni yarış (R): yine elle, yelken boş');
 
   // yapay çizim hatası: döngü durmamalı
   await p.evaluate(() => { const o = SVGElement.prototype.setAttribute; let n = 0; SVGElement.prototype.setAttribute = function (...a) { if (n++ === 40) throw new Error('duman testi yapay hata'); return o.apply(this, a); }; });

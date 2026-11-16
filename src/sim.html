@@ -65,6 +65,12 @@
         <div class="rh-txt"><b id="rhWindDeg">0°</b><small id="rhWindSub">8 kn</small></div>
       </div>
       <div class="rh-chip rh-time" id="rhTime" title="Start'a kalan süre / yarış süresi"><small id="rhTimeLbl">START'A</small><b id="rhTimeVal">2:00</b></div>
+      <!-- elle sürerken hız ve yelken durumu: rüzgar göstergesinin altında (kumanda v2.1) -->
+      <div class="hp-mid" id="hpMid">
+        <span class="hp-dot"></span><span id="hpSpeed" class="hp-kn">0,0 kn</span>
+        <span class="hp-trim3" id="hpTrim3" aria-hidden="true"><span class="z-eased"></span><span class="z-trim"></span><span class="z-over"></span></span>
+        <b id="hpState">Yelken iyi</b><span id="hpPoint" class="hp-point" hidden></span><span id="hpTrimTxt" class="hp-trimtxt" hidden></span>
+      </div>
     </div>
     <div class="spacer"></div>
     <div class="tool-group">
@@ -437,34 +443,23 @@
     </div>
     <div class="strip-host" id="stripHost"></div>
 
-    <!-- Elle sürme: en altta sabit kontrol paneli (dümen iki yanda, ortada iskota ve manevralar) -->
+    <!-- Elle sürme kumandası (v2.1, kullanıcı 2026-11-16): sahnenin altında tek sıra, üç ayrı grup.
+         DÜMEN (sol başparmak): SOL / SAĞ · MANEVRA (orta): Orsa, büyük TRAMOLA, Tersle (basılı tut) · YELKEN (sağ başparmak): ÇEK / SAL.
+         Hız ve yelken durumu üstte, rüzgar göstergesinin altında (#hpMid). Boyutlar ekrana göre kendiliğinden (css/sim.css → Kumanda v2). -->
     <div id="helmPad" class="helm-pad hidden" role="toolbar" aria-label="Dümen ve iskota">
-      <!-- sol başparmak: dümen -->
-      <div class="hp-steer">
-        <button class="hp-rud" id="hpLeft" title="Dümen: sola dön (← ya da A, basılı tut)"><span class="hp-arrow">◀</span><b>Sola</b><small id="hpLeftSub">kafa aç</small></button>
-        <button class="hp-rud" id="hpRight" title="Dümen: sağa dön (→ ya da D, basılı tut)"><span class="hp-arrow">▶</span><b>Sağa</b><small id="hpRightSub">orsa</small></button>
-      </div>
-      <!-- orta: hız ve iskota göstergesi -->
-      <div class="hp-mid">
-        <div class="hp-stat">
-          <span class="hp-dot"></span>
-          <span id="hpSpeed" class="hp-kn">0,0 kn</span>
-          <span id="hpPoint" class="hp-point"></span>
-        </div>
-        <div class="hp-gwrap">
-          <div class="trim-gauge" id="hpGauge" aria-hidden="true"><span class="tg-ideal"></span><span class="tg-knob"></span></div>
-          <span id="hpTrimTxt" class="hp-trimtxt"></span>
-        </div>
-      </div>
-      <!-- sağ başparmak: Orsa ve Tramola/Kavança (seyre göre tek düğme), yanında iskota (tek düğme: çek / sal) -->
-      <div class="hp-right">
-        <div class="hp-col">
-          <button class="tb hp-vmg" id="hpVmg" title="Orsa (VMG): tekne kendiliğinden orsa rotasına girer ve rüzgar dönse de orsada kalır; dümene dokununca bırakır (V)"><svg class="ci"><use href="#i-wind"/></svg>Orsa</button>
-          <button class="tb hp-tack" id="hpTack" title="Tramola: rüzgarın içinden öbür kontraya (T)"><svg class="ci"><use href="#i-tack"/></svg><span id="hpTackLbl">Tramola</span></button>
-          <button class="tb hp-back" id="hpBack" title="Yelkeni tersle: bumbayı rüzgara karşı it. Tekne frenler, durur, sonra geri gider (B). Yeniden dokun ya da Çek: yelken dolar"><svg class="ci"><use href="#i-undo"/></svg><span id="hpBackLbl">Tersle</span></button>
-        </div>
-        <button class="hp-sheetbtn" id="hpSheet" title="İskota: dokun → çek, yeniden dokun → sal (↑ ↓ ile ince ayar)"><span class="hp-sheeticon" aria-hidden="true"></span><b id="hpSheetLbl">Çek</b><small id="hpSheetSub">iskota</small></button>
-      </div>
+      <div class="hp-grp hp-steer"><span class="hp-cap">DÜMEN</span><div class="hp-row">
+        <button class="hp-rud" id="hpLeft" title="Dümen: sola dön (← ya da A, basılı tut)"><span class="hp-arrow">◀</span><b>SOL</b></button>
+        <button class="hp-rud" id="hpRight" title="Dümen: sağa dön (→ ya da D, basılı tut)"><span class="hp-arrow">▶</span><b>SAĞ</b></button>
+      </div></div>
+      <div class="hp-grp hp-man"><span class="hp-cap">MANEVRA</span><div class="hp-row">
+        <button class="tb hp-vmg" id="hpVmg" title="Orsa (VMG): tekne kendiliğinden orsa rotasına girer ve rüzgar dönse de orsada kalır; dümene dokununca bırakır (V)"><svg class="ci"><use href="#i-wind"/></svg><span>Orsa</span></button>
+        <button class="tb hp-tack" id="hpTack" title="Tramola: rüzgarın içinden öbür kontraya (T)"><span id="hpTackLbl">TRAMOLA</span></button>
+        <button class="tb hp-back" id="hpBack" title="Tersle: basılı tuttukça yelken ters, tekne frenler, durur, geri gider. Bırakınca yelken salık kalır, tekne durur (B, basılı tut)"><svg class="ci"><use href="#i-undo"/></svg><span><span id="hpBackLbl">Tersle</span><small>basılı tut</small></span></button>
+      </div></div>
+      <div class="hp-grp hp-sail"><span class="hp-cap">YELKEN</span><div class="hp-row">
+        <button class="hp-sbtn" id="hpTrimBtn" title="İskotayı çek: yelken dolar, tekne hızlanır (I ya da ↑)"><span class="hp-sheeticon" aria-hidden="true"></span><b>ÇEK</b></button>
+        <button class="hp-sbtn" id="hpEaseBtn" title="İskotayı sal: yelken boşalır, tekne yavaşlar ve durur (I ya da ↓)"><span class="hp-sheeticon eased" aria-hidden="true"></span><b>SAL</b></button>
+      </div></div>
     </div>
   </footer>
 

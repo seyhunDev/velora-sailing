@@ -503,7 +503,7 @@
   // gösterge yeri: yatay telefonda elle sürerken üst çubuk kalkar, gösterge sahnenin sol üstüne geçer
   const phoneLand = matchMedia('(max-height: 500px) and (orientation: landscape)');
   function placeHud() {
-    const bc = document.body.classList, hud = $('raceHud'), onStage = (phoneLand.matches && bc.contains('driving')) || bc.contains('task-race');   // antrenör yarışında üst çubuk yok
+    const bc = document.body.classList, hud = $('raceHud'), onStage = bc.contains('driving') || bc.contains('task-race');   // elle sürerken (her ekranda) ve antrenör yarışında sahnenin üstünde; altında hız
     const want = onStage ? document.querySelector('main.stage') : document.querySelector('.sim-top');
     if (hud.parentElement !== want) { if (onStage) want.appendChild(hud); else want.insertBefore(hud, want.querySelector('.spacer').nextSibling); }
     hud.classList.toggle('on-stage', onStage);
@@ -1111,12 +1111,22 @@
   }
   function sheetToggle() {
     const d = st.drive, m = driveBoat(); if (!m) return;
-    if (d.back) { d.back = false; m.sheetOff = 0; m.sheet = null; flash('hpSheet'); lastHelmKey = ''; return; }   // terslenmiş yelkeni bırak: iskotayı çek, yelken dolsun
+    if (d.back) { d.back = false; m.sheetOff = 0; m.sheet = null; flash('hpTrimBtn'); lastHelmKey = ''; return; }   // terslenmiş yelkeni bırak: iskotayı çek, yelken dolsun
     const k = sheetState(m, driveCtx().wind, d.autoTrim);
     if (d.autoTrim) m.sheetOff = k.st === 'eased' ? 0 : S.SHEET_OFF_MAX;
     else m.sheet = k.st === 'trim' ? Math.min(S.SHEET_MAX, k.ideal + S.SHEET_OFF_MAX) : k.ideal;
     if (k.abs < 30) toast('Burnun rüzgarda: iskota işe yaramaz. Önce kafa aç ya da Orsa\'ya bas');
-    flash('hpSheet'); lastHelmKey = '';
+    flash(k.st === 'eased' ? 'hpTrimBtn' : 'hpEaseBtn'); lastHelmKey = '';
+  }
+  // Kumanda v2: ayrı ÇEK / SAL düğmeleri (kullanıcı 2026-11-16). Terslenmiş yelkende ÇEK doldurur, SAL salık bırakır.
+  function sheetSet(trim) {
+    const d = st.drive, m = driveBoat(); if (!m) return;
+    if (d.back) d.back = false;
+    const k = sheetState(m, driveCtx().wind, d.autoTrim);
+    if (d.autoTrim) m.sheetOff = trim ? 0 : S.SHEET_OFF_MAX;
+    else m.sheet = trim ? k.ideal : Math.min(S.SHEET_MAX, k.ideal + S.SHEET_OFF_MAX);
+    if (trim && k.abs < 30) toast('Burnun rüzgarda: iskota işe yaramaz. Önce kafa aç ya da Orsa\'ya bas');
+    flash(trim ? 'hpTrimBtn' : 'hpEaseBtn'); lastHelmKey = '';
   }
   // Orsa (VMG): tekne bu kontrada orsa rotasına girer, iskota tam çekilir; dümene dokununca bırakır
   function vmgToggle() {
@@ -1130,14 +1140,16 @@
   function backToggle() {
     const d = st.drive, m = driveBoat(); if (!m) return;
     d.back = !d.back; d.hold = null; m.helm = null;
-    if (d.back) toast('Yelken ters: tekne frenliyor, durunca geri gider. Geri giderken dümen ters çalışır. Yeniden dokun: yelken salık kalır (durursun) · Çek: yelken dolar');
-    else {   // tersi bırakınca yelken salık kalır (kullanıcı 2026-11-16): tekne yavaşlar, durur; ilerlemek için Çek
+    if (d.back) { if (!d.backTip) { d.backTip = 1; toast('Tersle: basılı tuttukça tekne frenler, durur, geri gider (dümen ters çalışır) · bırakınca yelken salık kalır'); } }
+    else {   // tersi bırakınca yelken salık kalır (kullanıcı 2026-11-16): tekne yavaşlar, durur; ilerlemek için ÇEK
       const ideal = S.idealSheet(Math.abs(E.norm180(m.h - driveCtx().wind)));
       if (d.autoTrim) m.sheetOff = S.SHEET_OFF_MAX; else m.sheet = Math.min(S.SHEET_MAX, ideal + S.SHEET_OFF_MAX);
-      toast('Yelken bırakıldı: salık, tekne duruyor · ilerlemek için Çek');
+      if (d.backTip === 1) { d.backTip = 2; toast('Yelken salık: tekne duruyor · ilerlemek için ÇEK'); }
     }
     lastHelmKey = '';
   }
+  // Tersle basılı tutulur (kumanda v2): basınca ters, bırakınca salık
+  function backSet(on) { const d = st.drive; if (d && driveBoat() && !!d.back !== on) backToggle(); }
   // dümen paneli (en altta, yalnız elle sürerken)
   const POS = a => a < 30 ? 'rüzgara karşı' : a < 60 ? 'orsa' : a < 120 ? 'apaz' : a < 165 ? 'geniş apaz' : 'pupa';
   let lastHelmKey = '';
@@ -1161,21 +1173,21 @@
     $('hpBack').classList.toggle('on', !!d.back); $('hpBack').setAttribute('aria-pressed', !!d.back);
     $('hpBackLbl').textContent = d.back ? (m.v < -0.5 ? 'Geri' : 'Fren') : 'Tersle';
     $('hpPoint').textContent = `${POS(abs)} · ${stb ? 'sancak' : 'iskele'} kontra`;
-    $('hpLeftSub').textContent = stb ? 'kafa aç' : 'orsa'; $('hpRightSub').textContent = stb ? 'orsa' : 'kafa aç';
-    const tg = $('hpGauge'), pct = x => `${Math.max(0, Math.min(100, x / 90 * 100)).toFixed(1)}%`;
-    tg.querySelector('.tg-ideal').style.left = pct(ideal); tg.querySelector('.tg-knob').style.left = pct(sheet);
-    tg.className = 'trim-gauge ' + (abs < 30 ? 'off' : Math.abs(dlt) <= 8 ? 'ok' : Math.abs(dlt) <= 20 ? 'meh' : 'bad');
-    $('hpTrimTxt').textContent = d.back ? (m.v < -0.5 ? 'Yelken ters: geri gidiyor (dümen ters)' : m.v > 0.5 ? 'Yelken ters: frenliyor' : 'Yelken ters: durdu') : `${trimTxt} · güç %${Math.round(eff * 100)}` + (m.shadow > 0.05 && abs >= 30 ? ` · pis rüzgar −%${Math.round(E.SHADOW.loss * m.shadow * 100)}` : '');
+    // üç renkli yelken şeridi: Salık · İyi · Fazla çekik (kumanda v2)
+    const zone = d.back ? 'back' : abs < 30 ? 'off' : dlt > 8 ? 'eased' : dlt < -8 ? 'over' : 'trim';
+    $('hpTrim3').className = 'hp-trim3 ' + zone;
+    const stEl = $('hpState');
+    stEl.textContent = { back: m.v < -0.5 ? 'Geri gidiyor' : m.v > 0.5 ? 'Fren yapıyor' : 'Durdu', off: 'Rüzgara karşı', eased: 'Yelken salık', over: 'Fazla çekik', trim: 'Yelken iyi' }[zone];
+    stEl.className = 'z-' + zone;
+    $('hpTrimTxt').textContent = d.back ? (m.v < -0.5 ? 'Geri giderken dümen ters çalışır' : '') : abs < 30 ? trimTxt : `güç %${Math.round(eff * 100)}` + (m.shadow > 0.05 ? ` · pis rüzgar −%${Math.round(E.SHADOW.loss * m.shadow * 100)}` : '');
     $('hpVmg').classList.toggle('on', d.hold === 'orsa'); $('hpVmg').setAttribute('aria-pressed', d.hold === 'orsa');
-    const sb = $('hpSheet');
-    sb.className = 'hp-sheetbtn ' + sk.st;
-    $('hpSheetLbl').textContent = sk.st === 'trim' ? 'Sal' : 'Çek';
-    $('hpSheetSub').textContent = sk.st === 'eased' ? 'iskota salık' : sk.st === 'over' ? 'fazla çekik' : 'iskota çekili';
-    if (sk.st === 'over') $('hpSheetLbl').textContent = 'Sal';
-    if (d.back) { sb.className = 'hp-sheetbtn eased'; $('hpSheetLbl').textContent = 'Çek'; $('hpSheetSub').textContent = 'yelkeni doldur'; }
+    // ÇEK / SAL: o anki iskota yeşil yanar; tersken ikisi de sönük
+    const eased = sk.st === 'eased';
+    $('hpTrimBtn').classList.toggle('on', !d.back && !eased); $('hpTrimBtn').setAttribute('aria-pressed', !d.back && !eased);
+    $('hpEaseBtn').classList.toggle('on', !d.back && eased); $('hpEaseBtn').setAttribute('aria-pressed', !d.back && eased);
     // tek manevra düğmesi: orsadan apaza kadar Tramola, apazı geçince (rüzgar açısı ≥ 100°) Kavança
     const jibe = abs >= JIBE_MIN, tb = $('hpTack');
-    tb.classList.toggle('jibe', jibe); $('hpTackLbl').textContent = jibe ? 'Kavança' : 'Tramola';
+    tb.classList.toggle('jibe', jibe); $('hpTackLbl').textContent = jibe ? 'KAVANÇA' : 'TRAMOLA';
     tb.title = jibe ? 'Kavança: rüzgarı kıçtan alıp öbür kontraya (T)' : 'Tramola: rüzgarın içinden öbür kontraya (T)';
     // zaman: yarışta Durdur / Devam; kurulumda Start ▶ (elle sürmeye devam ederek yarışı başlatır)
     const pb = $('hpPlay');
@@ -1928,15 +1940,16 @@
   // elle sürme: dümen paneli ve klavye
   holdBtn('hpLeft', () => { if (st.drive) st.drive.touchRud = -1; }, () => { if (st.drive) st.drive.touchRud = 0; });
   holdBtn('hpRight', () => { if (st.drive) st.drive.touchRud = 1; }, () => { if (st.drive) st.drive.touchRud = 0; });
-  $('hpSheet').addEventListener('click', sheetToggle);
+  $('hpTrimBtn').addEventListener('click', () => sheetSet(true));
+  $('hpEaseBtn').addEventListener('click', () => sheetSet(false));
   $('hpVmg').addEventListener('click', vmgToggle);
-  $('hpBack').addEventListener('click', backToggle);
+  holdBtn('hpBack', () => backSet(true), () => backSet(false));
   $('hpTack').addEventListener('click', () => { helmTurn('auto'); flash('hpTack'); });
   $('hpGo').addEventListener('click', () => { if (!st.drive || st.drive.net || taskLocked()) return; const live = st.drive.live, run = live && !st.drive.paused; exitDrive(live ? run : false); });
   $('hpPlay').addEventListener('click', drivePause);
   $('btnDrive').addEventListener('click', () => (st.drive ? $('hpGo').click() : enterDrive()));
   const RUD_KEYS = { ArrowLeft: -1, ArrowRight: 1, a: -1, A: -1, d: 1, D: 1 };
-  document.addEventListener('keyup', e => { if (st.drive && RUD_KEYS[e.key] != null) st.drive.keyRud = 0; });
+  document.addEventListener('keyup', e => { if (!st.drive) return; if (RUD_KEYS[e.key] != null) st.drive.keyRud = 0; if (e.key === 'b' || e.key === 'B') backSet(false); });
   window.addEventListener('blur', () => { if (st.drive) { st.drive.keyRud = 0; st.drive.touchRud = 0; } });
   document.addEventListener('keydown', e => {
     if (e.target.closest('input, select, textarea')) return;
@@ -1948,7 +1961,7 @@
       if (k === 'ArrowDown' || k === 's' || k === 'S') { e.preventDefault(); sheetBy(1); return; }
       if (k === 't' || k === 'T' || k === 'k' || k === 'K') { helmTurn('auto'); flash('hpTack'); return; }
       if (k === 'v' || k === 'V') { vmgToggle(); return; }
-      if (k === 'b' || k === 'B') { backToggle(); return; }
+      if (k === 'b' || k === 'B') { if (!e.repeat) backSet(true); return; }
       if (k === 'i' || k === 'I') { sheetToggle(); return; }
       if ((k === 'r' || k === 'R') && st.drive.live && !e.metaKey && !e.ctrlKey) { newHandRace('Yeni yarış · yelken boş, dümen sende'); return; }
       if (e.code === 'Space') { e.preventDefault(); drivePause(); return; }

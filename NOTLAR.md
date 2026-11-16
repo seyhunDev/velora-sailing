@@ -250,6 +250,14 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-16 · Elle sürme kumandası v2.1 (telefon + iPad, çocuklar için)
+- Kullanıcı tasarımı onayladı (taslak: Artifact "Dümen Kontrolleri"), sonra düzeltti: hız ortadan kalktı, rüzgar göstergesinin altına sade tek satır (hız · üç renkli şerit Salık/İyi/Fazla çekik · durum); alt sıra düğmelere kaldı.
+- Kumanda her ekranda sahnenin altında tek sıra, üç ayrı grup kutusu (üstünde adı): DÜMEN (SOL/SAĞ, basılı tut) · MANEVRA (Orsa, büyük turuncu TRAMOLA, pupada mor KAVANÇA, Tersle BASILI TUT: bırakınca yelken salık, tekne durur; klavye B de basılı) · YELKEN (ayrı ÇEK / SAL, seçili olan yeşil).
+- Yakınlaştırma sürerken sağ kenarda dikey; bildirimler kumandanın üstünde ortada; gösterge (#raceHud) elle sürerken her ekranda sahnenin sol üstünde (antrenör yarışında ortada).
+- Boyutlar CSS değişkenleriyle (`body.driving` → --bh/--rw/--tw…): telefon yatay ≥ 64 px, iPad dikey 92, iPad yatay / bilgisayar 96 px.
+- JS: `sheetSet(trim)` (ÇEK/SAL), `backSet(on)` (basılı Tersle); `sheetToggle` yalnız I tuşunda. Kimlikler: hpTrimBtn, hpEaseBtn, hpTrim3, hpState, hpMid (hpSheet / hpGauge kalktı). smoke.mjs Tersle'yi basılı tutarak dener.
+- Sonraki fikir: dümen ne kadar kırıldı göstergesi, bitiş ekranını çocuklara göre yeniden tasarlamak.
+
 ### 2026-11-16 · Yarışlar: elle yönetim, doğru sıra, OCS, form tasarımı
 - Kullanıcı: yarışta otomatik dönüş/finiş olmasın, her şeyi kullanıcı yapsın; "herkese birinci döndü" yazıyor; OCS teknenin/yelkenin herhangi bir yeri hattı geçince; yarış oluşturma alanı daha kullanışlı olsun. Önce iş planı istendi, verildi.
 - Yapılanlar Güncel durum'da (v1.160 kurallar, sonraki sürüm form). check, fuzz 150 (0 sorun), smoke temiz. Tarayıcıda finiş + Sonucu gör denendi; elle şamandıra dönüşü yalnız node testinde (yol üstünden) denendi.

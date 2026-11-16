@@ -383,46 +383,9 @@ body.lay-strip .stage:has(#panel:not(.hidden)) .toast { display: none; }
    iPad'i iki elle tutarken: sol başparmakla dümen (◀ ▶ yan yana), sağ başparmakla iskota (tek düğme: çek / sal),
    yanında Orsa / Tramola; ortada hız, iskota göstergesi, Kavança. Zaman kutusu ayrı (#driveBar). */
 body.driving .main-row, body.driving .strip-host, body.driving.lay-strip .bottombar > .cat-rail { display: none; }
-.helm-pad { display: flex; align-items: stretch; gap: 12px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; animation: hpIn .2s ease-out; }
 @keyframes hpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.hp-steer { display: flex; gap: 8px; flex: 0 0 auto; }
-.hp-rud, .hp-sheetbtn { flex: 0 0 auto; width: 104px; min-height: 112px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 16px;
-  background: var(--raised); border: 1px solid var(--border-strong); color: var(--text); font: inherit; cursor: pointer; touch-action: none; transition: background .1s, transform .08s, border-color .15s; }
-.hp-rud .hp-arrow { font-size: 30px; line-height: 1; color: #fb923c; }
-.hp-rud b, .hp-sheetbtn b { font-size: 16px; }
-.hp-rud small, .hp-sheetbtn small { font-size: 12px; color: var(--text2); font-weight: 600; }
-.hp-rud:hover, .hp-sheetbtn:hover { background: var(--raised2); }
-.hp-rud.held { background: #fb923c; border-color: #fb923c; color: #2a1204; transform: scale(.97); }
-.hp-rud.held .hp-arrow, .hp-rud.held small { color: #2a1204; }
-/* iskota düğmesi: yelken simgesi; salıkken (Çek) turuncu çerçeve, trimliyken (Sal) yeşil */
-.hp-sheetbtn { width: 120px; border-width: 2px; }
-.hp-sheetbtn:active { transform: scale(.96); }
 .hp-sheeticon { width: 34px; height: 34px; background: currentColor; -webkit-mask: var(--sail) center / contain no-repeat; mask: var(--sail) center / contain no-repeat; color: #fb923c;
   --sail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M11 2 4 19h7zM13 5c4 3 6 8 6 14h-6z' fill='black'/%3E%3C/svg%3E"); }
-.hp-sheetbtn.eased { border-color: #fb923c; }
-.hp-sheetbtn.trim { border-color: #22c55e; }
-.hp-sheetbtn.trim .hp-sheeticon { color: #4ade80; }
-.hp-sheetbtn.over { border-color: #ef4444; }
-.hp-sheetbtn.over .hp-sheeticon { color: #f87171; }
-.hp-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
-.hp-stat { display: flex; align-items: baseline; gap: 10px; min-width: 0; font-size: 13px; color: var(--text2); white-space: nowrap; }
-.hp-dot { width: 10px; height: 10px; border-radius: 50%; background: #fb923c; flex: 0 0 auto; align-self: center; animation: rbPulse 1.4s ease-in-out infinite; }
-.hp-kn { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-.hp-point { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* sağ başparmak: Orsa + Tramola sütunu, yanında büyük iskota düğmesi */
-.hp-right { display: flex; gap: 8px; flex: 0 0 auto; }
-.hp-col { display: flex; flex-direction: column; gap: 8px; width: 132px; }
-.hp-col .tb { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 48px; padding: 0 10px; font-size: 15px; font-weight: 800; border-radius: 14px; }
-.hp-col .ci { width: 18px; height: 18px; }
-.hp-col:has(.hp-back) .tb { min-height: 40px; }
-.hp-back { background: rgba(248,113,113,.12); border-color: rgba(248,113,113,.5); color: #fecaca; }
-.hp-back:hover { background: rgba(248,113,113,.22); }
-.hp-back.on { background: #ef4444; border-color: #f87171; color: #fff; }
-.hp-tack { background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.6); color: #fed7aa; }
-.hp-tack:hover { background: rgba(251,146,60,.26); }
-.hp-tack.jibe { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.6); color: #ddd6fe; }   /* kavança: mor, tramoladan ayırt edilsin */
-.hp-tack.jibe:hover { background: rgba(167,139,250,.26); }
-.hp-tack.jibe .ci { transform: scaleY(-1); }
 /* elle sürerken zaman kutusu: sahnenin üstünde ortada */
 .drive-bar { position: absolute; top: 12px; left: 0; right: 0; margin: 0 auto; width: fit-content; z-index: 7; display: flex; align-items: center; gap: 8px; padding: 5px 5px 5px 14px;
   background: var(--panel-solid); border: 1px solid rgba(251,146,60,.55); border-radius: 14px; box-shadow: var(--shadow); }
@@ -441,46 +404,8 @@ body.driving .main-row, body.driving .strip-host, body.driving.lay-strip .bottom
 body.lay-rail .drive-bar { right: calc(var(--rail-w) + 24px); }
 body.driving .mode-strip { display: none; }
 @media (max-width: 640px) { .drive-bar { top: auto; bottom: 10px; padding: 4px 4px 4px 10px; gap: 6px; } .drive-bar .tb { height: 36px; min-height: 36px; padding: 0 10px; font-size: 12.5px; } .db-time { font-size: 12.5px; } }
-.hp-mid .tb { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; min-height: 44px; padding: 0 14px; font-size: 13.5px; font-weight: 700; white-space: nowrap; }
-.hp-gwrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.hp-gwrap .trim-gauge { flex: 1 1 auto; }
-.hp-trimtxt { flex: 0 1 auto; font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 55%; }
-.hp-actions { display: grid; grid-template-columns: 1fr; gap: 6px; }
-.hp-actions .tb { padding: 0 8px; }
-.hp-vmg.on { background: #0ea5e9; border-color: #38bdf8; color: #04202f; }
-/* iskota göstergesi: 0° (tam çekik) … 90° (tam salık); yeşil çentik ideal iskota, yuvarlak senin iskotan */
-.trim-gauge { position: relative; height: 12px; border-radius: 6px; background: linear-gradient(90deg, rgba(248,113,113,.35), var(--raised2) 20%, var(--raised2) 80%, rgba(248,113,113,.35)); box-shadow: inset 0 0 0 1px var(--border-strong); }
-.tg-ideal { position: absolute; top: -3px; bottom: -3px; width: 4px; margin-left: -2px; border-radius: 2px; background: #4ade80; }
-.tg-knob { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #fbbf24; border: 2px solid #fff; transition: left .12s linear; }
-.trim-gauge.ok .tg-knob { background: #22c55e; } .trim-gauge.bad .tg-knob { background: #ef4444; } .trim-gauge.off .tg-knob { background: #94a3b8; }
 .ph-drive { background: #fb923c; border-color: #fb923c; color: #2a1204; font-weight: 800; }
 body.driving .gust-bar { display: none; }
-@media (max-width: 1100px) {
-  .hp-rud { width: 92px; }
-  .hp-sheetbtn { width: 104px; }
-  .hp-point { display: none; }
-}
-/* telefon: dümen solda, Orsa/Tramola + iskota sağda; ortada hız ve gösterge */
-@media (max-width: 1100px) { .hp-col { width: 112px; } }
-@media (max-width: 640px), (max-height: 460px) {
-  .helm-pad { gap: 5px; }
-  .hp-steer, .hp-right { gap: 4px; }
-  .hp-rud { width: 48px; min-height: 0; border-radius: 12px; }
-  .hp-sheetbtn { width: 58px; min-height: 0; border-radius: 12px; }
-  .hp-rud .hp-arrow { font-size: 22px; }
-  .hp-rud b, .hp-sheetbtn b { font-size: 13px; }
-  .hp-rud small, .hp-sheetbtn small { display: none; }
-  .hp-sheeticon { width: 24px; height: 24px; }
-  .hp-col { width: 74px; gap: 4px; }
-  .hp-col .tb { font-size: 12px; min-height: 40px; padding: 0 4px; border-radius: 11px; }
-  .hp-col .ci { display: none; }
-  .hp-mid { gap: 5px; }
-  .hp-kn { font-size: 15px; }
-  .hp-point, .hp-trimtxt { display: none; }
-  .hp-mid .tb { height: 36px; min-height: 36px; font-size: 11.5px; padding: 0 4px; }
-  .hp-actions { grid-template-columns: 1fr; gap: 4px; }
-}
-body.driving .bottombar { padding-bottom: calc(14px + var(--sab)); }
 
 /* durum rozetleri (2026-11-13): sağ üstte, simge + tek kelime; animasyonu kapatmaz */
 .mode-strip { flex-direction: row !important; justify-content: flex-end !important; align-items: center !important; gap: 6px; margin: 0 !important; left: auto !important; width: auto; }
@@ -597,34 +522,10 @@ body.driving .drive-bar { left: 318px; margin: 0 auto; }
   /* --- elle sürme: tam ekran, kumanda sahnenin üstünde --- */
   body.driving .sim-top { display: none; }
   body.driving .stage { padding-top: var(--sat); }
-  body.driving .bottombar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: none; border: 0; pointer-events: none;
-    padding: 0 calc(10px + var(--sar)) calc(10px + var(--sab)) calc(10px + var(--sal)); }
-  body.driving .helm-pad { pointer-events: none; align-items: flex-end; gap: 10px; }
-  body.driving .helm-pad > * { pointer-events: auto; }
-  body.driving .hp-steer, body.driving .hp-right { gap: 8px; }
-  body.driving .hp-rud, body.driving .hp-sheetbtn, body.driving .hp-col .tb {
-    background: rgba(11, 23, 36, .62); border-color: rgba(148, 178, 208, .35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  body.driving .hp-rud { width: 74px; height: 86px; min-height: 86px; border-radius: 18px; }
-  body.driving .hp-rud .hp-arrow { font-size: 28px; }
-  body.driving .hp-rud.held { background: #fb923c; border-color: #fb923c; }
-  body.driving .hp-sheetbtn { width: 80px; height: 86px; min-height: 86px; border-radius: 18px; }
-  body.driving .hp-sheetbtn.eased { border-color: #fb923c; } body.driving .hp-sheetbtn.trim { border-color: #22c55e; } body.driving .hp-sheetbtn.over { border-color: #ef4444; }
-  body.driving .hp-col { width: 84px; height: 86px; gap: 6px; }
-  body.driving .hp-col .tb { min-height: 0; border-radius: 13px; font-size: 12.5px; }
-  body.driving .hp-tack { background: rgba(120, 53, 15, .62); }
-  body.driving .hp-tack.jibe { background: rgba(76, 29, 149, .55); }
-  /* orta: hız ve iskota göstergesi küçük cam şerit */
-  body.driving .hp-mid { align-self: flex-end; max-width: 300px; margin: 0 auto; padding: 8px 12px; gap: 6px; border-radius: 14px;
-    background: rgba(11, 23, 36, .62); border: 1px solid rgba(148, 178, 208, .25); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  body.driving .hp-kn { font-size: 17px; }
-  body.driving .hp-point { display: inline; font-size: 11.5px; }
   /* sürerken ayar rayı kalkar (sağ başparmak alanı), yakınlaştırma solda dümenin üstünde */
   body.driving.lay-rail .cat-rail, body.driving .sim-panel { display: none; }
-  body.driving .zoom-ctl { flex-direction: row; left: auto; right: 10px; top: auto; bottom: calc(114px + var(--sab)); }   /* sağda, iskota sütununun üstünde yatay */
   body.driving.lay-rail .drive-bar { left: auto; right: 8px; margin: 0; top: calc(8px + var(--sat)); }
   /* sürüm etiketi sağ alttaki İskota düğmesine binmesin: sürerken altta ortada, hız kutusunun altında */
-  body.driving .bottombar { padding-bottom: calc(20px + var(--sab)); }
-  body.driving .ver-badge { right: auto; left: 50%; transform: translateX(-50%); }
   body.driving .drive-bar .tb { height: 34px; min-height: 34px; padding: 0 11px; }
   .drive-bar .db-seg, .drive-bar .cb-lbl, .drive-bar .db-lbl { display: none; }
   .drive-bar .db-speed { display: inline-flex; min-width: 44px; padding: 0 8px; }
@@ -715,3 +616,90 @@ body.driving .drive-bar { left: 0; }
   .rh-comp { width: 26px; height: 26px; }
   .rh-time b { font-size: 18px; }
 }
+
+/* ---------- Elle sürme kumandası v2.1 (kullanıcı 2026-11-16) ----------
+   Sahnenin altında tek sıra, üç ayrı grup (her biri kendi koyu kutusunda, üstünde adı):
+   DÜMEN (SOL / SAĞ) · MANEVRA (Orsa, büyük TRAMOLA, Tersle basılı tut) · YELKEN (ÇEK / SAL).
+   Hız + üç renkli yelken şeridi üstte, rüzgar göstergesinin altında. Yakınlaştırma sağ kenarda dikey.
+   Boyutlar ekrana göre kendiliğinden: telefon (yatay) düğmeler ≥ 64 px, iPad / bilgisayar ≥ 88 px. */
+body.driving { --bh: 96px; --rw: 100px; --pw: 112px; --tw: 168px; --bw: 128px; --sw: 104px; --g: 8px;
+  --hp-glass: rgba(11, 23, 36, .7); --hp-line: rgba(148, 178, 208, .38); }
+@media (min-height: 501px) and (max-width: 900px) {   /* iPad dikey */
+  body.driving { --bh: 92px; --rw: 92px; --pw: 100px; --tw: 140px; --bw: 112px; --sw: 92px; --g: 7px; }
+}
+@media (max-height: 500px) and (orientation: landscape), (max-width: 700px) {   /* telefon yatay */
+  body.driving { --bh: 68px; --rw: 74px; --pw: 78px; --tw: 120px; --bw: 92px; --sw: 76px; --g: 6px; }
+}
+@media (max-height: 500px) and (orientation: landscape) and (max-width: 720px) {   /* küçük telefon */
+  body.driving { --bh: 64px; --rw: 66px; --pw: 70px; --tw: 104px; --bw: 84px; --sw: 68px; --g: 5px; }
+}
+body.driving .bottombar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: none; border: 0; pointer-events: none;
+  padding: 0 calc(10px + var(--sar)) calc(16px + var(--sab)) calc(10px + var(--sal)); }
+.helm-pad { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; animation: hpIn .2s ease-out; }
+.helm-pad.hidden { display: none; }
+.helm-pad > * { pointer-events: auto; }
+.helm-pad button { font: inherit; touch-action: none; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .1s, transform .08s, border-color .15s; }
+/* grup kutusu: ayrımı belirgin */
+.hp-grp { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px calc(var(--g) - 1px) calc(var(--g) - 1px); border-radius: 22px;
+  background: rgba(3, 10, 18, .5); border: 1px solid rgba(148, 178, 208, .2); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.hp-cap { font-size: 10px; font-weight: 800; letter-spacing: .14em; color: #8fa6bd; line-height: 1.2; }
+.hp-steer .hp-cap { color: #fdba74; } .hp-man .hp-cap { color: #cbd5e1; } .hp-sail .hp-cap { color: #86efac; }
+.hp-row { display: flex; align-items: stretch; gap: var(--g); }
+.helm-pad .hp-rud, .helm-pad .hp-sbtn, .helm-pad .hp-vmg, .helm-pad .hp-back { background: var(--hp-glass); border: 2px solid var(--hp-line); color: #fff; }
+/* DÜMEN */
+.hp-rud { width: var(--rw); height: var(--bh); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.hp-rud .hp-arrow { font-size: calc(var(--bh) * .34); line-height: 1; color: #fb923c; }
+.hp-rud b { font-size: calc(var(--bh) * .17); font-weight: 800; letter-spacing: .06em; }
+.helm-pad .hp-rud { border-color: rgba(251, 146, 60, .45); }
+.helm-pad .hp-rud.held { background: #fb923c; border-color: #fdba74; color: #2a1204; transform: scale(.96); }
+.hp-rud.held .hp-arrow { color: #2a1204; }
+/* MANEVRA */
+.helm-pad .hp-man .tb { height: var(--bh); min-height: 0; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 800; line-height: 1.05; }
+.helm-pad .hp-vmg { width: var(--pw); border-radius: 18px; font-size: calc(var(--bh) * .2); border-color: rgba(56, 189, 248, .55); flex-direction: column; gap: 3px; }
+.helm-pad .hp-back { width: var(--bw); border-radius: 18px; font-size: calc(var(--bh) * .2); border-color: rgba(248, 113, 113, .65); }
+.hp-man .ci { width: calc(var(--bh) * .26); height: calc(var(--bh) * .26); flex: 0 0 auto; }
+.hp-vmg .ci { color: #7dd3fc; } .hp-back .ci { color: #fca5a5; }
+.hp-back > span { display: flex; flex-direction: column; align-items: flex-start; }
+.hp-back small { font-size: calc(var(--bh) * .14); font-weight: 600; color: #fca5a5; }
+.helm-pad .hp-back.on, .helm-pad .hp-back.held { background: #ef4444; border-color: #fca5a5; }
+.hp-back.on small, .hp-back.held small, .hp-back.on .ci, .hp-back.held .ci { color: #fee2e2; }
+.helm-pad .hp-vmg.on { background: #0ea5e9; border-color: #38bdf8; color: #04202f; } .hp-vmg.on .ci { color: #04202f; }
+.helm-pad .hp-tack { width: var(--tw); border-radius: 999px; border: 0; background: #fb923c; color: #2a1204; font-size: min(calc(var(--bh) * .25), calc(var(--tw) * .145)); font-weight: 900; letter-spacing: .05em;
+  box-shadow: 0 4px 14px rgba(251, 146, 60, .35); }
+.helm-pad .hp-tack:hover { background: #fdba74; }
+.helm-pad .hp-tack.jibe { background: #a78bfa; color: #1e1036; box-shadow: 0 4px 14px rgba(167, 139, 250, .35); }
+.helm-pad .hp-tack:active, .hp-sbtn:active, .helm-pad .hp-man .tb:active { transform: scale(.95); }
+/* YELKEN */
+.hp-sbtn { width: var(--sw); height: var(--bh); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+.hp-sbtn b { font-size: calc(var(--bh) * .23); font-weight: 900; letter-spacing: .05em; }
+.hp-sbtn .hp-sheeticon { width: calc(var(--bh) * .28); height: calc(var(--bh) * .28); color: #9db0c3; }
+.hp-sheeticon.eased { opacity: .55; transform: rotate(-14deg); }
+.helm-pad .hp-sbtn.on { background: #22c55e; border-color: #86efac; color: #052e16; }
+.hp-sbtn.on .hp-sheeticon { color: #052e16; }
+/* hız + yelken: rüzgar göstergesinin altında, sade tek satır */
+.race-hud .hp-mid { display: none; }
+body.driving .race-hud { display: grid; grid-template-columns: auto auto; }
+body.driving .race-hud .hp-mid { display: flex; grid-column: 1 / -1; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 12px;
+  background: rgba(11, 23, 36, .7); border: 1px solid rgba(148, 178, 208, .35); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); white-space: nowrap; }
+body.driving .race-hud { align-content: flex-start; row-gap: 6px; }
+.hp-dot { width: 9px; height: 9px; border-radius: 50%; background: #fb923c; flex: 0 0 auto; animation: rbPulse 1.4s ease-in-out infinite; }
+.hp-kn { font-size: 17px; font-weight: 800; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; min-width: 4.2em; }
+.hp-trim3 { display: inline-flex; gap: 3px; }
+.hp-trim3 span { width: 18px; height: 8px; border-radius: 4px; background: rgba(248, 113, 113, .28); transition: background .15s, box-shadow .15s; }
+.hp-trim3 .z-trim { background: rgba(34, 197, 94, .28); }
+.hp-trim3.eased .z-eased, .hp-trim3.over .z-over { background: #f97316; }
+.hp-trim3.trim .z-trim { background: #22c55e; }
+.hp-trim3.off span, .hp-trim3.back span { background: rgba(148, 163, 184, .25); }
+#hpState { font-size: 13px; font-weight: 800; color: #e2e8f0; }
+#hpState.z-trim { color: #86efac; } #hpState.z-eased, #hpState.z-over { color: #fdba74; } #hpState.z-back { color: #fca5a5; }
+/* çevredekiler kumandaya binmesin: yakınlaştırma sağ kenarda dikey, bildirimler kumandanın üstünde ortada */
+body.driving .zoom-ctl { flex-direction: column; left: auto; right: calc(10px + var(--sar)); top: 50%; bottom: auto; transform: translateY(-75%); }
+body.driving .zoom-ctl .zc-sep, body.driving #zoomVal { display: none; }
+body.driving .ver-badge { right: auto; left: 50%; transform: translateX(-50%); }
+body.driving .toast { top: auto; right: auto; left: 50%; transform: translateX(-50%); bottom: calc(var(--bh) + 52px + var(--sab)); max-width: min(520px, calc(100% - 24px)); }
+@media (min-height: 501px) and (min-width: 701px) {
+  body.driving.lay-rail:not(.task-race) .bottombar { padding-right: calc(var(--rail-w) + 24px + var(--sar)); }
+  body.driving.lay-rail:not(.task-race) .zoom-ctl { right: calc(var(--rail-w) + 24px + var(--sar)); }
+}
+@media (max-width: 640px) { body.driving .drive-bar { top: calc(8px + var(--sat)); bottom: auto; } }
+.helm-pad button:focus:not(:focus-visible) { outline: none; }
