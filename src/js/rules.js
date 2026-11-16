@@ -14,9 +14,11 @@
   const dot = (a, b) => a.x * b.x + a.y * b.y;
 
   // X, O'nun "net arkasında" mı? (X'in merkezi O'nun kıç hattının gerisinde)
+  // RRS tanımı: X'in gövdesinin en öndeki noktası, O'nun kıçından geçen (rotasına dik) çizginin gerisinde.
+  // Gövde boyu HULL; X yan duruyorsa öne uzanan ucu |cos| ile kısalır. 3 px pay: baş kıça tam değdiğinde de net arkada.
   function clearAstern(X, O) {
-    const f = E.fwd(O.h);
-    return dot({ x: X.x - O.x, y: X.y - O.y }, f) < -HULL * 0.9;
+    const f = E.fwd(O.h), fx = E.fwd(X.h);
+    return dot({ x: X.x - O.x, y: X.y - O.y }, f) + Math.abs(dot(fx, f)) * HULL / 2 < -HULL / 2 + 3;
   }
 
   // X, O'nun rüzgarüstünde mi? (RRS tanımı: bindirmeli iki tekneden rüzgarüstü olan, diğerinin
@@ -75,12 +77,31 @@
   const tackOf = (h, w) => (E.norm180(h - w) < 0 ? 'starboard' : 'port');
   const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
   // a ile c'nin (a: h, v ile) en yakın yaklaşması, ufuk H saniye
-  function closest(a, h, v, c, H) {
+  function closest(a, h, v, c, H, hull) {
     const fa = E.fwd(h), fc = E.fwd(c.h);
     const rx = c.x - a.x, ry = c.y - a.y, wx = fc.x * c.v - fa.x * v, wy = fc.y * c.v - fa.y * v;
     const w2 = wx * wx + wy * wy;
     const tc = w2 < 1e-6 ? 0 : clampN(-(rx * wx + ry * wy) / w2, 0, H);
-    return { dmin: Math.hypot(rx + wx * tc, ry + wy * tc), tc, d: Math.hypot(rx, ry) };
+    let dmin = Math.hypot(rx + wx * tc, ry + wy * tc);
+    // hull (simülatör): gövde biçimi (kullanıcı 2026-11-16): merkezler uzak olsa da bir teknenin başı öbürünün kıçına/yanına değebilir.
+    // Gövdeler arası aralık + gövde genişliği (yan yana giden iki teknede merkez uzaklığına eşit) daha küçükse o sayılır.
+    if (hull && !c.pt && Math.hypot(rx, ry) < 140) for (const k of [tc - 0.4, tc, tc + 0.4]) {
+      const tt = clampN(k, 0, H);
+      const g = capGap(a.x + fa.x * v * tt, a.y + fa.y * v * tt, fa, c.x + fc.x * c.v * tt, c.y + fc.y * c.v * tt, fc) + 2 * CAP.r;
+      if (g < dmin) dmin = g;
+    }
+    return { dmin, tc, d: Math.hypot(rx, ry) };
+  }
+  // iki gövde kapsülü (baş-kıç doğrusu ±CAP.half, yarıçap CAP.r) arasındaki aralık: (x,y) merkez, f burun yönü
+  const CAP = E.hullOf ? E.hullOf('optimist') : { half: 14, r: 11 };
+  function capGap(ax, ay, fa, cx, cy, fc) {
+    const L = CAP.half, p1x = ax - fa.x * L, p1y = ay - fa.y * L, d1x = fa.x * 2 * L, d1y = fa.y * 2 * L;
+    const p2x = cx - fc.x * L, p2y = cy - fc.y * L, d2x = fc.x * 2 * L, d2y = fc.y * 2 * L;
+    const rx = p1x - p2x, ry = p1y - p2y, aa = d1x * d1x + d1y * d1y, ee = d2x * d2x + d2y * d2y, f = d2x * rx + d2y * ry,
+      cc = d1x * rx + d1y * ry, bb = d1x * d2x + d1y * d2y, den = aa * ee - bb * bb;
+    let sP = den > 1e-9 ? clampN((bb * f - cc * ee) / den, 0, 1) : 0, tP = (bb * sP + f) / ee;
+    if (tP < 0) { tP = 0; sP = clampN(-cc / aa, 0, 1); } else if (tP > 1) { tP = 1; sP = clampN((bb - cc) / aa, 0, 1); }
+    return Math.max(0, Math.hypot(p1x + d1x * sP - p2x - d2x * tP, p1y + d1y * sP - p2y - d2y * tP) - 2 * CAP.r);
   }
   // K18 (simülatör, trapez): iki tekne aynı şamandıranın bölgesindeyse (b.zoneT: bölgeye giriş anı, b.zoneX/Y şamandıra).
   // Bölgeye açıkça önde giren yer alır; aşağı yukarı birlikte (bindirmeli) girdilerse şamandıraya yakın olan (iç tekne).
@@ -112,12 +133,13 @@
     return isWindward(b, O, w) ? 11 : 0;                                  // rüzgarüstü (yan olarak) yol verir
   }
   // b kime yol vermeli? others: [{x,y,h,v,ref}] → {O, rule, lee, dmin, tc} | null
-  function giveWay(b, others, w, t) {
+  function giveWay(b, others, w, t, hull) {
     let best = null;
     const vb = Math.max(b.v, 22);
     for (const O of others) {
-      const c = closest(b, b.h, vb, O, 4);
-      if (c.d > 200 || c.dmin > GW.detect) continue;
+      const c = closest(b, b.h, vb, O, 4, hull);
+      // şamandırayı dönen tekne düz gitmez (tahmin kısa kalır): ona daha erken yer açılır
+      if (c.d > 200 || c.dmin > GW.detect + (O.ref && O.ref.phase === 'round' ? 18 : 0)) continue;
       if (c.dmin > c.d - 4 && c.d > 34) continue;                       // uzaklaşıyor / paralel
       let rule = classify(b, O.ref, w, t);
       // hak sahibi rotasında kalır; yalnızca karşıdaki yol vermiyorsa (kural bilmeyen) ya da temas
@@ -165,8 +187,8 @@
     for (const c of cands) {
       const h = c.h != null ? c.h : target + c.off, v = Math.max(8, Math.max(b.v, 22) * c.speed);
       let m = 1e9;
-      for (const O of others) { const r = closest(b, h, v, O, 4); if (r.d < 220) m = Math.min(m, r.dmin); }
-      for (const mk of opts.marks || []) { const rm = closest(b, h, v, { x: mk.x, y: mk.y, h: 0, v: 0 }, 3); m = Math.min(m, rm.dmin + 14); }   // şamandıraya da çarpma
+      for (const O of others) { const r = closest(b, h, v, O, 4, opts.hull); if (r.d < 220) m = Math.min(m, r.dmin); }
+      for (const mk of opts.marks || []) { const rm = closest(b, h, v, { x: mk.x, y: mk.y, h: 0, v: 0, pt: true }, 3); m = Math.min(m, rm.dmin + 14); }   // şamandıraya da çarpma
       const score = Math.min(m, GW.safe) - c.cost;
       if (!best || score > best.score) best = { ...c, score };
     }

@@ -54,7 +54,9 @@ for (const c of cases) {
   // rota: start'tan sonraki her noktanın yakınından geçmeli (kalabalıkta tramola için açık beklerken koridor 3 katına kadar taşabilir)
   const missed = c.route ? c.route.map((p, i) => [i, near[i]]).filter(([i, d]) => S.lineSide(c.route[i]) === -1 && d > 140) : [];
   if (missed.length) { problems++; console.log('  ⚠ rota noktası kaçtı:', missed.map(([i, d]) => `#${i} ${d.toFixed(0)} px`).join(', ')); }
-  if (contacts > 6) { problems++; console.log('  ⚠ temas çok:', contacts); }   // kalabalık şamandıra dönüşünde birkaç temas gerçekçi; fazlası hata
+  // kalabalık şamandıra dönüşünde birkaç temas gerçekçi; fazlası hata. 2026-11-16'dan beri temas gövde biçimiyle ölçülür
+  // (eskiden merkezler 22 px'e girince: baş-kıç binmeleri hiç sayılmıyordu), sınır 6 → 10.
+  if (contacts > 10) { problems++; console.log('  ⚠ temas çok:', contacts); }
 }
 // manuel mod: tekne tramolayı yalnız komutla atar (parkurdan MAN_MARGIN kadar uzaklaşınca zorunlu dönüş hariç)
 for (const wind of [-12, 0, 12]) {
@@ -476,6 +478,53 @@ for (const cls of ['optimist', 'ilca7']) {
   if (c.boats.some((o, i) => o.finishT !== a.boats[i].finishT)) bad.push('tekrar oynatma farklı sonuç verdi');
   console.log(`• Görev yarış akışı: ${bad.length ? 'SORUN' : 'rüzgar döner/geri gelir, sağanak yukarıdan iner ve kaybolur, tekrar aynı'}`);
   if (bad.length) { problems++; console.log('  ⚠ Yarış akışı:', bad.join(', ')); }
+}
+// Kural 12 ve gövde teması (kullanıcı 2026-11-16): tekneler birbirinin içine/altına giremez; arkadan çarpan (net arkadaki)
+// K12 cezası alır; elle sürülen tekne şamandıraya takılmaz (dümen kırınca döner, kenarından kayıp çıkar).
+{
+  const bad = [], HC = EN.hullOf('optimist'), TWO_R = 2 * HC.r;
+  // 1) otomatik filo: hiçbir karede gövdeler (kapsül) ya da gövde-şamandıra iç içe değil (sıkışmada anlık ≤3 px pay)
+  for (const [course, wind] of [[{ lineLen: 550, markDist: 1500, type: 'trapez' }, -8], [{ lineLen: 400, markDist: 700, type: 'trapez' }, 6]]) {
+    S.setCourse(course);
+    const s = S.newRace(S.defaultFleet(12), { wind, course }); let worst = 99, worstMk = 99;
+    while (s.t < s.startAt + 420 && s.boats.some(b => !b.finish)) {
+      S.step(s);
+      const live = s.boats.filter(b => !b.gone && b.phase !== 'done');
+      for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) worst = Math.min(worst, S.hullGap(live[i], live[j]) - TWO_R);
+      for (const b of live) for (const o of S.OBSTACLES) worstMk = Math.min(worstMk, EN.hullObstacleGap(o, b.x, b.y, b.h, HC.half) - HC.r);
+    }
+    if (worst < -3.5) bad.push(`${course.markDist} px parkur: gövdeler ${(-worst).toFixed(1)} px iç içe`);
+    if (worstMk < -1) bad.push(`${course.markDist} px parkur: şamandıraya ${(-worstMk).toFixed(1)} px girdi`);
+  }
+  // 2) elle sürülen teknen öndekine arkadan çarpar: içine giremez, K12 cezası alır
+  S.setCourse(S.COURSE_DEFAULT);
+  const pair = (gapAhead) => {
+    const f = S.defaultFleet(2), me = f.find(b => b.mine), o = f.find(b => !b.mine);
+    const s = S.newRace(f, { wind: 0 }); s.t = s.startAt + 5;
+    const M = s.boats.find(b => b.mine), O = s.boats.find(b => !b.mine), h = -45, fw = EN.fwd(h);
+    Object.assign(O, { x: 600, y: 600, h, v: 15, phase: 'race', started: true, tack: 'starboard', speedK: 0.25, ignoresRules: true, manual: true });   // öndeki kaçmaz, rotasında yavaş gider
+    Object.assign(M, { x: 600 - fw.x * gapAhead, y: 600 - fw.y * gapAhead, h, v: 50, phase: 'race', started: true, tack: 'starboard', manual: true, hand: true, drv: true });
+    return { s, M, O };
+  };
+  {
+    const { s, M, O } = pair(90); let touch = false, minG = 99;
+    for (let i = 0; i < 120; i++) { if (S.handStep(s, M, { autoTrim: true }).some(e => e.startsWith('contact:'))) touch = true; minG = Math.min(minG, S.hullGap(M, O)); }
+    if (!touch) bad.push('arkadan çarpma kurulamadı');
+    if (minG < TWO_R - 0.5) bad.push(`elle sürülen tekne öndekinin içine girdi (${(TWO_R - minG).toFixed(1)} px)`);
+    if (M.penaltyRule !== 12 || !(M.penalties > 0)) bad.push(`arkadan çarpan ceza almadı (kural ${M.penaltyRule})`);
+    if (O.penalties) bad.push('öndeki tekne haksız ceza aldı');
+  }
+  // 3) elle sürülen teknen şamandıranın dibinde: dümen kırınca dönüp uzaklaşabilmeli (eskiden takılıyordu)
+  for (const rud of [-1, 1]) {
+    const f = S.defaultFleet(1), s = S.newRace(f, { wind: 0 }); s.t = s.startAt + 5;
+    const M = s.boats[0], mk = S.MARK, h = 90;   // şamandıra teknenin iskelesinde, dibinde
+    Object.assign(M, { x: mk.x - 20, y: mk.y + 21, h, v: 20, phase: 'race', started: true, tack: 'port', manual: true, hand: true, drv: true });
+    const x0 = M.x, y0 = M.y; for (let i = 0; i < 60; i++) S.handStep(s, M, { rudder: i < 14 ? rud : 0, autoTrim: true });
+    const moved = Math.hypot(M.x - x0, M.y - y0), turned = Math.abs(EN.norm180(M.h - h));
+    if (moved < 40 || turned < 30) bad.push(`şamandırada dümen ${rud < 0 ? 'sola (şamandıraya doğru)' : 'sağa'}: takıldı (${moved.toFixed(0)} px, dönüş ${turned.toFixed(0)}°)`);
+  }
+  console.log(`• Gövde teması ve K12: ${bad.length ? 'SORUN' : 'iç içe geçme yok, arkadan çarpan K12 cezası alıyor, şamandıraya takılma yok'}`);
+  if (bad.length) { problems++; console.log('  ⚠ Temas:', bad.join(', ')); }
 }
 console.log(problems ? `\n${problems} uyarı` : '\nSimülatör temiz ✔');
 process.exit(problems ? 1 : 0);
