@@ -125,6 +125,44 @@
 
   const taskLink = code => D.taskLink(code);
 
+  // ---------- Start bayrağı kartı (kullanıcı 2026-11-16: "hangi bayrak kullanılıyorsa onu gösterelim, eğitici olsun") ----------
+  // Bayrağın kendisi (simülatördeki çizim), ne demek olduğu çocuk diliyle, yasaklı bölge çizimi, ne zaman çekilip iner, kural no.
+  const FLAG_LEARN = {
+    P: { say: 'Özel bir kısıtlama yok. Start işaretinde teknenin hiçbir parçası (burnu, yelkeni) hattın üstünde olmamalı.',
+      bad: 'Erken çıkarsan: teknenin tamamıyla hattın altına dön, sonra yeniden start et.', rule: 'K29.1', zone: '' },
+    I: { say: 'Son 1 dakikada teknenin bir parçası hattın ya da uzantılarının üstüne çıkarsa, start etmek için bir ucun (pin ya da hakem botu) dışından dolaşman gerekir.',
+      bad: 'Hattın içinden geri dönmek yetmez: uçtan dolaş, sonra start et.', rule: 'K30.1', zone: 'line' },
+    Z: { say: 'Son 1 dakikada pin, hakem botu ve orsa şamandırası arasındaki üçgene girersen puan cezası alırsın.',
+      bad: 'Ceza: kayıtlı tekne sayısının %20\'si kadar puan eklenir. Erken çıktıysan yine geri dönmelisin.', rule: 'K30.2', zone: 'tri' },
+    U: { say: 'Son 1 dakikada aynı üçgene girersen diskalifiye olursun (UFD).',
+      bad: 'Geri dönmek kurtarmaz. Yarıştan çıkarılırsın.', rule: 'K30.3', zone: 'tri' },
+    Siyah: { say: 'En sert kural. Son 1 dakikada üçgene girersen diskalifiye olursun (BFD).',
+      bad: 'Geri dönmek kurtarmaz. Yarıştan çıkarılırsın; yarış yeniden başlarsa ona da giremezsin.', rule: 'K30.4', zone: 'tri' }
+  };
+  function zoneSvg(z) {
+    // hat yatay, şamandıra yukarıda; I: hattın ve uzantılarının üstü, üçgen: pin–hakem botu–şamandıra
+    const fill = z === 'line' ? '<path d="M0,0H220V78H0Z" fill="rgba(250,204,21,.22)"/><line x1="0" y1="78" x2="220" y2="78" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4 4"/>'
+      : z === 'tri' ? '<path d="M60,78 L160,78 L110,14Z" fill="rgba(248,113,113,.28)" stroke="#f87171" stroke-width="1.5"/>' : '';
+    return `<svg class="kf-zone" viewBox="0 0 220 104" role="img" aria-label="Yasaklı bölge">${fill}
+      <line x1="60" y1="78" x2="160" y2="78" stroke="#fff" stroke-width="2" stroke-dasharray="6 4"/>
+      <circle cx="60" cy="78" r="5" fill="#fbbf24"/><rect x="156" y="70" width="8" height="16" rx="3" fill="#cbd5e1"/><circle cx="110" cy="14" r="5" fill="#fb923c"/>
+      <text x="60" y="98" class="kf-t" text-anchor="middle">pin</text><text x="160" y="98" class="kf-t" text-anchor="middle">hakem botu</text><text x="122" y="18" class="kf-t" text-anchor="start">şamandıra</text>
+      ${z ? `<text x="${z === 'line' ? 12 : 110}" y="${z === 'line' ? 18 : 62}" class="kf-t kf-z" text-anchor="${z === 'line' ? 'start' : 'middle'}">son 1 dk yasak</text>` : '<text x="110" y="62" class="kf-t" text-anchor="middle">start\'ta hattın altında ol</text>'}</svg>`;
+  }
+  function flagCard(f) {
+    const L = FLAG_LEARN[f] || FLAG_LEARN.P, info = (api.FLAG_INFO || {})[f] || { name: f };
+    const pic = api.flagMarkup ? `<svg class="kf-flag" viewBox="-1 -1 32 22" role="img" aria-label="${esc(info.name)}">${api.flagMarkup(f)}</svg>` : '';
+    return `<div class="kc-sec kc-flag${f === 'P' ? '' : ' warn'}">
+        <h3>Start bayrağı: ${esc(info.name)}</h3>
+        <div class="kf-row">
+          <div class="kf-pic">${pic}<span class="kf-pole"></span></div>
+          <div class="kf-txt"><p><b>Bu yarışta hazırlık bayrağı olarak ${esc(info.name)} kullanılacak.</b> ${esc(L.say)}</p>
+            <p class="kf-bad">${esc(L.bad)}</p>
+            <p class="kf-when">Ne zaman: hakem botunda start'tan 4 dakika önce çekilir, son 1 dakikada iner. Kural bayrak indiği andan start'a kadar geçerlidir (${L.rule}).</p></div>
+          ${zoneSvg(L.zone)}
+        </div></div>`;
+  }
+
   // ---------- Yarış sayfası: kart + sıralama ----------
   function taskHtml() {
     const t = T.task, su = taskSetup(t), own = ownTask() && !asAthlete, left = triesLeft(), shut = closed(t);
@@ -150,14 +188,12 @@
     const tile = (icon, lbl, val, sub, cls) => `<div class="kc-fact${cls ? ' ' + cls : ''}">${icon}<div><span class="kc-fl">${lbl}</span><b>${esc(val)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
     const windWord = kn <= 6 ? 'hafif rüzgar' : kn <= 12 ? 'orta rüzgar' : 'sert rüzgar';
     const sideWord = !showHints ? '' : w < -2 ? 'pin tarafı avantajlı' : w > 2 ? 'hakem botu tarafı avantajlı' : 'hat dik, iki uç eşit';
-    const FLAG_KID = { I: 'Son 1 dakikada hattın üstüne çıkarsan uçlardan dolaşıp dönmelisin', Z: 'Son dakikada üçgende yakalanırsan puan cezası', U: 'Son dakikada üçgende yakalanırsan diskalifiye', Siyah: 'Son dakikada üçgende yakalanırsan diskalifiye' };
     const facts = [
       tile(ic('boat'), 'Teknen', clsName(b.cls) || 'Optimist'),
       tile(ic('wind'), 'Rüzgar', `${kn} knot`, [windWord, sideWord].filter(Boolean).join(' · ')),
       tile(ic('fleet'), 'Rakipler', n > 1 ? `${n - 1} tekne` : 'Yalnız sen'),
       tile(clockIc, "Start'a", `${Math.round((b.pre || 120) / 60)} dakika`, 'saat girince başlar')
     ];
-    if (flag !== 'P') facts.push(tile(ic('flag'), 'Bayrak', flag === 'Siyah' ? 'Siyah bayrak' : `${flag} bayrağı`, FLAG_KID[flag] || '', 'kc-wide kc-warn'));
     const when = at => at < 0 ? `${clock(-at)}` : clock(at);
     const evHtml = e => e.k === 'shift'
       ? `<li class="kc-ev"><span class="kc-t${e.at < 0 ? ' pre' : ''}">${when(e.at)}</span><span class="kc-evi shift">${ic(e.deg > 0 ? 'rot-r' : 'rot-l')}</span>
@@ -173,6 +209,7 @@
         <div class="kc-main">
           ${t.note ? `<div class="kc-note"><span class="kc-lbl">Antrenöründen not</span><p>${esc(t.note)}</p></div>` : ''}
           <div class="kc-facts">${facts.join('')}</div>
+          ${flagCard(flag)}
           ${evs.length ? `<div class="kc-sec"><h3>Yarışta neler olacak?</h3><p class="kc-hint">Saatler start'tan sonrasını gösterir.</p><ol class="kc-time">${evs.map(evHtml).join('')}</ol></div>` : ''}
           <div class="kc-sec kc-how"><h3>Nasıl oynanır?</h3>
             <ul><li><b>◀ ▶</b> dümen: tekneyi çevirir</li><li><b>Çek</b>: yelkeni doldurur, tekne hızlanır</li><li>Start'ta hattın gerisinde ol, sonra şamandıraları dönüp finişe git</li></ul></div>

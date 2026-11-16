@@ -2178,7 +2178,7 @@
   }
 
   window.SimApi = {
-    S, st, toast, taskStart, taskStop, taskWatch, taskCompare, currentSetup, taskResult, placeHud,
+    S, st, toast, taskStart, taskStop, taskWatch, taskCompare, currentSetup, taskResult, placeHud, flagMarkup, FLAG_INFO,
     replay: rec => replay(rec),
     netStart(setup, net) {
       if (st.drawMode) endDraw(false);
