@@ -1,5 +1,7 @@
 /* Görev havuzu (havuz.html): antrenörün görevleri, katılımcılar, sonuçlar. Tablo ve çipler gorev.css'ten. */
 html, body.havuz { overflow: auto; height: auto; min-height: 100%; background: var(--bg); }
+/* kaydıran yalnız html: body de overflow:auto olunca yapışık (sticky) üst çubuk, parkur çizimi ve işlem çubuğu body'ye bağlanıp kayıyordu */
+html body.havuz { overflow: visible; }
 body.havuz { display: block; background: var(--bg); }
 .havuz .topbar { position: sticky; top: 0; z-index: 5; }
 .havuz a.tool, .havuz a.tb { text-decoration: none; }
@@ -106,3 +108,87 @@ body.havuz { display: block; background: var(--bg); }
 .havuz .tool.primary-tool svg { width: 18px; height: 18px; color: #1c1404; }
 .havuz .tool.primary-tool:hover { background: #fcd34d; border-color: #fcd34d; color: #1c1404; }
 @media (max-width: 420px) { .havuz .tool.primary-tool .lbl { display: none; } .havuz .tool.primary-tool { padding: 0; width: var(--tap); } }
+/* ---------- Yarış oluştur v2 (kullanıcı 2026-11-16: daha kullanışlı) ----------
+   Bölümler açılır-kapanır, başlıkta özet; akış için hazır seçenekler + zaman çizelgesi + etiketli olay kartları;
+   parkur çizimi parkurun olduğu yere yakın (büyük); işlem düğmeleri altta yapışık. */
+.km-names { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 4px 14px; margin-bottom: 10px; }
+.km-fld { display: flex; flex-direction: column; min-width: 0; }
+.km-fld .dlg-lbl { margin-top: 0; }
+.hv-new .km-names .task-note-in { min-height: 64px; resize: vertical; }
+.km-sec { border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); margin-top: 8px; }
+.km-sec.open { border-color: rgba(56,189,248,.35); background: rgba(56,189,248,.035); }
+.km-sh { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 56px; background: none; border: 0; color: var(--text); text-align: left; cursor: pointer; border-radius: 12px; font: inherit; }
+.km-sh:hover { background: var(--hover); }
+.km-no { flex: 0 0 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; background: var(--raised2, #1e3044); color: var(--text2); }
+.km-sec.open .km-no { background: var(--accent); color: var(--accent-ink); }
+.km-st { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.km-st b { font-size: 15px; }
+.km-st small { font-size: 12.5px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.km-chev { flex: 0 0 18px; width: 18px; height: 18px; color: var(--muted); transition: transform .15s; }
+.km-sec.open .km-chev { transform: rotate(180deg); }
+.km-sb { display: none; padding: 2px 14px 14px 50px; }
+.km-sec.open .km-sb { display: block; }
+.km-sb .net-opt:first-child { padding-top: 0; }
+/* hazır akışlar */
+.km-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
+.km-presets .pr { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--raised); color: var(--text2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.km-presets .pr:hover { color: var(--text); border-color: rgba(56,189,248,.5); }
+.km-presets .pr.on { background: rgba(56,189,248,.18); border-color: #38bdf8; color: #e0f2fe; }
+/* zaman çizelgesi */
+.tl { margin: 4px 0 12px; padding: 8px 24px 4px; border-radius: 10px; background: #0a1c2e; border: 1px solid var(--border); }
+.tl-track { position: relative; height: 46px; border-bottom: 1.5px solid rgba(148,163,184,.45); }
+.tl-now { position: absolute; top: 0; bottom: -4px; width: 0; border-left: 1.5px dashed #fbbf24; }
+.tl-bar { position: absolute; height: 8px; border-radius: 4px; background: rgba(56,189,248,.45); }
+.tl-bar.r { top: 9px; } .tl-bar.l { top: 25px; } .tl-bar.keep { background: linear-gradient(90deg, rgba(56,189,248,.45), rgba(56,189,248,.08)); }
+.tl-ev { position: absolute; transform: translateX(-50%); padding: 0; cursor: pointer; border: 2px solid #0a1c2e; }
+.tl-ev.wind { width: 22px; height: 22px; border-radius: 50%; background: #38bdf8; color: #04223a; font-size: 13px; font-weight: 900; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.tl-ev.wind.r { top: 2px; } .tl-ev.wind.l { top: 18px; }
+.tl-ev.gust { top: 26px; width: 15px; height: 15px; border-radius: 3px; background: #cbd5e1; transform: translateX(-50%) rotate(45deg); }
+.tl-ev.on { box-shadow: 0 0 0 3px #fbbf24; }
+.tl-ticks { position: relative; height: 20px; }
+.tl-tick { position: absolute; top: 4px; transform: translateX(-50%); font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tl-tick.st { color: #fbbf24; font-weight: 700; }
+/* olay kartları */
+.havuz .tp-row.ev { display: block; padding: 8px 10px 10px; }
+.havuz .tp-row.ev.hi { border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf24 inset; }
+.ev-top { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+.ev-say { flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text2); }
+.ev-top .icon.sm { flex: 0 0 auto; margin-left: auto; }
+.ev-fields { display: grid; grid-template-columns: 84px repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 6px; }
+.ev-f { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ev-f > span { font-size: 11.5px; color: var(--muted); }
+.havuz .ev-f .dlg-in { width: 100%; height: 36px; min-height: 36px; }
+.havuz .ev-f .tp-at { width: 100%; }
+.tp-add .tb { height: 38px; }
+/* sağ: lejant */
+.km-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.km-legend .lg { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 4px; }
+.km-legend .lg.me { background: #fb923c; } .km-legend .lg.ai { background: #e2e8f0; } .km-legend .lg.gs { border: 1.5px dashed #cbd5e1; }
+.km-tl { text-anchor: start; fill: #fed7aa; }
+.havuz .km-svg { max-height: 60vh; }
+/* işlem çubuğu: altta yapışık */
+.km-bar { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px -18px -16px; padding: 10px 18px calc(10px + var(--sab));
+  background: rgba(13,27,42,.94); backdrop-filter: blur(6px); border-top: 1px solid var(--border); border-radius: 0 0 14px 14px; }
+.km-bar .spacer { flex: 1 1 auto; }
+.km-bar .net-err { flex: 1 1 100%; order: -1; margin: 0; }
+.km-bar .net-err:empty { display: none; }
+.km-bar .tb { min-height: 42px; height: 42px; }
+@media (max-width: 900px) {
+  .km-names { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .km-sb { padding: 2px 10px 12px; }
+  .ev-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .km-bar { margin: 12px -12px -12px; padding: 8px 12px calc(8px + var(--sab)); }
+  .km-bar .tb { padding: 0 12px; }
+  .km-st small { white-space: normal; }
+}
+@media (max-width: 480px) {
+  .km-bar [data-k-act="reset"] { display: none; }
+  .km-bar .tb { flex: 1 1 0; }
+  .km-bar .spacer { display: none; }
+}
+@media (max-width: 900px) {
+  .havuz .km-svg { max-height: 240px; }
+  .km-side .net-h, .km-side .task-hints { display: none; }   /* dar ekranda ipuçları olay kartlarında zaten yazılı */
+}
