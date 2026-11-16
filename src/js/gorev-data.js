@@ -162,6 +162,6 @@
       }
     }`;
   }
-  window.SailTaskData = { rulesText, MAX_TRIES, triesOf, esc, jcopy, acc, store, PROJECT, COL, mode, CODE_OK, makeBackend, isCoach, isDenied, clock, parseClock, dateTxt, clsName,
+  window.SailTaskData = { sideTxt, rulesText, MAX_TRIES, triesOf, esc, jcopy, acc, store, PROJECT, COL, mode, CODE_OK, makeBackend, isCoach, isDenied, clock, parseClock, dateTxt, clsName,
     planLines, setupChips, resTxt, taskSetup, closed, board, taskLink };
 })();

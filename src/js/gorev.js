@@ -19,7 +19,7 @@
   const S = api.S;
   const $ = id => document.getElementById(id);
   const D = window.SailTaskData;
-  const { esc, acc, store, PROJECT, mode, isDenied, clock, dateTxt, planLines, setupChips, resTxt, taskSetup, closed } = D;
+  const { esc, acc, store, PROJECT, mode, isDenied, clock, dateTxt, resTxt, taskSetup, closed, clsName } = D;
   const html = s => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstChild; };
   const toast = m => api.toast(m);
   const track = (ev, data) => { try { if (window.SailTrack) SailTrack.log(ev, data); } catch (e) { /* yok */ } };
@@ -75,7 +75,9 @@
     const v = T.view, t = T.task;
     const titles = { home: 'Antrenör yarışları', task: t ? t.name : 'Yarış', end: 'Yarış bitti', setup: 'Antrenör yarışları · kurulum', wait: 'Antrenör yarışları' };
     $('taskTitle').textContent = titles[v] || 'Görevler';
-    $('taskSub').textContent = v === 'task' || v === 'end' ? (t ? `Kod ${t.code}${t.ownerName ? ' · antrenör ' + t.ownerName : ''}` : '')
+    dlg.classList.toggle('kid', v === 'task');
+    $('taskSub').textContent = v === 'task' ? (t && t.ownerName ? `Antrenörün: ${t.ownerName}` : 'Antrenör yarışı')
+      : v === 'end' ? (t ? `Kod ${t.code}${t.ownerName ? ' · antrenör ' + t.ownerName : ''}` : '')
       : 'Antrenörün gönderdiği yarışı koş, yarışını gönder, tekrarları izle';
     body.innerHTML = v === 'wait' ? `<p class="net-wait">${esc(T.err || 'Yükleniyor…')}</p>`
       : v === 'task' ? taskHtml() : v === 'end' ? endHtml() : v === 'setup' ? setupHtml() : homeHtml();
@@ -126,7 +128,6 @@
   // ---------- Yarış sayfası: kart + sıralama ----------
   function taskHtml() {
     const t = T.task, su = taskSetup(t), own = ownTask() && !asAthlete, left = triesLeft(), shut = closed(t);
-    const hints = t.hints !== false ? planLines(su.plan) : [];
     const mine = myRuns(), rows = D.board(T.runs);
     const canSee = own || t.vis === 'all' || (t.vis === 'after' && mine.length);
     const runRow = (r, i, rs) => `<tr class="${be && r.uid === be.uid() ? 'me' : ''}${i == null ? ' sub' : ''}">
@@ -142,20 +143,55 @@
         <thead><tr><th title="Karşılaştır">⇄</th><th>#</th><th>Sporcu</th><th>Süre</th><th>Sıra</th><th>Start</th><th>Ceza</th><th>Tramola</th><th>Deneme</th><th></th></tr></thead>
         <tbody>${rows.map((x, i) => runRow(x.best, i, x.runs) + (T.open[x.best.uid] ? x.runs.filter(r => r !== x.best).map(r => runRow(r, null)).join('') : '')).join('')}</tbody></table></div>`
       : '<p class="net-empty">Henüz gönderilmiş yarış yok.</p>';
-    return `<div class="task-card">
-        <div class="rec-sum">${setupChips(su)}<span class="rc">${D.triesOf(t)} deneme hakkı</span>${t.due ? `<span class="rc">son: ${esc(dateTxt(t.due))}</span>` : ''}${shut ? '<span class="rc bad">kapandı</span>' : ''}</div>
-        ${t.note ? `<p class="task-note">${esc(t.note)}</p>` : ''}
-        ${hints.length ? `<div class="net-h">İpuçları</div><ul class="task-hints">${hints.map(h => `<li>${esc(h)}</li>`).join('')}</ul>` : ''}
-        <div class="dlg-actions task-go">
-          ${own ? `<a class="tb" href="${hubUrl()}">Yarışlar</a><button class="tb" data-act="copy">Bağlantıyı kopyala</button><button class="tb" data-act="${t.state === 'closed' ? 'reopen' : 'close'}">${t.state === 'closed' ? 'Yeniden aç' : 'Yarışı kapat'}</button><button class="tb task-del" data-delcode="${esc(t.code)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button>` : ''}
-          ${shut ? '' : left > 0 ? `<button class="tb primary net-go" data-act="start"><svg class="ci"><use href="#i-play"/></svg>${startsUsed() ? 'Tekrar yap' : 'Yarışa başla'}${Number.isFinite(left) ? ` <small>(${left} hak)</small>` : ''}</button>` : '<span class="dlg-note">Deneme hakkın bitti.</span>'}
+    const b = su.boat || {}, kn = +b.windKn || 8, n = (su.fleet || []).length, flag = (su.course || {}).flag || 'P', w = +su.wind || 0;
+    const showHints = t.hints !== false, evs = showHints ? (su.plan || []).slice().sort((a, c) => a.at - c.at) : [];
+    const ic = id => `<svg class="kc-ic"><use href="#i-${id}"/></svg>`;
+    const clockIc = '<svg class="kc-ic" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4.5l3 2M9 2.5h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const tile = (icon, lbl, val, sub, cls) => `<div class="kc-fact${cls ? ' ' + cls : ''}">${icon}<div><span class="kc-fl">${lbl}</span><b>${esc(val)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`;
+    const windWord = kn <= 6 ? 'hafif rüzgar' : kn <= 12 ? 'orta rüzgar' : 'sert rüzgar';
+    const sideWord = !showHints ? '' : w < -2 ? 'pin tarafı avantajlı' : w > 2 ? 'hakem botu tarafı avantajlı' : 'hat dik, iki uç eşit';
+    const FLAG_KID = { I: 'Son 1 dakikada hattın üstüne çıkarsan uçlardan dolaşıp dönmelisin', Z: 'Son dakikada üçgende yakalanırsan puan cezası', U: 'Son dakikada üçgende yakalanırsan diskalifiye', Siyah: 'Son dakikada üçgende yakalanırsan diskalifiye' };
+    const facts = [
+      tile(ic('boat'), 'Teknen', clsName(b.cls) || 'Optimist'),
+      tile(ic('wind'), 'Rüzgar', `${kn} knot`, [windWord, sideWord].filter(Boolean).join(' · ')),
+      tile(ic('fleet'), 'Rakipler', n > 1 ? `${n - 1} tekne` : 'Yalnız sen'),
+      tile(clockIc, "Start'a", `${Math.round((b.pre || 120) / 60)} dakika`, 'saat girince başlar')
+    ];
+    if (flag !== 'P') facts.push(tile(ic('flag'), 'Bayrak', flag === 'Siyah' ? 'Siyah bayrak' : `${flag} bayrağı`, FLAG_KID[flag] || '', 'kc-wide kc-warn'));
+    const when = at => at < 0 ? `${clock(-at)}` : clock(at);
+    const evHtml = e => e.k === 'shift'
+      ? `<li class="kc-ev"><span class="kc-t${e.at < 0 ? ' pre' : ''}">${when(e.at)}</span><span class="kc-evi shift">${ic(e.deg > 0 ? 'rot-r' : 'rot-l')}</span>
+          <span class="kc-evt"><b>Rüzgar ${Math.abs(e.deg)}° ${e.deg > 0 ? 'sağa' : 'sola'} döner</b><small>${e.hold ? `${e.hold} saniye sonra eski yönüne geri gelir` : 'sonra öyle kalır'}</small></span></li>`
+      : `<li class="kc-ev"><span class="kc-t${e.at < 0 ? ' pre' : ''}">${when(e.at)}</span><span class="kc-evi gust">${ic('gust')}</span>
+          <span class="kc-evt"><b>${({ sol: 'Soldan', 'orta-sol': 'Sol ortadan', orta: 'Ortadan', 'orta-sağ': 'Sağ ortadan', 'sağ': 'Sağdan' })[D.sideTxt ? D.sideTxt(e.pos) : 'orta'] || 'Yukarıdan'} ${({ S: 'küçük', M: '', L: 'büyük' })[e.size] || ''} sağanak gelir</b><small>Sağanağın içinde teknen hızlanır</small></span></li>`;
+    const total = D.triesOf(t), usedNow = Number.isFinite(left) ? total - left : 0;
+    const dots = Array.from({ length: total }, (_, k) => `<i class="${k < usedNow ? 'used' : ''}"></i>`).join('');
+    const go = shut ? '<p class="kc-closed">Bu yarış kapandı. Antrenörün yeni bir yarış gönderecek.</p>'
+      : left > 0 ? `<button class="kc-go net-go" data-act="start"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>${startsUsed() ? 'Tekrar yarış' : 'Yarışa başla'}</button>`
+      : '<p class="kc-closed">Yarış hakların bitti. Sıralamaya aşağıdan bakabilirsin.</p>';
+    return `<div class="kc">
+        <div class="kc-main">
+          ${t.note ? `<div class="kc-note"><span class="kc-lbl">Antrenöründen not</span><p>${esc(t.note)}</p></div>` : ''}
+          <div class="kc-facts">${facts.join('')}</div>
+          ${evs.length ? `<div class="kc-sec"><h3>Yarışta neler olacak?</h3><p class="kc-hint">Saatler start'tan sonrasını gösterir.</p><ol class="kc-time">${evs.map(evHtml).join('')}</ol></div>` : ''}
+          <div class="kc-sec kc-how"><h3>Nasıl oynanır?</h3>
+            <ul><li><b>◀ ▶</b> dümen: tekneyi çevirir</li><li><b>Çek</b>: yelkeni doldurur, tekne hızlanır</li><li>Start'ta hattın gerisinde ol, sonra şamandıraları dönüp finişe git</li></ul></div>
+        </div>
+        <div class="kc-side">
+          ${Number.isFinite(left) ? `<div class="kc-tries"><span>Yarış hakkın</span><span class="kc-dots">${dots}</span><b>${left} / ${total}</b></div>` : ''}
+          ${go}
+          ${t.due && !shut ? `<p class="kc-due">Son gün: ${esc(dateTxt(t.due))}</p>` : ''}
+          <p class="kc-save">Yarış bitince sonucunu antrenörüne gönderirsin. En iyi yarışın sayılır.</p>
         </div>
       </div>
-      <div class="net-h">Sıralama <small>${T.runs.length ? `${rows.length} sporcu · ${T.runs.length} yarış` : ''}</small> <button class="tb tb-reload" data-act="reload">Yenile</button>
+      <div class="net-h kc-rank-h">Sıralama <small>${T.runs.length ? `${rows.length} sporcu · ${T.runs.length} yarış` : ''}</small> <button class="tb tb-reload" data-act="reload">Yenile</button>
         ${T.runs.length > 1 && canSee ? `<button class="tb tb-reload tb-cmp${T.pick.length >= 2 ? ' primary' : ''}" data-act="compare" ${T.pick.length >= 2 ? '' : 'disabled'} title="Seçili yarışları (2-4) aynı parkurda üst üste izle">Karşılaştır${T.pick.length ? ` (${T.pick.length})` : ''}</button>` : ''}</div>
-      ${T.runs.length > 1 && canSee ? '<p class="dlg-note task-cmp-note">⇄ ile 2-4 yarış seç, <b>Karşılaştır</b>: sporcuların tekneleri aynı parkurda ortak saatle üst üste oynar.</p>' : ''}
+      ${T.runs.length > 1 && canSee ? '<p class="dlg-note task-cmp-note">⇄ ile 2-4 yarış seç, <b>Karşılaştır</b>: tekneler aynı parkurda üst üste oynar.</p>' : ''}
       ${canSee ? table : `<p class="net-empty">${t.vis === 'after' ? 'Sıralama ve tekrarlar yarışını gönderince açılır.' : 'Sıralamayı yalnız antrenörün görüyor.'}</p>${mine.length ? `<div class="task-board-wrap"><table class="task-board"><tbody>${mine.map(r => runRow(r, null)).join('')}</tbody></table></div>` : ''}`}
-      ${asAthlete && ownTask() ? '<p class="dlg-note">Sporcu görünümü: sporcuların gördüğü kart bu. Sana hak sınırı yok; gönderdiğin yarış sıralamaya girer (Yarışlar sayfasından silebilirsin).</p>' : ''}
+      ${own ? `<div class="kc-coach"><span class="kc-lbl">Antrenör · kod ${esc(t.code)}</span>
+          <a class="tb" href="${hubUrl()}">Yarışlar</a><button class="tb" data-act="copy">Bağlantıyı kopyala</button><a class="tb" href="${esc(D.taskLink(t.code, '&sporcu=1'))}">Sporcu gibi aç</a>
+          <button class="tb" data-act="${t.state === 'closed' ? 'reopen' : 'close'}">${t.state === 'closed' ? 'Yeniden aç' : 'Yarışı kapat'}</button><button class="tb task-del" data-delcode="${esc(t.code)}" title="Yarışı ve gönderilen denemeleri sil">Sil</button></div>` : ''}
+      ${asAthlete && ownTask() ? '<p class="dlg-note">Sporcu görünümü: sporcuların gördüğü kart bu. Sana hak sınırı yok.</p>' : ''}
       <p class="net-err" id="taskErr">${esc(T.err)}</p>`;
   }
 

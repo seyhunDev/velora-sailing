@@ -258,6 +258,10 @@
 ### 2026-11-15 · github.io kaldırıldı, depo gizli
 Yapılan: `deploy.yml`'den Pages çıkarıldı, notlar ve CLAUDE.md güncellendi. Kullanıcı depoyu gizli yapıyor ve Pages sitesini kapatıyor. Kalan: Velora kartının adresi (sesliasistan).
 
+### 2026-11-16 · Yarış kartı çocuklar için (8-14 yaş)
+- Kullanıcı: bağlantıyla açılan yarış bilgi kartı daha anlaşılır, net ve güzel olsun; telefon ve tablet uyumlu.
+- Yapılan (`gorev.js` taskHtml, `gorev.css` .kc-*): başlık + "Antrenörün: …"; antrenör notu sarı kutuda; simgeli bilgi kutuları (Teknen, Rüzgar knot + hafif/orta/sert, Rakipler, Start'a dakika, bayrak varsa çocuk diliyle açıklama); "Yarışta neler olacak?" zaman çizelgesi (saat rozeti + simge + kısa cümle); "Nasıl oynanır?" 3 madde; sağda yapışkan kutu: hak noktaları, büyük yeşil "Yarışa başla", son gün. Antrenör düğmeleri kartın en altında ayrı kesik çizgili satırda (sporcu görmez). Telefonda tam ekran iki sütun, Başla hep görünür; 600 px altı tek sütun, Başla üstte.
+
 ### 2026-11-15 · Sade yarış ekranı, en çok 3 hak
 - Kullanıcı: antrenör yarışında üst çubuk ve gereksiz şeyler olmasın; sol üstte geri oku; durdurma yok; tekrar yapılabilir ama en çok 3 hak (antrenör formdan 1-3 seçer).
 - Yapılan: `body.task-race` (yarışta, tekrar izlemede değil): üst çubuk, zaman kutusu (Durdur/hız/Yeni yarış), ayar rayı, panel, mod şeridi, yarış çipi gizli; sol üstte `#taskBack` (iki dokunuş, yarış kartına döner; denemede forma), rüzgar + saat ortada (`placeHud` task-race'te sahneye taşır). Hak = başlatılan yarış: `D.triesOf` en çok 3 (eski 0/5 = 3), başlatma sayısı cihazda `ps.task.starts.{KOD}.{uid}`; bitince "Tekrar yap (N hak)" + "Antrenörüme gönder". Form deneme hakkı 1/2/3.

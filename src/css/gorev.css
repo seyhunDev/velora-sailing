@@ -108,3 +108,72 @@ body.task-race .race-hud.on-stage { top: calc(10px + var(--sat)); left: 50%; tra
 .task-fin { display: none; }
 body.task-race .task-fin:not(.hidden) { display: inline-flex; align-items: center; gap: 6px; position: absolute; z-index: 16;
   top: calc(10px + var(--sat)); right: calc(12px + var(--sar, 0px)); min-height: 44px; padding: 0 16px; font-weight: 700; }
+/* ---- Yarış kartı (sporcu, 8-14 yaş; kullanıcı 2026-11-16): büyük yazı, simgeli bilgi kutuları, zaman çizelgesi, büyük Başla ---- */
+.task-dlg.kid .dlg-panel.wide { width: min(900px, 100%); max-height: min(860px, 100%); }
+.task-dlg.kid #taskTitle { font-size: 24px; line-height: 1.2; }
+.task-dlg.kid .picker-sub { font-size: 14px; color: var(--text2); }
+.kc { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; align-items: start; margin-top: 4px; }
+.kc-main { display: grid; gap: 14px; min-width: 0; }
+.kc-lbl { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; color: #fbbf24; margin-bottom: 4px; }
+.kc-note { padding: 12px 14px; border-radius: 14px; background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.35); }
+.kc-note p { margin: 0; font-size: 16px; line-height: 1.5; color: var(--text); white-space: pre-wrap; }
+.kc-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.kc-fact { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 14px; background: var(--raised); border: 1px solid var(--border); min-width: 0; }
+.kc-fact > div { display: flex; flex-direction: column; min-width: 0; }
+.kc-fact .kc-ic { width: 34px; height: 34px; flex: 0 0 auto; padding: 7px; border-radius: 10px; background: rgba(56,189,248,.14); color: #7dd3fc; box-sizing: border-box; }
+.kc-fl { font-size: 12px; color: var(--muted); font-weight: 600; }
+.kc-fact b { font-size: 18px; color: var(--text); line-height: 1.25; }
+.kc-fact small { font-size: 12.5px; color: var(--text2); line-height: 1.35; }
+.kc-fact.kc-wide { grid-column: 1 / -1; }
+.kc-fact.kc-warn .kc-ic { background: rgba(248,113,113,.16); color: #fca5a5; }
+.kc-sec h3 { margin: 0 0 4px; font-size: 17px; }
+.kc-hint { margin: 0 0 8px; font-size: 12.5px; color: var(--muted); }
+.kc-time { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; position: relative; }
+.kc-ev { display: grid; grid-template-columns: 58px 38px minmax(0, 1fr); gap: 10px; align-items: center; padding: 8px 10px; border-radius: 12px; background: var(--raised); border: 1px solid var(--border); }
+.kc-t { font-size: 15px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; text-align: center; padding: 4px 0; border-radius: 8px; background: rgba(255,255,255,.06); }
+.kc-t.pre::before { content: '−'; }
+.kc-evi { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.kc-evi .kc-ic { width: 22px; height: 22px; }
+.kc-evi.shift { background: rgba(56,189,248,.16); color: #7dd3fc; }
+.kc-evi.gust { background: rgba(148,163,184,.2); color: #e2e8f0; }
+.kc-evt { display: flex; flex-direction: column; min-width: 0; }
+.kc-evt b { font-size: 15px; color: var(--text); }
+.kc-evt small { font-size: 12.5px; color: var(--text2); }
+.kc-how ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; color: var(--text2); line-height: 1.45; }
+.kc-how b { color: var(--text); }
+.kc-side { position: sticky; top: 0; display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: rgba(56,189,248,.07); border: 1px solid rgba(56,189,248,.3); }
+.kc-tries { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--text2); }
+.kc-tries b { margin-left: auto; font-size: 16px; color: var(--text); font-variant-numeric: tabular-nums; }
+.kc-dots { display: inline-flex; gap: 5px; }
+.kc-dots i { width: 14px; height: 14px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 0 2px rgba(56,189,248,.25); }
+.kc-dots i.used { background: transparent; box-shadow: inset 0 0 0 2px rgba(148,178,208,.5); }
+.kc-go { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 64px; border: 0; border-radius: 16px; cursor: pointer;
+  background: #22c55e; color: #052e14; font: inherit; font-size: 21px; font-weight: 800; box-shadow: 0 6px 18px rgba(34,197,94,.35); }
+.kc-go svg { width: 26px; height: 26px; }
+.kc-go:hover { background: #2fd96a; }
+.kc-go:focus-visible { outline: 3px solid #bbf7d0; outline-offset: 3px; }
+.kc-go[disabled] { opacity: .6; }
+.kc-due { margin: 0; font-size: 13.5px; color: #fde68a; font-weight: 600; text-align: center; }
+.kc-save { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; text-align: center; }
+.kc-closed { margin: 0; padding: 12px; border-radius: 12px; background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.35); color: #fecaca; font-size: 14.5px; text-align: center; }
+.kc-rank-h { margin-top: 16px; }
+.kc-coach { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.kc-coach .kc-lbl { width: 100%; color: var(--muted); margin: 0; }
+.kc-coach .tb { min-height: 34px; height: 34px; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none; color: var(--text); }
+.kc-coach .tb.task-del { color: #fca5a5; }
+/* telefon (yatay) ve dar ekran: tam ekran kart, sağ sütun dar; dikey dar ekranda tek sütun, Başla en üstte */
+@media (max-height: 460px) {
+  .task-dlg.kid .dlg-panel.wide { height: 100%; max-height: 100%; width: 100%; }
+  .task-dlg.kid #taskTitle { font-size: 19px; }
+  .kc { grid-template-columns: minmax(0, 1fr) 230px; gap: 12px; }
+  .kc-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .kc-fact { padding: 8px 10px; gap: 10px; } .kc-fact b { font-size: 16px; }
+  .kc-fact .kc-ic { width: 30px; height: 30px; padding: 6px; }
+  .kc-note p { font-size: 15px; }
+  .kc-go { min-height: 56px; font-size: 19px; }
+}
+@media (max-width: 600px) {
+  .kc { grid-template-columns: 1fr; }
+  .kc-side { position: static; order: -1; }
+  .kc-facts { grid-template-columns: 1fr 1fr; }
+}
