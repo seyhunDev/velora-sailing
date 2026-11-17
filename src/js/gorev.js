@@ -127,40 +127,48 @@
 
   // ---------- Start bayrağı kartı (kullanıcı 2026-11-16: "hangi bayrak kullanılıyorsa onu gösterelim, eğitici olsun") ----------
   // Bayrağın kendisi (simülatördeki çizim), ne demek olduğu çocuk diliyle, yasaklı bölge çizimi, ne zaman çekilip iner, kural no.
+  // 2026-11-17 (kullanıcı: "kural bayrağını daha sade ve güzel kullan"): tek satır başlık + sonuç rozeti, küçük bölge çizimi,
+  // üç kısa satır (ne zaman / ne yapma / yaparsan) ve bayrağın 4-1-0 zaman şeridi.
   const FLAG_LEARN = {
-    P: { say: 'Özel bir kısıtlama yok. Start işaretinde teknenin hiçbir parçası (burnu, yelkeni) hattın üstünde olmamalı.',
-      bad: 'Erken çıkarsan: teknenin tamamıyla hattın altına dön, sonra yeniden start et.', rule: 'K29.1', zone: '' },
-    I: { say: 'Son 1 dakikada teknenin bir parçası hattın ya da uzantılarının üstüne çıkarsa, start etmek için bir ucun (pin ya da hakem botu) dışından dolaşman gerekir.',
-      bad: 'Hattın içinden geri dönmek yetmez: uçtan dolaş, sonra start et.', rule: 'K30.1', zone: 'line' },
-    Z: { say: 'Son 1 dakikada pin, hakem botu ve orsa şamandırası arasındaki üçgene girersen puan cezası alırsın.',
-      bad: 'Ceza: kayıtlı tekne sayısının %20\'si kadar puan eklenir. Erken çıktıysan yine geri dönmelisin.', rule: 'K30.2', zone: 'tri' },
-    U: { say: 'Son 1 dakikada aynı üçgene girersen diskalifiye olursun (UFD).',
-      bad: 'Geri dönmek kurtarmaz. Yarıştan çıkarılırsın.', rule: 'K30.3', zone: 'tri' },
-    Siyah: { say: 'En sert kural. Son 1 dakikada üçgene girersen diskalifiye olursun (BFD).',
-      bad: 'Geri dönmek kurtarmaz. Yarıştan çıkarılırsın; yarış yeniden başlarsa ona da giremezsin.', rule: 'K30.4', zone: 'tri' }
+    P: { tone: 'ok', badge: 'Standart kural', when: 'Start işaretinde', dont: 'Teknenin hiçbir parçası (burnu, yelkeni) hattın üstünde olmasın',
+      bad: 'Erken çıkarsan: tamamen hattın altına dön, yeniden start et', rule: 'K29.1', zone: '' },
+    I: { tone: 'mid', badge: 'Uçtan dolaş', when: 'Son 1 dakika', dont: 'Hattın ve uzantılarının üstüne çıkma',
+      bad: 'Çıkarsan: pin ya da hakem botunun dışından dolaşıp start et', rule: 'K30.1', zone: 'line' },
+    Z: { tone: 'mid', badge: 'Puan cezası %20', when: 'Son 1 dakika', dont: 'Pin, hakem botu ve şamandıra arasındaki üçgene girme',
+      bad: 'Girersen: kayıtlı tekne sayısının %20\'si kadar puan cezası', rule: 'K30.2', zone: 'tri' },
+    U: { tone: 'bad', badge: 'Diskalifiye · UFD', when: 'Son 1 dakika', dont: 'Pin, hakem botu ve şamandıra arasındaki üçgene girme',
+      bad: 'Girersen: diskalifiye olursun, geri dönmek kurtarmaz', rule: 'K30.3', zone: 'tri' },
+    Siyah: { tone: 'bad', badge: 'Diskalifiye · BFD', when: 'Son 1 dakika', dont: 'Pin, hakem botu ve şamandıra arasındaki üçgene girme',
+      bad: 'Girersen: yarıştan çıkarsın; yarış yeniden başlarsa ona da giremezsin', rule: 'K30.4', zone: 'tri' }
   };
   function zoneSvg(z) {
-    // hat yatay, şamandıra yukarıda; I: hattın ve uzantılarının üstü, üçgen: pin–hakem botu–şamandıra
-    const fill = z === 'line' ? '<path d="M0,0H220V78H0Z" fill="rgba(250,204,21,.22)"/><line x1="0" y1="78" x2="220" y2="78" stroke="#facc15" stroke-width="1.5" stroke-dasharray="4 4"/>'
-      : z === 'tri' ? '<path d="M60,78 L160,78 L110,14Z" fill="rgba(248,113,113,.28)" stroke="#f87171" stroke-width="1.5"/>' : '';
-    return `<svg class="kf-zone" viewBox="0 0 220 104" role="img" aria-label="Yasaklı bölge">${fill}
-      <line x1="60" y1="78" x2="160" y2="78" stroke="#fff" stroke-width="2" stroke-dasharray="6 4"/>
-      <circle cx="60" cy="78" r="5" fill="#fbbf24"/><rect x="156" y="70" width="8" height="16" rx="3" fill="#cbd5e1"/><circle cx="110" cy="14" r="5" fill="#fb923c"/>
-      <text x="60" y="98" class="kf-t" text-anchor="middle">pin</text><text x="160" y="98" class="kf-t" text-anchor="middle">hakem botu</text><text x="122" y="18" class="kf-t" text-anchor="start">şamandıra</text>
-      ${z ? `<text x="${z === 'line' ? 12 : 110}" y="${z === 'line' ? 18 : 62}" class="kf-t kf-z" text-anchor="${z === 'line' ? 'start' : 'middle'}">son 1 dk yasak</text>` : '<text x="110" y="62" class="kf-t" text-anchor="middle">start\'ta hattın altında ol</text>'}</svg>`;
+    // hat yatay, şamandıra yukarıda; I: hattın ve uzantılarının üstü, üçgen: pin–hakem botu–şamandıra; P: yalnız hat
+    const zone = z === 'line' ? '<path d="M0,0H160V84H0Z" fill="rgba(250,204,21,.18)"/><line x1="0" y1="84" x2="160" y2="84" stroke="#facc15" stroke-width="1.5" stroke-dasharray="3 3"/>'
+      : z === 'tri' ? '<path d="M40,84 L120,84 L80,18Z" fill="rgba(248,113,113,.3)" stroke="#f87171" stroke-width="1.5" stroke-linejoin="round"/>'
+      : '<path d="M40,84 L120,84 L120,96 L40,96Z" fill="rgba(56,189,248,.16)"/>';
+    const tag = z === 'line' ? '<text x="80" y="50" class="kf-t kf-z" text-anchor="middle">yasak</text>'
+      : z === 'tri' ? '<text x="80" y="70" class="kf-t kf-z" text-anchor="middle">yasak</text>'
+      : '<text x="80" y="50" class="kf-t" text-anchor="middle">↑ rüzgar</text>';
+    return `<svg class="kf-zone" viewBox="0 0 160 112" role="img" aria-label="Yasaklı bölge">${zone}
+      <line x1="40" y1="84" x2="120" y2="84" stroke="#fff" stroke-width="2" stroke-dasharray="5 3"/>
+      <circle cx="40" cy="84" r="4.5" fill="#fbbf24"/><rect x="116.5" y="77" width="7" height="14" rx="2.5" fill="#cbd5e1"/>${z === 'tri' ? '<circle cx="80" cy="18" r="4.5" fill="#fb923c"/>' : ''}
+      ${tag}<text x="40" y="106" class="kf-t" text-anchor="middle">pin</text><text x="120" y="106" class="kf-t" text-anchor="middle">hakem botu</text>
+      ${z === 'tri' ? '<text x="88" y="12" class="kf-t" text-anchor="start">şamandıra</text>' : ''}</svg>`;
   }
   function flagCard(f) {
     const L = FLAG_LEARN[f] || FLAG_LEARN.P, info = (api.FLAG_INFO || {})[f] || { name: f };
-    const pic = api.flagMarkup ? `<svg class="kf-flag" viewBox="-1 -1 32 22" role="img" aria-label="${esc(info.name)}">${api.flagMarkup(f)}</svg>` : '';
-    return `<div class="kc-sec kc-flag${f === 'P' ? '' : ' warn'}">
-        <h3>Start bayrağı: ${esc(info.name)}</h3>
-        <div class="kf-row">
-          <div class="kf-pic">${pic}<span class="kf-pole"></span></div>
-          <div class="kf-txt"><p><b>Bu yarışta hazırlık bayrağı olarak ${esc(info.name)} kullanılacak.</b> ${esc(L.say)}</p>
-            <p class="kf-bad">${esc(L.bad)}</p>
-            <p class="kf-when">Ne zaman: hakem botunda start'tan 4 dakika önce çekilir, son 1 dakikada iner. Kural bayrak indiği andan start'a kadar geçerlidir (${L.rule}).</p></div>
-          ${zoneSvg(L.zone)}
-        </div></div>`;
+    const pic = api.flagMarkup ? `<svg class="kf-flag" viewBox="-1 -1 32 22" aria-hidden="true">${api.flagMarkup(f)}</svg>` : '';
+    const row = (cls, k, v) => `<li class="${cls}"><span class="kf-k">${k}</span><span class="kf-v">${esc(v)}</span></li>`;
+    return `<section class="kc-flag tone-${L.tone}" aria-label="Start bayrağı">
+        <header class="kf-head"><span class="kf-pic">${pic}</span>
+          <span class="kf-name"><small>Start bayrağı</small><b>${esc(info.name)}</b></span>
+          <span class="kf-badge">${esc(L.badge)}</span></header>
+        <div class="kf-body">${zoneSvg(L.zone)}
+          <ul class="kf-list">${row('kf-when', 'Ne zaman', L.when)}${row('kf-dont', 'Kural', L.dont)}${row('kf-bad', 'Yaparsan', L.bad)}</ul></div>
+        <div class="kf-tl" aria-label="Bayrak ne zaman çekilip iner">
+          <span class="kf-seg up"><i>4:00</i>bayrak çekilir</span><span class="kf-seg on"><i>1:00</i>${L.zone ? 'bayrak iner · kural başlar' : 'bayrak iner'}</span><span class="kf-seg go"><i>0:00</i>start</span>
+          <span class="kf-rule">${L.rule}</span></div>
+      </section>`;
   }
 
   // ---------- Yarış sayfası: kart + sıralama ----------
@@ -205,20 +213,27 @@
     const go = shut ? '<p class="kc-closed">Bu yarış kapandı. Antrenörün yeni bir yarış gönderecek.</p>'
       : left > 0 ? `<button class="kc-go net-go" data-act="start"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>${startsUsed() ? 'Tekrar yarış' : 'Yarışa başla'}</button>`
       : '<p class="kc-closed">Yarış hakların bitti. Sıralamaya aşağıdan bakabilirsin.</p>';
-    return `<div class="kc">
+    return `<div class="kc${evs.length ? '' : ' no-time'}">
         <div class="kc-main">
-          ${t.note ? `<div class="kc-note"><span class="kc-lbl">Antrenöründen not</span><p>${esc(t.note)}</p></div>` : ''}
           <div class="kc-facts">${facts.join('')}</div>
           ${flagCard(flag)}
-          ${evs.length ? `<div class="kc-sec"><h3>Yarışta neler olacak?</h3><p class="kc-hint">Saatler start'tan sonrasını gösterir.</p><ol class="kc-time">${evs.map(evHtml).join('')}</ol></div>` : ''}
-          <div class="kc-sec kc-how"><h3>Nasıl oynanır?</h3>
-            <ul><li><b>◀ ▶</b> dümen: tekneyi çevirir</li><li><b>Çek</b>: yelkeni doldurur, tekne hızlanır</li><li>Start'ta hattın gerisinde ol, sonra şamandıraları dönüp finişe git</li></ul></div>
+          ${evs.length ? `<div class="kc-sec kc-tl"><h3>Yarışta neler olacak?</h3><p class="kc-hint">Saatler start'tan sonrasını gösterir.</p><ol class="kc-time">${evs.map(evHtml).join('')}</ol></div>` : ''}
         </div>
         <div class="kc-side">
-          ${Number.isFinite(left) ? `<div class="kc-tries"><span>Yarış hakkın</span><span class="kc-dots">${dots}</span><b>${left} / ${total}</b></div>` : ''}
-          ${go}
-          ${t.due && !shut ? `<p class="kc-due">Son gün: ${esc(dateTxt(t.due))}</p>` : ''}
-          <p class="kc-save">Yarış bitince sonucunu antrenörüne gönderirsin. En iyi yarışın sayılır.</p>
+          <div class="kc-act">
+            <div class="kc-act-info">
+              ${Number.isFinite(left) ? `<div class="kc-tries"><span>Yarış hakkın</span><span class="kc-dots">${dots}</span><b>${left} / ${total}</b></div>` : ''}
+              ${t.due && !shut ? `<p class="kc-due">Son gün: ${esc(dateTxt(t.due))}</p>` : ''}
+              <p class="kc-save">Yarış bitince sonucunu antrenörüne gönderirsin. En iyi yarışın sayılır.</p>
+            </div>
+            ${go}
+          </div>
+          ${t.note ? `<div class="kc-note"><span class="kc-lbl">Antrenöründen not</span><p>${esc(t.note)}</p></div>` : ''}
+          <div class="kc-sec kc-how"><h3>Nasıl oynanır?</h3>
+            <ol><li><span>1</span><div><b>◀ ▶ Dümen</b><small>tekneyi sağa sola çevirir</small></div></li>
+              <li><span>2</span><div><b>Çek</b><small>yelkeni doldurur, tekne hızlanır</small></div></li>
+              <li><span>3</span><div><b>Start</b><small>saat sıfırda hattın gerisinde ol</small></div></li>
+              <li><span>4</span><div><b>Parkur</b><small>şamandıraları dön, finişe git</small></div></li></ol></div>
         </div>
       </div>
       <div class="net-h kc-rank-h">Sıralama <small>${T.runs.length ? `${rows.length} sporcu · ${T.runs.length} yarış` : ''}</small> <button class="tb tb-reload" data-act="reload">Yenile</button>
