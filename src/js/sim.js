@@ -195,7 +195,7 @@
       el('text', { y: -gu.ry * 0.15, 'text-anchor': 'middle', fill: '#bae6fd', 'font-size': 14, 'font-weight': 700, 'paint-order': 'stroke', stroke: 'rgba(2,21,38,.8)', 'stroke-width': 4 }, lab).textContent = v.gusts.length > 1 ? `SAĞANAK ${i + 1}` : 'SAĞANAK';
       el('text', { y: -gu.ry * 0.15 + 17, 'text-anchor': 'middle', fill: '#7dd3fc', 'font-size': 12, 'paint-order': 'stroke', stroke: 'rgba(2,21,38,.8)', 'stroke-width': 4 }, lab).textContent = 'tekneler %25 hızlı';
       if (on) el('text', { y: -gu.ry * 0.15 - 20, 'text-anchor': 'middle', fill: '#38bdf8', 'font-size': 11, 'font-weight': 800, 'letter-spacing': '.08em', 'paint-order': 'stroke', stroke: 'rgba(2,21,38,.85)', 'stroke-width': 4 }, lab).textContent = 'SEÇİLİ · AYARLAR ALTTA';
-      else { const tag = 'dokun: düzenle', tw = tag.length * 6.4 + 16;
+      else if (!st.task) { const tag = 'dokun: düzenle', tw = tag.length * 6.4 + 16;
         el('rect', { x: -tw / 2, y: -gu.ry * 0.15 + 26, width: tw, height: 18, rx: 9, fill: 'rgba(2,21,38,.55)', stroke: 'rgba(125,211,252,.35)' }, lab);
         el('text', { x: 0, y: -gu.ry * 0.15 + 39, 'text-anchor': 'middle', fill: '#7dd3fc', 'font-size': 10.5, 'font-weight': 600 }, lab).textContent = tag; }
     });
@@ -1264,6 +1264,7 @@
   const GUST_BASE = S.GUST_BASE, GUST_FX = S.GUST_FX;   // çekirdekte (kayıttan tekrar oynatma da kullanır)
   function gustEdit(fx, k, text) {
     const i = st.gsel; if (i == null) return;
+    if (gustLocked()) { st.gsel = null; gustBarUpdate(); return; }
     if (st.mode === 'setup') { if (st.gusts[i]) GUST_FX[fx](st.gusts, i, k); }
     else applyChange({ k: 'gust', fx, i, f: k, text });   // f: büyütme katsayısı (eskiden 'k' adıyla işlem türünü eziyordu: yarışta sağanak büyüt/küçült/sil hata veriyordu)
     gustBarUpdate(); updatePanel(true);
@@ -1339,13 +1340,20 @@
   }
 
   function gustList() { return st.mode === 'setup' ? st.gusts : st.sim.gusts; }
+  // Antrenör yarışında (sporcu, deneme) sağanaklar antrenörün kurduğu gibi: seçilmez, sürüklenmez, eklenmez, silinmez
+  // (kullanıcı 2026-11-17: "sporcular sağanakları tıklayıp ayarlayamamalı"). Tekrar izleme / karşılaştırmada da kilitli.
+  function gustLocked() {
+    if (!st.task) return false;
+    toast('Antrenör yarışında sağanaklar antrenörün kurduğu gibi kalır'); return true;
+  }
   function addGust(side) {
+    if (gustLocked()) return;
     const g = { x: S.MARK.x + (side === 'L' ? -270 : 270), y: (S.MARK.y + S.LINE.pin.y) / 2, rx: 120, ry: 190 };
     if (st.mode === 'setup') st.gusts.push(g);
     else applyChange({ k: 'gustAdd', g, side });
     gustSelect(gustList().length - 1);
   }
-  function clearGusts() { st.gsel = null; if (st.mode === 'setup') st.gusts.length = 0; else applyChange({ k: 'gustClear' });  gustBarUpdate(); }
+  function clearGusts() { if (gustLocked()) return; st.gsel = null; if (st.mode === 'setup') st.gusts.length = 0; else applyChange({ k: 'gustClear' });  gustBarUpdate(); }
   function renumber() {
     let k = 1;
     for (const b of st.fleet) if (!b.mine) { b.id = String(k); b.name = `Tekne ${k}`; k++; }
@@ -1398,6 +1406,7 @@
     return best;
   }
   function hitGust(p) {
+    if (st.task) return null;                            // antrenör yarışı: sağanağa dokunmak seçmez (gustLocked)
     const list = gustList(), w = view().wind, up = E.fwd(w), right = E.fwd(w + 90);
     for (let i = list.length - 1; i >= 0; i--) {
       const g = list[i], dx = p.x - g.x, dy = p.y - g.y;
@@ -1782,8 +1791,8 @@
 
   // ---------- olaylar ----------
   $('btnPlay').addEventListener('click', togglePlay);
-  $('btnReset').addEventListener('click', () => newHandRace('Yeni yarış · yelken boş, dümen sende'));
-  $('hpReset').addEventListener('click', () => newHandRace('Yeni yarış · yelken boş, dümen sende'));
+  $('btnReset').addEventListener('click', () => !taskLocked() && newHandRace('Yeni yarış · yelken boş, dümen sende'));
+  $('hpReset').addEventListener('click', () => !taskLocked() && newHandRace('Yeni yarış · yelken boş, dümen sende'));
   $('speedSeg').addEventListener('click', e => { let b = e.target.closest('button'); if (!b) return;
     if (b.classList.contains('on') && phoneMq.matches) b = b.nextElementSibling || $('speedSeg').firstElementChild;   // telefonda yalnız seçili görünür: dokununca sıradaki hız
     setSpeed(+b.dataset.v); });
@@ -1994,7 +2003,7 @@
       if (k === 'v' || k === 'V') { vmgToggle(); return; }
       if (k === 'b' || k === 'B') { if (!e.repeat) backSet(true); return; }
       if (k === 'i' || k === 'I') { sheetToggle(); return; }
-      if ((k === 'r' || k === 'R') && st.drive.live && !e.metaKey && !e.ctrlKey) { newHandRace('Yeni yarış · yelken boş, dümen sende'); return; }
+      if ((k === 'r' || k === 'R') && st.drive.live && !e.metaKey && !e.ctrlKey) { if (taskLocked()) return; newHandRace('Yeni yarış · yelken boş, dümen sende'); return; }
       if (e.code === 'Space') { e.preventDefault(); drivePause(); return; }
     } else if ((e.key === 'd' || e.key === 'D') && !e.metaKey && !e.ctrlKey) { enterDrive(); return; }
     else if (e.key === 'ArrowUp' && st.mode !== 'setup') { e.preventDefault(); sheetBy(-1); return; }
@@ -2009,7 +2018,7 @@
     else if (e.key === '-') zoomBy(1 / 1.4);
     else if (e.key === '0') camFit();
     else if (e.key === 'f' || e.key === 'F') camFollow();
-    else if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) newHandRace('Yeni yarış · yelken boş, dümen sende');
+    else if ((e.key === 'r' || e.key === 'R') && !e.metaKey && !e.ctrlKey) { if (!taskLocked()) newHandRace('Yeni yarış · yelken boş, dümen sende'); }
     else if (e.key === 'ArrowLeft') setWind(-5);
     else if (e.key === 'ArrowRight') setWind(5);
   });
