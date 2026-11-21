@@ -91,6 +91,10 @@
         <ol class="lesson-steps" id="lessonSteps"></ol>
         <p class="lesson-note">Sarı ok yekenin hangi yöne gittiğini, sol üstteki pusula rüzgarı (mavi ok) ve teknenin başını gösterir. Açılar ve hızlar öğretim için yaklaşık.</p>
       </div>
+      <nav class="tp-tabs" id="tpTabs" role="tablist" aria-label="Ayar adımları">
+        <button data-t="hava" role="tab"><b>1</b>Hava</button><button data-t="ayar" role="tab"><b>2</b>Ayarlar</button><button data-t="analiz" role="tab"><b>3</b>Analiz</button>
+      </nav>
+      <div class="tp-pane" data-t="hava">
       <div class="seg-row">
         <div class="seg-lbl">Rüzgar</div>
         <div class="seg" id="segWind">
@@ -117,6 +121,22 @@
       </div>
       <div class="seg-row edit-row"><button id="btnClearManual" class="reset-c" hidden>Bu hava için elle girilenleri sil</button></div>
 
+        <div class="p-card sum-card">
+          <div class="sum-head"><span class="sec-head">Önerilen ayar <span id="sumSrc"></span></span><button class="sum-edit" data-go="ayar">Düzenle</button></div>
+          <div class="sum-list" id="sumList"></div>
+        </div>
+      <p class="sync yerel" id="syncText"></p>
+      <p class="cond" id="condText"></p>
+      <p class="src" id="srcText"></p>
+
+      </div>
+      <div class="tp-pane" data-t="ayar">
+        <p class="tp-hint">Bir ayarı değiştirince kendi <b>Özel</b> ayarın olur; kılavuz değeri bozulmaz. Üstteki 3D'de hemen görünür.</p>
+      <div class="warn" id="warnMini" hidden></div>
+      <div class="legend" id="legend" hidden><i></i> Sarı kesikli: kılavuzun orijinal ayarı</div>
+      <div id="ctrls"></div>
+      </div>
+      <div class="tp-pane" data-t="analiz">
       <div class="p-card res-card" id="resCard">
         <div class="sec-head">Ne olur? <span>kılavuz ayarına göre, yaklaşık</span></div>
         <div class="res-row"><div id="gauges"></div><svg id="heelView" viewBox="0 0 80 70" aria-label="Arkadan görünüş: yatma"></svg></div>
@@ -135,13 +155,6 @@
         <div class="sec-head">Yakın: direk bağları</div>
         <svg id="tiesZoom" viewBox="0 0 210 192" aria-label="Direk bağları yakın görünüş"></svg>
       </div>
-      <div class="legend" id="legend" hidden><i></i> Sarı kesikli: kılavuzun orijinal ayarı</div>
-
-      <p class="sync yerel" id="syncText"></p>
-      <p class="cond" id="condText"></p>
-      <p class="src" id="srcText"></p>
-
-      <div id="ctrls"></div>
 
       <details class="note">
         <summary>Bu değerler ne kadar kesin?</summary>
@@ -150,6 +163,7 @@
         <b>?</b> işaretli değer o kılavuzda yok, taslak varsayılanıdır. Yelken şekli şematik; 3D'de ölçüler sınıf kuralına yakın,
         direk bağı boşlukları görünsün diye büyütülmüş. Özel ayarların bu cihazda saklanır.</p>
       </details>
+      </div>
     </aside>
   </main>
 

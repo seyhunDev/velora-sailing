@@ -186,8 +186,7 @@
       <div class="ctl-top"><span class="ctl-name">Direk eğimi <em>(mast rake)</em></span><span class="ctl-val" id="rakeVal"></span></div>
       <input type="range" id="rakeIn" min="274" max="288" step="0.5" aria-label="Direk eğimi">
       <div class="ctl-ends"><span>2,74 m · geriye eğik</span><span>dik · 2,88 m</span></div>
-      <table class="rake-tab" id="rakeTab"></table>
-      <p class="ctl-why" id="whyRake"></p>
+      <details class="rake-more"><summary>Kılavuzlara göre direk eğimi</summary><table class="rake-tab" id="rakeTab"></table><p class="ctl-why" id="whyRake"></p></details>
     </div>`;
   const tiesGrid = $('tiesGrid');
   const tieCells = [];
@@ -248,6 +247,39 @@
     if (!st.custom[ckey()]) st.custom[ckey()] = copy(original(st.brand, st.wind, st.sea).v);
     st.mode = 'ozel';
     return st.custom[ckey()];
+  }
+
+  // ---------- panel sekmeleri: 1 Hava → 2 Ayarlar → 3 Analiz (kullanıcı 2026-11-21: "daha kolay, profesyonel") ----------
+  const TAB_KEY = 'ps.trim.tab';
+  function showTab(t) {
+    for (const b of document.querySelectorAll('#tpTabs button')) { const on = b.dataset.t === t; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); }
+    for (const p of document.querySelectorAll('.tp-pane')) p.hidden = p.dataset.t !== t;
+    try { localStorage.setItem(TAB_KEY, t); } catch (e) { }
+    const pnl = document.querySelector('.trim-panel'); if (pnl) pnl.scrollTop = 0;
+  }
+  document.getElementById('tpTabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.t); });
+  let tab0 = 'hava'; try { tab0 = localStorage.getItem(TAB_KEY) || 'hava'; } catch (e) { }
+  showTab(['hava', 'ayar', 'analiz'].includes(tab0) ? tab0 : 'hava');
+  // Önerilen ayar özeti: her satır dokununca Ayarlar sekmesinde o ayarı açar
+  $('sumList').addEventListener('click', e => {
+    const b = e.target.closest('[data-k]');
+    if (!b) return;
+    showTab('ayar');
+    st.active = b.dataset.k; refresh();
+    const r = panel.querySelector(`.ctl[data-k="${b.dataset.k}"]`);
+    if (r) r.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+  document.querySelector('.sum-edit').addEventListener('click', () => showTab('ayar'));
+
+  function drawSummary(o) {
+    const el = $('sumList'); if (!el) return;
+    const v = st.val, ch = (a, b) => st.mode === 'ozel' && Math.abs(a - b) > 0.02;
+    const row = (k, name, val, changed) => `<button data-k="${k}" class="${changed ? 'changed' : ''}"><span>${name}</span><b>${val}</b><i aria-hidden="true">›</i></button>`;
+    const ties = v.ties, tch = ties.some((x, i) => ch(x, o.v.ties[i]));
+    el.innerHTML = row('rake', 'Direk eğimi', `${fmtM(v.rake)} m`, ch(v.rake, o.v.rake)) +
+      row('ties', 'Direk bağları', `tepe ${fmt(ties[0])} · orta ${fmt(ties[3])} · alt ${fmt(ties[ties.length - 1])} mm`, tch) +
+      CTRL.map(c => row(c.k, c.name, word(c.k, v[c.k]), ch(v[c.k], o.v[c.k]))).join('');
+    $('sumSrc').textContent = st.mode === 'ozel' ? '· senin ayarın' : `· ${BRANDS[st.brand] ? BRANDS[st.brand].name : ''}`;
   }
 
   function word(k, v) {
@@ -337,6 +369,7 @@
       r.why.innerHTML = (n && o.src[k] === 'kilavuz' ? `Kılavuz: ${esc(n)}` : o.src[k] === 'elle' ? `Değer elle girildi. ${esc(r.c.tip)}` : esc(r.c.tip)) + srcTag(k);
     }
     for (const r of panel.querySelectorAll('.ctl')) r.classList.toggle('active', st.active === r.dataset.k);
+    drawSummary(o);
   }
 
   // ---------- türetilmiş şekil (göreli, şematik) ----------
@@ -909,6 +942,9 @@
     w.hidden = !out.length;
     w.classList.toggle('info', out.length > 0 && out.every(([k]) => asGuide(k)));
     w.innerHTML = out.map(([k, t]) => `<div>${asGuide(k) ? 'Kılavuzun istediği görüntü: ' + esc(t.charAt(0).toLowerCase() + t.slice(1)) : esc(t)}</div>`).join('');
+    // Ayarlar sekmesinde de görünsün (sonuç kartı Analiz sekmesinde)
+    const wm = $('warnMini');
+    if (wm) { wm.hidden = w.hidden; wm.className = w.className + ' mini'; wm.innerHTML = w.innerHTML; }
   }
 
   // ---------- döngü ----------
