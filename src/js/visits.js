@@ -160,15 +160,6 @@
 
   // ---------- bulut (Firestore) ----------
   const RULES_URL = 'https://console.firebase.google.com/project/sesliasistan-3e95a/firestore/rules';
-  const rulesText = uid => `    // Velora Sailing ziyaret kayıtları: herkes yazar (sınırlı), yalnız site sahibi okur
-    match /sailingEvents/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['v', 'vid', 'sid', 'uid', 'role', 'name', 'at', 'events'])
-        && request.resource.data.at == request.time
-        && request.resource.data.vid is string && request.resource.data.vid.size() <= 64
-        && request.resource.data.events is list && request.resource.data.events.size() <= 100
-        && (request.resource.data.uid == null || (request.auth != null && request.resource.data.uid == request.auth.uid));
-      allow read, delete: if request.auth != null && request.auth.uid == '${uid}';
-    }`;
   function cloudView() {
     const box = $('visCloud'), V = window.VeloraAuth;
     const when = cloudAt ? new Date(cloudAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -183,26 +174,19 @@
       box.innerHTML = `<b>Başkalarının ziyaretlerini görmek için Velora hesabınla gir.</b> Şu an yalnızca bu tarayıcıdaki kayıtlar görünüyor.
         <button class="tb primary" id="visVelora">Velora hesabıyla gir</button>`;
     } else if (cloudState === 'izin') {
-      const uid = V && V.uid ? V.uid() : '';
+      // Kurallar Velora deposunda (seyhunDev/sesliasistan → firestore.rules: sailingEvents, okuma veloraAdmin())
       box.className = 'vis-note setup';
-      box.innerHTML = `<b>Bir kerelik kurulum: Firestore kuralı.</b> Ziyaretçilerin kayıtları buluta yazılabilsin ve yalnızca sen okuyabilesin diye
-        Velora'nın Firebase kurallarına aşağıdaki bloğu eklemen gerekiyor.
-        <ol><li><a href="${RULES_URL}" target="_blank" rel="noopener">Firebase konsolunda Firestore kurallarını aç</a>.</li>
-        <li>Mevcut kuralları <b>silme</b>. Bloğu <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır.</li>
-        <li><b>Yayınla</b> (Publish) düğmesine bas, sonra burada <b>Yenile</b>.</li></ol>
-        <pre id="visRules">${esc(rulesText(uid))}</pre>
-        <div class="vis-setup-btns"><button class="tb" id="visCopy">Kuralı kopyala</button><button class="tb primary" id="visReload">Yenile</button></div>
-        <small>Hesap kimliğin: <code>${esc(uid)}</code> (kurala yazıldı).</small>`;
+      box.innerHTML = `<b>Firestore kuralları henüz yayınlanmamış.</b> Sailing kuralları Velora'nın <code>firestore.rules</code> dosyasında.
+        <ol><li>Velora deposunda: <code>pbcopy &lt; firestore.rules</code></li>
+        <li><a href="${RULES_URL}" target="_blank" rel="noopener">Firebase konsolunda Firestore kurallarını aç</a>, içeriği yapıştır, <b>Yayınla</b>.</li>
+        <li>Burada <b>Yenile</b>.</li></ol>
+        <div class="vis-setup-btns"><button class="tb primary" id="visReload">Yenile</button></div>`;
     } else {
       box.className = 'vis-note';
       box.innerHTML = `<b>Bulut kayıtları okunamadı.</b> Bağlantını kontrol et. <button class="tb" id="visReload">Yenile</button>`;
     }
     const r = box.querySelector('#visReload'); if (r) r.onclick = loadCloud;
     const v = box.querySelector('#visVelora'); if (v) v.onclick = () => SailAccess.open('velora');
-    const c = box.querySelector('#visCopy'); if (c) c.onclick = async () => {
-      try { await navigator.clipboard.writeText($('visRules').textContent); c.textContent = 'Kopyalandı'; }
-      catch (e) { const sel = getSelection(); const rg = document.createRange(); rg.selectNodeContents($('visRules')); sel.removeAllRanges(); sel.addRange(rg); c.textContent = 'Seçildi: kopyala'; }
-    };
   }
   async function loadCloud() {
     const V = window.VeloraAuth;

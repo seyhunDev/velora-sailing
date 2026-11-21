@@ -259,6 +259,11 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-21 · Ziyaret kayıtları kuralı Velora deposunda
+- Kullanıcı kuralı kendisi yapıştırmak yerine "Yap" dedi. Firebase'e kimlik bilgisi yok, konsolda yayınlamak yalnız kullanıcıda. Kurallar Velora deposuna eklendi: seyhunDev/sesliasistan PR #1475 (`sailingEvents`: herkes sınırlı ekler, okuma/silme `veloraAdmin()` (e-posta); `sailingTrim`: originals herkes okur, ana hesap yazar, `u_<uid>` kişinin kendisi). Velora'da kural yayınlama yolu: `pbcopy < firestore.rules` → konsol › Kurallar › Yayınla.
+- `ziyaret.html` kurulum kartı artık uid'li blok yerine bu adımları gösterir.
+- Bekleyen: PR birleşmesi + konsolda yayınlama (kullanıcı). Bu, yelken ayarının bulut kaydını da açar.
+
 
 ### 2026-11-21 · Ayarlar sekmeleri + simülatörde 3D görünüş
 - Yapılan: ayar.html panel sekmeleri (v1.171); sim 3D görünüş (`sim3d.js`, sea3d'yi kullanır).
