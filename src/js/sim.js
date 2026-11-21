@@ -436,7 +436,7 @@
       if (p.beta != null && now - p.ts < 300) pose.beta = p.beta + Math.max(-p.k * (now - p.ts), Math.min(p.k * (now - p.ts), pose.beta - p.beta));
       p.beta = pose.beta; p.ts = now;
     }
-    BoatDraw.draw(g, cls || st.boat.cls, { color: b.color, pose, t: tt, seed });   // sınıfa göre gövde ve donanım (boat-draw.js)
+    BoatDraw.draw(g, cls || st.boat.cls, { color: b.color, pose, t: tt, seed, heading: b.h, speed: b.phase === 'wait' || b.phase === 'done' ? 0 : Math.max(0, b.v) / 55 });   // sınıfa göre gövde ve donanım (boat-draw.js)
     // etiket
     const tk = sail.tack === 'starboard' ? 'S' : 'İ';
     const lab = el('g', { transform: `translate(${b.x.toFixed(1)},${(b.y + 36).toFixed(1)})` }, wrap);

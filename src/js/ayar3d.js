@@ -3,6 +3,7 @@
 // Ölçüler sınıf kuralına yakın: boy 2,31, en 1,13, direk 2,35, gırcala 2,286; orsa 1,73, tepe 1,24, arka yaka 2,80, alt yaka ≈1,90.
 // Direk bağı boşlukları görünsün diye büyütülmüş (1 mm → 12 mm).
 import * as THREE from 'three';
+import { createSea } from 'sea3d';
 
 const host = document.getElementById('view3d');
 const viewBtn3d = document.querySelector('#segView [data-v="3d"]');
@@ -28,30 +29,17 @@ function start() {
   renderer.domElement.setAttribute('aria-label', 'Optimist 3D: sürükleyerek döndür');
 
   const scene = new THREE.Scene();
-  const SKY = new THREE.Color(0x0e2a44);
-  scene.background = SKY;
-  scene.fog = new THREE.Fog(0x0e2a44, 14, 34);
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 120);
-  scene.add(new THREE.HemisphereLight(0xe0f2fe, 0x0b2a44, 1.15));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.7);
-  sun.position.set(-4, 7, 5);
-  scene.add(sun);
-  const rim = new THREE.DirectionalLight(0x93c5fd, 0.5);
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.05, 1200);
+  // gökyüzü, güneş + gölge, yansıma ortamı, dalgalı su: ortak modül (js/sea3d.js)
+  const sea = createSea(THREE, renderer, scene, { sunDir: new THREE.Vector3(0.4, 0.8, 0.55) });
+  const rim = new THREE.DirectionalLight(0xbfdbfe, 0.35);
   rim.position.set(3, 2, -5);
   scene.add(rim);
-
-  // ---------- su ----------
-  const waterGeo = new THREE.PlaneGeometry(44, 44, 70, 70);
-  waterGeo.rotateX(-Math.PI / 2);
-  const water = new THREE.Mesh(waterGeo, new THREE.MeshStandardMaterial({
-    color: 0x0c4a6e, roughness: 0.62, metalness: 0, transparent: true, opacity: 0.8, depthWrite: false,
-  }));
-  scene.add(water);
-  const wBase = waterGeo.attributes.position.array.slice();
 
   // ---------- tekne ----------
   const lerp = (p, q, t) => p + (q - p) * t;
   const boat = new THREE.Group();
+  let foamRing = null;
   scene.add(boat);
   // Optimist (IODA): kutu baş (pram), düz taban + alçak kine, dışa açık bordalar, baş aynası yüksek (rocker).
   const L = 2.31;
@@ -107,6 +95,29 @@ function start() {
     const mg = new THREE.ShapeGeometry(sh); mg.rotateX(Math.PI / 2);
     const mask = new THREE.Mesh(mg, new THREE.MeshBasicMaterial({ colorWrite: false, side: THREE.DoubleSide }));
     mask.position.y = ym; mask.renderOrder = 10; boat.add(mask);
+    // gövdenin suya değdiği yerde köpük halkası (başta ve kıçta daha geniş); teknenin yatmasından bağımsız, yalnız yönünü izler
+    {
+      const wl = u => { const h = hs(u), c = hcF(u), t = Math.max(0, Math.min(1, (0 - yb(u) - 0.04) / (ys(u) - yb(u) - 0.04))); return c + (h - c) * t; };
+      const ring = [];
+      for (let i = 0; i <= 40; i++) { const u = 0.02 + i / 40 * 0.96; ring.push([X(u, 0), wl(u), u]); }
+      const pts = [...ring.map(([x, z, u]) => [x, z, u, 1]), ...ring.slice().reverse().map(([x, z, u]) => [x, -z, u, -1])];
+      const pos = [], col = [], idx = [];
+      const cx = 0;
+      pts.forEach(([x, z, u], i) => {
+        const nx = x - cx, nz = z, l = Math.hypot(nx * 0.5, nz) || 1;
+        const w = 0.05 + 0.16 * Math.max(0, (u - 0.75) / 0.25) ** 2 + 0.22 * Math.max(0, (0.12 - u) / 0.12);
+        pos.push(x, 0, z, x + nx * 0.5 / l * w, 0, z + nz / l * w);
+        col.push(1, 1, 1, 0.55, 1, 1, 1, 0);
+        const a = i * 2, b = ((i + 1) % pts.length) * 2;
+        idx.push(a, a + 1, b, b, a + 1, b + 1);
+      });
+      const fg = new THREE.BufferGeometry();
+      fg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      fg.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+      fg.setIndex(idx);
+      foamRing = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+      foamRing.position.y = 0.035; foamRing.renderOrder = 23; scene.add(foamRing);
+    }
   }
   const tubeAlong = (pts, r, color, parent = boat, rough = 0.6) => {
     const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 64, r, 8, false),
@@ -583,7 +594,7 @@ function start() {
   const streakMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe, transparent: true, opacity: 0.35, depthWrite: false });
   const streaks = Array.from({ length: 70 }, () => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.025), streakMat); m.rotation.x = -Math.PI / 2;
-    m.position.set((Math.random() - 0.5) * 26, 0.03, (Math.random() - 0.5) * 26); m.visible = false; scene.add(m); return m;
+    m.position.set((Math.random() - 0.5) * 26, 0.09, (Math.random() - 0.5) * 26); m.visible = false; scene.add(m); return m;
   });
   const gustPatch = new THREE.Mesh(new THREE.CircleGeometry(4, 40), new THREE.MeshBasicMaterial({ color: 0x020617, transparent: true, opacity: 0.0, depthWrite: false }));
   gustPatch.renderOrder = 3; gustPatch.rotation.x = -Math.PI / 2; gustPatch.position.y = 0.07; gustPatch.visible = false; scene.add(gustPatch);
@@ -690,6 +701,7 @@ function start() {
 
   // ---------- döngü ----------
   const HL = 0xfde047;
+  const FOCUS = new THREE.Vector3(0, 0, 0.4);
   const setCol = (m, on, c) => m.material.color.setHex(on ? HL : c);
   let lastKey = '', time = 0, last = performance.now();
   const P3 = (p, sh, g) => to3(p, 0, sh, g, new THREE.Vector3());
@@ -726,17 +738,14 @@ function start() {
     camera.position.set(target.x + R * Math.cos(cam.ph) * Math.cos(cam.th), target.y + R * Math.sin(cam.ph), target.z - R * Math.cos(cam.ph) * Math.sin(cam.th));
     camera.lookAt(target);
 
-    // su
-    const wp = waterGeo.attributes.position, amp = 0.012 + wave * 0.05;
-    for (let i = 0; i < wp.count; i++) {
-      const x = wBase[i * 3], z = wBase[i * 3 + 2];
-      wp.array[i * 3 + 1] = amp * (Math.sin(x * 1.6 + time * 1.9) + 0.6 * Math.sin(z * 2.3 - time * 1.4 + x * 0.7));
-    }
-    wp.needsUpdate = true; waterGeo.computeVertexNormals();
+    // su (dalgalar gölgelendiricide): hafif havada küçük kırışık, dalgalıda uzun dalga
+    sea.update(time, { amp: 0.018 + wave * 0.06, chop: 0.3 + wave * 0.7, focus: FOCUS });
 
     // tekne hareketi: yatma (rüzgaraltına), baş-kıç
     boat.rotation.set(res.heelDeg * Math.PI / 180, ders ? LS.H * Math.PI / 180 : 0, S.pitch * Math.PI / 180 * 1.2, 'YXZ');
     boat.position.y = S.bob * 0.008;
+    foamRing.rotation.y = boat.rotation.y;
+    foamRing.material.opacity = 0.75 + 0.25 * Math.sin(time * 2.3);
     rig.rotation.z = S.rakeDeg * Math.PI / 180;
 
     const key = ders ? 'ders' + time : JSON.stringify(v) + JSON.stringify(sh) + S.active + S.focusTie + (S.ghost ? 1 : 0);
@@ -807,6 +816,8 @@ function start() {
     const d = p.clone().sub(q);
     return { p, yaw: Math.atan2(-d.z, d.x) };
   }
+  sea.finishObject(boat);
+  sail.castShadow = true; sailBack.castShadow = true;
   requestAnimationFrame(frame);
   window.dispatchEvent(new Event('trim-3d-ready'));
 }

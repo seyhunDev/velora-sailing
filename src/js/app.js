@@ -300,7 +300,7 @@
     const g = el('g', { transform: `translate(${s.x.toFixed(1)},${s.y.toFixed(1)}) rotate(${s.h.toFixed(1)})` }, parent);
     const seed = E.seedOf(b.id);
     const pose = E.sailPose(s.h, w, { v: s.v, base: state.scn.baseSpeed || 55, t: state.t, seed, back: !!s.back });
-    BoatDraw.draw(g, state.scn.boatClass || 'optimist', { color: b.color, pose, t: state.t, seed });   // sınıfa göre gövde ve donanım
+    BoatDraw.draw(g, state.scn.boatClass || 'optimist', { color: b.color, pose, t: state.t, seed, heading: s.h, speed: (s.v || 0) / (state.scn.baseSpeed || 55) });   // sınıfa göre gövde ve donanım
     if (state.show.labels) drawLabel(parent, b, s, sail);
     if (s.note) frameNotes.push({ x: s.x, y: s.y, text: s.note, color: b.color });
     const shk = state.shadowed && state.shadowed.get(b.id);
