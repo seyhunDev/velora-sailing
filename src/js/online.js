@@ -186,7 +186,10 @@
 
   // ---------- Durum ----------
   const N = { key: null, code: null, pid: null, name: '', meta: null, players: {}, boats: {}, offs: [], s: null, t0: 0, pubAt: 0,
-    pubPh: '', shiftSaid: false, view: 'home', tab: 'join', lobby: {}, err: '', busy: false, resOpen: false, resAuto: false, lastUi: 0 };
+    pubPh: '', shiftSaid: false, view: 'home', tab: 'join', lobby: {}, err: '', busy: false, resOpen: false, resAuto: false, lastUi: 0,
+    results: {}, hosts: {}, seenMsg: null, watching: false, ended: false };
+  const OWNER_TIP = 'Oda açma yetkisi: Velora hesabıyla girmiş bu kişi sonra kendi odasını açabilir';
+  const isOwner = () => { const a = acc(); return !!(a && a.role === 'sahip' && (be && be.kind === 'yerel' || a.via === 'velora')); };
   const isHost = () => !!(N.meta && be && N.meta.host === be.uid());
   const base = () => `sailRooms/${N.key}`;
   let hostOk = null;          // bu hesap oda açabilir mi (null: bilinmiyor)
@@ -283,19 +286,23 @@
   function roomHtml() {
     const m = N.meta || {}, ps = playerList(), host = isHost(), max = m.max || 0;
     const link = `${location.origin}${location.pathname}?oda=${encodeURIComponent(N.code)}${mode === 'yerel' ? '&net=yerel' : ''}`;
-    const racing = m.state === 'racing', inRace = racing && (m.order || []).some(o => o.pid === N.pid);
+    const racing = m.state === 'racing', inRace = racing && (m.order || []).some(o => o.pid === N.pid), me = (N.players || {})[N.pid];
     return `<div class="net-room">
       <div class="rec-sum">${cfgSummary(m.cfg || CFG0).map(x => `<span class="rc">${esc(x)}</span>`).join('')}</div>
       <div class="net-h">Katılımcılar <small>${ps.length}/${max}</small></div>
-      <ul class="net-players">${ps.map((p, i) => `<li class="${p.on === false ? 'off' : ''}"><span class="np-no">${i + 1}</span><b>${esc(p.name)}</b>${p.pid === N.pid ? '<span class="np-me">sen</span>' : ''}${p.host ? '<span class="np-host">oda sahibi</span>' : ''}${p.on === false ? '<small>bağlantı yok</small>' : ''}${host && p.pid !== N.pid && m.state === 'open' ? `<button class="icon sm" data-kick="${esc(p.pid)}" title="Odadan çıkar"><svg><use href="#i-close"/></svg></button>` : ''}</li>`).join('')}</ul>
+      <ul class="net-players">${ps.map((p, i) => `<li class="${p.on === false ? 'off' : ''}${p.ready ? ' ready' : ''}"><span class="np-no">${i + 1}</span><b>${esc(p.name)}</b>${p.pid === N.pid ? '<span class="np-me">sen</span>' : ''}${p.host ? '<span class="np-host">oda sahibi</span>' : ''}${p.watch ? '<span class="np-watch">izliyor</span>' : p.ready ? '<span class="np-ready">✓ hazır</span>' : ''}${p.on === false ? '<small>bağlantı yok</small>' : ''}${isOwner() && p.uid && p.uid !== be.uid() ? `<button class="tb np-coach${N.hosts[p.uid] ? ' on' : ''}" data-coach="${esc(p.uid)}" title="${OWNER_TIP}">${N.hosts[p.uid] ? '✓ Antrenör' : 'Antrenör yap'}</button>` : ''}${host && p.pid !== N.pid && m.state === 'open' ? `<button class="icon sm" data-kick="${esc(p.pid)}" title="Odadan çıkar"><svg><use href="#i-close"/></svg></button>` : ''}</li>`).join('')}</ul>
+      ${m.state === 'open' ? `<div class="net-me">${me && me.watch ? '<span class="dlg-note">Bu yarışı tekne sürmeden izleyeceksin.</span>' : `<button class="tb net-ready${me && me.ready ? ' on' : ''}" data-act="ready">${me && me.ready ? '✓ Hazırım' : 'Hazırım'}</button>`}${host ? `<button class="tb" data-act="watch" title="Antrenör ekranı: yarışı tekne sürmeden, bütün tekneleri izle">${me && me.watch ? 'Ben de yarışacağım' : 'Ben izleyeceğim'}</button>` : ''}${host && ps.length > 1 ? `<span class="net-rc">${ps.filter(p => p.ready && !p.watch).length}/${ps.filter(p => !p.watch).length} hazır</span>` : ''}</div>` : ''}
+      ${chatHtml()}
+      ${seriesHtml()}
       ${host ? `<div class="net-share"><span>Sporculara kodu (<b>${esc(N.code)}</b>) ve şifreyi söyle ya da bağlantıyı gönder:</span><button class="tb" data-act="copy" data-link="${esc(link)}">Bağlantıyı kopyala</button></div>` : ''}
       <p class="net-err" id="netErr">${esc(N.err)}</p>
-      <p class="dlg-note">${racing ? (inRace ? 'Yarış sürüyor.' : 'Yarış başladı, bu yarışta yoksun. Oda sahibi yeni yarış açınca katılırsın.') : host ? '<b>Başlat</b>\'a basınca oda kilitlenir (yeni kimse giremez), geri sayım herkeste aynı anda başlar. Herkes kendi teknesini elle sürer; yelken boş, start hattının dibinde başlarsın.' : 'Oda sahibinin <b>Başlat</b>\'a basması bekleniyor. Başlayınca teknen start hattının dibinde, yelken boş olur: ← → dümen, Çek ile yelkeni doldur.'}</p>
+      <p class="dlg-note">${racing ? (inRace ? 'Yarış sürüyor.' : 'Yarış sürüyor, bu yarışta yoksun: tekne sürmeden izleyebilirsin.') : host ? '<b>Başlat</b>\'a basınca oda kilitlenir (yeni kimse giremez), geri sayım herkeste aynı anda başlar. Herkes kendi teknesini elle sürer; yelken boş, start hattının dibinde başlarsın.' : 'Oda sahibinin <b>Başlat</b>\'a basması bekleniyor. Başlayınca teknen start hattının dibinde, yelken boş olur: ← → dümen, Çek ile yelkeni doldur.'}</p>
       </div>
       <div class="dlg-actions">
         ${host ? '<button class="tb" data-act="close">Odayı kapat</button>' : '<button class="tb" data-act="leave">Odadan çık</button>'}
         ${host && !racing ? `<button class="tb primary" data-act="start" ${ps.filter(p => p.on !== false).length ? '' : 'disabled'}><svg class="ci"><use href="#i-play"/></svg>Başlat</button>` : ''}
         ${inRace && !N.s ? '<button class="tb primary" data-act="rejoin">Yarışa dön</button>' : ''}
+        ${racing && !inRace && !N.s ? '<button class="tb primary" data-act="watchNow"><svg class="ci"><use href="#i-eye"/></svg>İzle</button>' : ''}
       </div>`;
   }
   function playerList() {
@@ -303,6 +310,49 @@
     return Object.entries(N.players || {}).map(([pid, p]) => ({ pid, ...p, host: p.uid && p.uid === host })).sort((a, b) => (a.at || 0) - (b.at || 0));
   }
   // sonuçlar: bitirenler süreye göre, sonra yarışanlar sıralamadaki yerine göre
+  // kısa mesaj: her oyuncunun son mesajı (players/{pid}/msg); hazır cümleler + serbest yazı
+  const QUICK = ['Hazırım', 'Bekleyin', '1 dakika', 'Başlayalım!', 'Bağlantım koptu', 'İyi yarıştı 👍'];
+  function msgs() {
+    return Object.entries(N.players || {}).filter(([, p]) => p.msg && p.msg.t).map(([pid, p]) => ({ pid, name: p.name, t: p.msg.t, at: p.msg.at || 0 }))
+      .sort((a, b) => a.at - b.at).slice(-8);
+  }
+  function chatHtml() {
+    const ms = msgs();
+    return `<div class="net-h">Mesajlar</div>
+      <div class="net-chat">${ms.length ? ms.map(x => `<div class="${x.pid === N.pid ? 'me' : ''}"><b>${esc(x.name)}</b>${esc(x.t)}</div>`).join('') : '<span class="net-empty">Henüz mesaj yok.</span>'}</div>
+      <div class="net-say"><div class="net-quick">${QUICK.map(q => `<button class="tb" data-say="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+        <div class="net-sayrow"><input id="netMsg" class="name-in" maxlength="60" autocomplete="off" placeholder="Mesaj yaz…"><button class="tb" data-act="say">Gönder</button></div></div>`;
+  }
+  async function say(t) {
+    t = String(t || '').trim().replace(/\s+/g, ' ').slice(0, 60); if (!t || !N.key) return;
+    await be.update(`${base()}/players/${N.pid}`, { msg: { t, at: SV } }).catch(() => toast('Mesaj gönderilemedi'));
+  }
+  function msgToasts() {
+    const ms = msgs(), last = ms.length ? ms[ms.length - 1].at : 0;
+    if (N.seenMsg == null) { N.seenMsg = last; return; }
+    for (const x of ms) if (x.at > N.seenMsg && x.pid !== N.pid && !(dlgOpen() && (N.view === 'room' || N.view === 'res'))) toast(`${x.name}: ${x.t}`);
+    N.seenMsg = Math.max(N.seenMsg, last);
+  }
+  // Art arda yarışlar: sonuçlar odada saklanır (results/{go}); puan = sıra, bitirmeyen / OCS / diskalifiye = başlayan sayısı + 1
+  function series() {
+    const races = Object.values(N.results || {}).filter(r => r && r.list).sort((a, b) => (a.go || 0) - (b.go || 0));
+    const rows = {};
+    races.forEach((r, k) => {
+      const n = r.list.length;
+      for (const e of r.list) {
+        const row = rows[e.pid] || (rows[e.pid] = { name: e.name, pts: [], tot: 0 });
+        const pt = e.pos || n + 1; row.pts[k] = { pt, code: e.pos ? '' : e.st }; row.tot += pt; row.name = e.name;
+      }
+    });
+    for (const r of Object.values(rows)) for (let k = 0; k < races.length; k++) if (!r.pts[k]) { const n = races[k].list.length; r.pts[k] = { pt: n + 1, code: 'yok' }; r.tot += n + 1; }
+    return { races, rows: Object.values(rows).sort((a, b) => a.tot - b.tot) };
+  }
+  function seriesHtml() {
+    const { races, rows } = series(); if (!races.length) return '';
+    return `<div class="net-h">Puan tablosu <small>${races.length} yarış · az puan önde</small></div>
+      <div class="net-series"><table><thead><tr><th></th><th>Sporcu</th>${races.map((r, k) => `<th>${k + 1}</th>`).join('')}<th>Toplam</th></tr></thead>
+      <tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td>${r.pts.map(p => `<td title="${p.code ? esc(p.code.toUpperCase()) : ''}">${p.pt}${p.code ? `<small>${esc(p.code.toUpperCase())}</small>` : ''}</td>`).join('')}<td><b>${r.tot}</b></td></tr>`).join('')}</tbody></table></div>`;
+  }
   function results() {
     const s = N.s; if (!s) return [];
     const st = S.standings(s);
@@ -310,8 +360,9 @@
   }
   function resHtml() {
     const rs = results(), host = isHost(), done = N.meta && N.meta.state === 'done';
-    return `<ol class="net-res">${rs.map(({ b, status }) => `<li class="${b.mine ? 'me' : ''}"><span class="nr-no">${b.finish && !b.dsq ? b.finish : '–'}</span><i style="background:${b.color}"></i><b>${esc(b.sailor || b.name)}</b><span class="nr-st">${esc(status)}</span></li>`).join('')}</ol>
-      <p class="dlg-note">${done ? 'Yarış bitti.' : 'Yarış sürüyor: sıralama canlı güncellenir.'} Süre start'tan finişe kadar (yalnız orsada şamandırayı dönüşe kadar); cezalar (iki tur) süreye zaten eklenmiş olur.</p>
+    return `${rs.length ? '' : '<p class="net-empty">Bu yarışın canlı sıralaması yok (yarışta değilsin).</p>'}<ol class="net-res">${rs.map(({ b, status }) => `<li class="${b.mine ? 'me' : ''}"><span class="nr-no">${b.finish && !b.dsq ? b.finish : '–'}</span><i style="background:${b.color}"></i><b>${esc(b.sailor || b.name)}</b><span class="nr-st">${esc(status)}</span></li>`).join('')}</ol>
+      <p class="dlg-note">${done ? 'Yarış bitti, sonuç odada saklandı.' : 'Yarış sürüyor: sıralama canlı güncellenir.'} Süre start'tan finişe kadar (yalnız orsada şamandırayı dönüşe kadar); cezalar (iki tur) süreye zaten eklenmiş olur.</p>
+      ${done ? seriesHtml() : ''}${chatHtml()}
       <div class="dlg-actions">
         ${host && !done ? '<button class="tb" data-act="end">Yarışı bitir</button>' : ''}
         ${host ? '<button class="tb primary" data-act="again">Yeni yarış (aynı oda)</button>' : ''}
@@ -357,6 +408,8 @@
     if (t.dataset.tab) { N.tab = t.dataset.tab; N.err = ''; render(); return; }
     if (t.dataset.room) { N.code = t.dataset.room; render(); const p = $('netPass'); if (p) p.focus(); return; }
     if (t.dataset.kick) { kick(t.dataset.kick); return; }
+    if (t.dataset.say) { say(t.dataset.say); return; }
+    if (t.dataset.coach) { coach(t.dataset.coach); return; }
     const sg = t.closest('.seg[data-k]');
     if (sg) { const k = sg.dataset.k, v = t.dataset.v; N.form[k] = typeof CFG0[k] === 'number' ? +v : v; store.set(CFGK, pick(N.form)); formSync(); return; }
     const a = t.dataset.act; if (!a) return;
@@ -365,7 +418,11 @@
     else if (a === 'start') doStart();
     else if (a === 'leave') leave(true);
     else if (a === 'close') closeRoom();
-    else if (a === 'end') be.update(base() + '/meta', { state: 'done' });
+    else if (a === 'end') endRace();
+    else if (a === 'ready') { const me = N.players[N.pid] || {}; be.update(`${base()}/players/${N.pid}`, { ready: !me.ready }).catch(() => {}); }
+    else if (a === 'watch') { const me = N.players[N.pid] || {}; be.update(`${base()}/players/${N.pid}`, { watch: !me.watch, ready: false }).catch(() => {}); }
+    else if (a === 'watchNow') { show(false); startWatch(); }
+    else if (a === 'say') { const x = $('netMsg'); if (x) { say(x.value); x.value = ''; } }
     else if (a === 'again') again();
     else if (a === 'hide') { N.resOpen = false; show(false); if (N.meta && N.meta.state === 'done' && !N.s) { N.view = 'room'; } }
     else if (a === 'rejoin') { show(false); startRace(); }
@@ -377,7 +434,11 @@
     if (id === 'netCode' || id === 'nfCode') { const p = e.target.selectionStart; e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9ÇĞİÖŞÜ]/g, ''); try { e.target.setSelectionRange(p, p); } catch (x) { /* yok */ } }
     if (N.form && (id === 'nfName' || id === 'nfCode' || id === 'nfPass')) N.form[{ nfName: 'name', nfCode: 'code', nfPass: 'pass' }[id]] = e.target.value;
   });
-  body.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.closest('input')) { const g = body.querySelector('.net-go'); if (g) g.click(); } });
+  body.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || !e.target.closest('input')) return;
+    if (e.target.id === 'netMsg') { say(e.target.value); e.target.value = ''; return; }
+    const g = body.querySelector('.net-go'); if (g) g.click();
+  });
   const pick = c => { const o = {}; for (const k in CFG0) o[k] = c[k]; return o; };
   function copy(text, msg) {
     const done = () => toast(msg);
@@ -468,11 +529,13 @@
   }
   function enterRoom(key, code, pid, name) {
     leaveSubs();
-    Object.assign(N, { key, code, pid, name, meta: null, players: {}, boats: {}, view: 'room', err: '' });
+    Object.assign(N, { key, code, pid, name, meta: null, players: {}, boats: {}, results: {}, seenMsg: null, view: 'room', err: '' });
     store.sset(SESS, { key, code, pid, name, net: mode });
     be.leaveSet(`${base()}/players/${pid}/on`, false);
     N.offs.push(be.on(base() + '/meta', onMeta));
-    N.offs.push(be.on(base() + '/players', v => { N.players = v || {}; if (isHost()) lobbyCount(); if (N.view === 'room') render(); N.lastUi = 0; chipUpdate(); }));
+    N.offs.push(be.on(base() + '/players', v => { N.players = v || {}; msgToasts(); if (isHost()) lobbyCount(); if (N.view === 'room' && !typing()) render(); N.lastUi = 0; chipUpdate(); }));
+    N.offs.push(be.on(base() + '/results', v => { N.results = v || {}; if ((N.view === 'room' || N.view === 'res') && !typing()) render(); }));
+    if (isOwner()) be.get('sailHosts').then(v => { N.hosts = v || {}; if (N.view === 'room') render(); }).catch(() => {});
     N.offs.push(be.on(base() + '/boats', v => { N.boats = v || {}; }));
     render();
   }
@@ -488,26 +551,55 @@
       if (prev) { toast('Oda kapatıldı'); leave(false); }
       return;
     }
-    if (m.state === 'racing' && m.go && !N.s && (m.order || []).some(o => o.pid === N.pid) && (!prev || prev.go !== m.go || prev.state !== 'racing')) { show(false); startRace(); }
+    const fresh = !prev || prev.go !== m.go || prev.state !== 'racing';
+    if (m.state === 'racing' && m.go && !N.s && fresh) {
+      if ((m.order || []).some(o => o.pid === N.pid)) { show(false); startRace(); }
+      else if ((N.players[N.pid] || {}).watch) { show(false); startWatch(); }   // antrenör ekranı: tekne sürmeden izle
+    }
     else if (m.state === 'open' && N.s) { stopRace(); N.view = 'room'; show(true); toast('Oda sahibi yeni yarış açtı'); }
     else if (m.state === 'done' && N.s && (!prev || prev.state !== 'done')) { N.view = 'res'; N.resOpen = true; show(true); }
     if (isHost()) lobbyCount();
-    if (dlgOpen() && (N.view === 'room' || N.view === 'res')) render();
+    if (dlgOpen() && (N.view === 'room' || N.view === 'res') && !typing()) render();
     N.lastUi = 0; chipUpdate();
   }
   async function doStart() {
-    const order = playerList().filter(p => p.on !== false).map(p => ({ pid: p.pid, name: p.name }));
+    const order = playerList().filter(p => p.on !== false && !p.watch).map(p => ({ pid: p.pid, name: p.name }));
     if (!order.length) return;
     await be.remove(base() + '/boats');
+    N.ended = false;
     await be.update(base() + '/meta', { state: 'racing', go: SV, order });
     track('online_start', { code: N.code, n: order.length });
   }
   async function again() {
+    if (N.meta && N.meta.state === 'racing') await endRace();   // yarış bitmeden yenisi: o ana kadarki sonuç saklanır
+    const rd = {}; for (const pid in N.players) rd[pid + '/ready'] = false;
+    await be.update(base() + '/players', rd).catch(() => {});
     await be.update(base() + '/meta', { state: 'open', go: null, order: null });
     await be.remove(base() + '/boats');
     N.view = 'room'; render();
   }
   async function kick(pid) { await be.remove(`${base()}/players/${pid}`); }
+  async function coach(uid) {
+    const on = !N.hosts[uid];
+    try { await be.set('sailHosts/' + uid, on ? true : null); N.hosts[uid] = on || undefined; toast(on ? 'Oda açma yetkisi verildi: Velora hesabıyla girince Online → Oda aç' : 'Oda açma yetkisi geri alındı'); }
+    catch (e) { toast('Yetki verilemedi (Firebase kuralları güncel mi?)'); }
+    render();
+  }
+  // Yarış sonu (oda sahibi): sonuç odada saklanır, oda "bitti" olur. Herkes bitirince kendiliğinden.
+  async function endRace() {
+    if (!isHost() || N.ended || !N.meta || N.meta.state !== 'racing') return;
+    N.ended = true;
+    const s = N.s, go = N.meta.go;
+    if (s) {
+      const list = S.standings(s).map(({ b }) => {
+        const fin = b.finish && !b.dsq && !b.out && b.finishT != null;
+        return { pid: b.pid || '', name: b.sailor || b.name, pos: fin ? b.finish : null, t: fin ? Math.round(b.finishT * S.CLOCK_SCALE) : null, pen: b.penalties || 0,
+          st: fin ? 'fin' : b.dsq ? String(b.dsq).slice(0, 4).toLowerCase() : b.phase === 'ocs' ? 'ocs' : b.gone ? 'dnc' : 'dnf' };
+      });
+      await be.set(`${base()}/results/${go}`, { go, at: SV, cfg: N.meta.cfg, list }).catch(() => {});
+    }
+    await be.update(base() + '/meta', { state: 'done' }).catch(() => {});
+  }
   async function closeRoom() {
     const key = N.key, code = N.code;
     stopRace(); leaveSubs();
@@ -527,7 +619,7 @@
   }
   function reset() {
     store.sset(SESS, null);
-    Object.assign(N, { key: null, pid: null, meta: null, players: {}, boats: {}, view: 'home', resOpen: false });
+    Object.assign(N, { key: null, pid: null, meta: null, players: {}, boats: {}, results: {}, view: 'home', resOpen: false, watching: false });
     chipUpdate();
     if (dlgOpen()) render();
   }
@@ -556,8 +648,33 @@
   }
   function stopRace() {
     if (!N.s) return;
-    N.s = null; api.netStop(); chipUpdate();
+    N.s = null; N.watching = false; api.netStop(); chipUpdate();
   }
+  // Antrenör ekranı: teknesi olmadan, bütün tekneler ağdan; saat ve rüzgar herkesle aynı
+  function startWatch() {
+    const m = N.meta; if (!m || !m.order || !api.netWatch) return;
+    const setup = buildSetup(m.cfg, m.order, null);
+    N.t0 = m.go + LEAD; N.shiftSaid = false; N.resAuto = true;
+    const s = api.netWatch(setup, WATCH); if (!s) return;
+    N.s = s; N.watching = true;
+    toast('İzliyorsun · bütün tekneler canlı. + − ile yakınlaş, sürükleyerek kaydır');
+    chipUpdate();
+  }
+  const WATCH = {
+    tick(w, dt) {
+      const s = w.s, target = simNow();
+      if (!N.meta || !N.meta.cfg || target <= s.t) { chipUpdate(); return; }
+      let n = 0;
+      while (s.t + S.DT <= target + 1e-9 && n < 600) {
+        applyWind(s); applyRemotes(s);
+        w.prev = s.boats.map(b => ({ x: b.x, y: b.y, h: b.h }));
+        S.step(s); afterStep(s, null); n++;
+      }
+      const a = clamp((target - s.t) / S.DT, 0, 1), P = w.prev;
+      w.view = P && P.length === s.boats.length ? { ...s, boats: s.boats.map((b, i) => ({ ...b, x: P[i].x + (b.x - P[i].x) * a, y: P[i].y + (b.y - P[i].y) * a, h: E.lerpAngle(P[i].h, b.h, a) })) } : s;
+      chipUpdate();
+    }
+  };
   // öbür tekneler: son gelen durumdan bu ana tahmin (hız × geçen süre), küçük farkı yumuşak kapat
   function applyRemotes(s) {
     const staleT = STALE / 1000 / S.CLOCK_SCALE;
@@ -589,10 +706,12 @@
   }
   function afterStep(s, m) {
     // ceza turu bitip yarışa dönünce dümen yine sende (şamandıra dönüşü ve ceza turu otomatik)
-    if (!m.hand && m.phase === 'race' && m.penaltyAt == null) { m.hand = true; m.manual = true; m.sheetOff = 0; }
+    if (m && !m.hand && m.phase === 'race' && m.penaltyAt == null) { m.hand = true; m.manual = true; m.sheetOff = 0; }
     // bitiş sırası: herkeste aynı (şamandırayı dönüş süresine göre)
     const fin = s.boats.filter(b => b.finishT != null && !b.dsq).sort((a, b) => a.finishT - b.finishT);
     fin.forEach((b, i) => { b.finish = i + 1; });
+    // herkes bitirdi (ya da yarıştan çıktı / bağlantısı koptu): oda sahibi sonucu saklar
+    if (isHost() && !N.ended && s.t > s.startAt && s.boats.every(b => b.gone || b.out || b.phase === 'done' || b.finishT != null)) setTimeout(endRace, 1500);
   }
   function publish(s, m, force) {
     const now = performance.now();
@@ -641,7 +760,7 @@
     if (!on) return;
     const now = performance.now(); if (now - N.lastUi < 400) return; N.lastUi = now;
     const m = N.meta, n = m && m.order ? m.order.length : Object.keys(N.players || {}).length;
-    const txt = !m ? 'Online' : m.state === 'open' ? `Oda ${N.code} · ${n} kişi · başlatılmayı bekliyor` : m.state === 'done' ? `Oda ${N.code} · yarış bitti` :
+    const txt = !m ? 'Online' : N.watching && m.state === 'racing' ? `Oda ${N.code} · izliyorsun · ${n} tekne` : m.state === 'open' ? `Oda ${N.code} · ${n} kişi · başlatılmayı bekliyor` : m.state === 'done' ? `Oda ${N.code} · yarış bitti` :
       N.s && simNow() < 0 ? `Oda ${N.code} · ${Math.ceil(-simNow() * S.CLOCK_SCALE)} sn sonra geri sayım` : `Oda ${N.code} · ${n} tekne`;
     $('ncTxt').textContent = txt;
     $('ncRes').classList.toggle('hidden', !N.s);
@@ -672,5 +791,6 @@
     if (window.SailAccess && SailAccess.account()) setTimeout(kick0, 300);
     else document.addEventListener('sail-access', () => setTimeout(kick0, 300), { once: true });
   }
+  function typing() { const a = document.activeElement; return !!(a && body.contains(a) && a.tagName === 'INPUT'); }
   window.SailNet = { open: openDlg, state: () => N, windAt, buildSetup, rulesText };
 })();

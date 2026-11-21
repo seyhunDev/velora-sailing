@@ -875,6 +875,9 @@
       const c = st.cam;
       if (st.drive && !c.follow) { c.follow = true; c.ft = 0; if (c.z < 1.2) c.z = 1.8 * ZK(); }   // elle sürerken kamera hep teknende
     }
+    else if (st.netWatch) {                               // online antrenör ekranı: saat ortak, tekneler ağdan (js/online.js)
+      const w = st.netWatch; w.net.tick(w, dt); st.sim = w.view || w.s; st.playT = w.s.t;
+    }
     else if (st.reHand && st.mode === 'run' && canDrive() && ['race', 'ocs'].includes((view().boats.find(b => b.mine) || {}).phase)) {
       const msg = typeof st.reHand === 'string' ? st.reHand : 'Ceza bitti · dümen yine sende';
       st.reHand = false; enterDrive(msg);
@@ -904,7 +907,7 @@
     updatePanel(true);
   }
   function backToSetup(quiet) {
-    if (st.drive && st.drive.net) return;                // online yarışta sıfırlanmaz (Ayrıl: js/online.js)
+    if ((st.drive && st.drive.net) || st.netWatch) return;   // online yarışta sıfırlanmaz (Ayrıl: js/online.js)
     windPend = 0; clearTimeout(windTimer); st.reHand = false;
     if (st.drive) { st.drive = null; if (st.camPrev) Object.assign(st.cam, st.camPrev); st.camPrev = null; st.cam.follow = false; st.cam.panAt = null; applyCam(); }
     if (st.mode !== 'setup' && !quiet) toast('Yarış sıfırlandı · tekneler start öncesi yerlerinde, ▶ ile yeniden başlat');
@@ -944,6 +947,7 @@
     m.x = best.p.x; m.y = best.p.y; m.tack = 'starboard'; m.drv = false; m.route = null; m.manual = false; m.sheetOff = 0;
   }
   function newHandRace(msg) {
+    if (st.netWatch || (st.drive && st.drive.net)) return;   // online yarış sürerken simülatörün kendi yarışı başlamaz
     if (st.drawMode) endDraw(false);
     if (st.drive || st.mode !== 'setup') backToSetup(true);
     if (st.task) { st.task.watch = null; st.task.ended = false; useSetup(st.task.setup); taskName(); setSpeed(1); }   // görev: herkes aynı yerden başlar
@@ -2223,10 +2227,25 @@
       updatePanel(true);
       return st.drive.s;
     },
+    // Online antrenör ekranı: teknesi olmadan izle (setup.fleet'te mine yok)
+    netWatch(setup, net) {
+      if (st.drawMode) endDraw(false);
+      backToSetup(true);
+      if (!netPrev) netPrev = jcopy({ fleet: st.fleet, wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, speed: st.speed });
+      st.fleet = jcopy(setup.fleet); st.wind = setup.wind; st.gusts = jcopy(setup.gusts || []); st.course = { ...setup.course }; st.sea = { ...setup.sea };
+      setBoatCfg(setup.boat); st.speed = 1; st.fastPre = false; st.reHand = false;
+      const s = S.newRace(jcopy(st.fleet), { wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat });
+      st.frames = [s]; st.playT = 0; st.sim = s; st.mode = 'run'; st.sel = null; st.ended = false; st.rec = null; st.gsel = null;
+      st.netWatch = { s, net, view: null, prev: null };
+      document.body.classList.add('net-on', 'net-watch');
+      camFit();
+      updatePanel(true);
+      return s;
+    },
     netStop() {
       if (st.drive && st.drive.net) st.drive.net = null;
-      st.drive = null; st.camPrev = null;
-      document.body.classList.remove('net-on');
+      st.drive = null; st.camPrev = null; st.netWatch = null;
+      document.body.classList.remove('net-on', 'net-watch');
       if (netPrev) { const p = netPrev; netPrev = null; st.fleet = p.fleet; st.wind = p.wind; st.gusts = p.gusts; st.course = p.course; st.sea = p.sea; setBoatCfg(p.boat); st.speed = p.speed; S.setCourse(st.course); }
       st.mode = 'setup'; st.sim = null; st.frames = []; st.cam.follow = false; st.cam.z = 1; applyCam();
       newHandRace('Online yarıştan çıktın · kendi yarışın baştan başladı');
