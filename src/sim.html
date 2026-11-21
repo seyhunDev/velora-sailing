@@ -15,6 +15,7 @@
   <link rel="apple-touch-icon" href="img/icon-180.png">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app-shell.js"></script>
+  <script type="importmap">{ "imports": { "three": "./js/vendor/three.module.min.js", "sea3d": "./js/sea3d.js", "sim3d": "./js/sim3d.js" } }</script>
   <script src="js/datause.js"></script>
   <link rel="stylesheet" href="css/sim.css">
   <link rel="stylesheet" href="css/online.css">
@@ -102,6 +103,8 @@
       <i class="zc-sep" aria-hidden="true"></i>
       <button id="btnZoomFit" title="Tüm parkuru göster (0)" aria-label="Tüm parkur"><svg class="ci"><use href="#i-fit"/></svg></button>
       <button id="btnFollow" title="Kamera senin tekneni takip etsin (F)" aria-label="Takip"><svg class="ci"><use href="#i-follow"/></svg></button>
+      <i class="zc-sep" aria-hidden="true"></i>
+      <button id="btn3d" class="zc-3d" title="Tekne içinden 3D görünüş" aria-label="3D görünüş">3D</button>
     </div>
 
     <div id="routeBar" class="route-bar hidden" role="toolbar" aria-label="Rota çizimi">

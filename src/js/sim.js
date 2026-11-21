@@ -436,6 +436,7 @@
       if (p.beta != null && now - p.ts < 300) pose.beta = p.beta + Math.max(-p.k * (now - p.ts), Math.min(p.k * (now - p.ts), pose.beta - p.beta));
       p.beta = pose.beta; p.ts = now;
     }
+    poses3d[b.id] = pose;
     BoatDraw.draw(g, cls || st.boat.cls, { color: b.color, pose, t: tt, seed, heading: b.h, speed: b.phase === 'wait' || b.phase === 'done' ? 0 : Math.max(0, b.v) / 55 });   // sınıfa göre gövde ve donanım (boat-draw.js)
     // etiket
     const tk = sail.tack === 'starboard' ? 'S' : 'İ';
@@ -539,6 +540,21 @@
     hud.classList.toggle('on-stage', onStage);
   }
 
+  // 3D görünüş (js/sim3d.js, ilk açılışta yüklenir): her karede sahne verisi
+  const poses3d = {};
+  function publish3d(v) {
+    if (!document.body.classList.contains('view3d')) return;
+    window.SimScene = { boats: v.boats, wind: v.wind, cls: (v.boat || st.boat).cls, poses: poses3d, line: S.LINE,
+      marks: S.CRS.marks || [S.MARK], fin: S.CRS.type === 'trapez' ? S.FIN : null, seaK: Math.min(1, ((st.sea && st.sea.waves) || 0) / 2) };
+  }
+  function toggle3d() {
+    const b = $('btn3d');
+    if (b) b.disabled = true;
+    import('sim3d').then(m => { const on = m.toggle(); if (b) { b.disabled = false; b.classList.toggle('on', document.body.classList.contains('view3d')); } render(); })
+      .catch(() => { if (b) { b.disabled = false; b.title = 'Bu cihazda 3D açılamadı'; } });
+  }
+  if ($('btn3d')) $('btn3d').addEventListener('click', toggle3d);
+  window.addEventListener('sim3d-off', () => { const b = $('btn3d'); if (b) b.classList.remove('on'); });
   function render() {
     if (st.cam.follow || st.tween) applyCam();
     const v = view(), w = v.wind;
@@ -555,6 +571,7 @@
     ocsBanner(v);
     drawHud(v);
     updateBar(v);
+    publish3d(v);
   }
 
   const speedTxt = b => (b.speedK && Math.abs(b.speedK - 1) > 1e-6 ? ` · ${b.speedK > 1 ? '+' : '−'}${Math.round(Math.abs(b.speedK - 1) * 100)}% hız` : '') + (b.drift ? (b.drift > 1 ? ' · çok kayıyor' : ' · kayıyor') : '') + (b.manual ? ' · manuel' : '');
