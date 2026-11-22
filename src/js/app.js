@@ -146,7 +146,7 @@
       const b = { id: c.id || String(i + 1), name: c.name || `Filo ${i + 1}`, color: c.color || CROWD_COLORS[i % CROWD_COLORS.length], tack: c.tack || 'starboard', extra: true, crowd: true };
       if (c.slot != null && scn.line) { const { pin, boat: cb } = scn.line; b.slot = { x: pin.x + (cb.x - pin.x) * c.slot, y: pin.y + (cb.y - pin.y) * c.slot }; b.row = c.row || 0; b.back = c.back || 0; }
       else b.pos = c.pos;
-      b.v0 = c.v0;
+      b.v0 = c.v0; b.wait = c.wait; b.drift = c.drift;
       return b;
     });
     simulateExtras();
@@ -237,7 +237,7 @@
   function simulateExtras() {
     const scn = state.scn;
     // senaryo tekneleri + filo + ek tekneler birlikte; pis rüzgar yavaşlaması dahil (SailRules.buildScene)
-    const sc = SailRules.buildScene(scn, state.extras.map(b => ({ pos: b.pos, slot: b.slot, row: b.row, back: b.back, tack: b.tack, v0: b.v0 })));
+    const sc = SailRules.buildScene(scn, state.extras.map(b => ({ pos: b.pos, slot: b.slot, row: b.row, back: b.back, tack: b.tack, v0: b.v0, wait: b.wait, drift: b.drift })));
     state.boats.forEach((b, i) => b.track = sc.scripted[i]);
     state.extras.forEach((b, i) => b.track = sc.extras[i]);
   }

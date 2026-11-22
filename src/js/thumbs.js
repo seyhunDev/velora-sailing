@@ -22,7 +22,7 @@
   function prep(scn) {
     if (cache.has(scn.id)) return cache.get(scn.id);
     const specs = (scn.crowd || []).map(c => {
-      const sp = { tack: c.tack || 'starboard', row: c.row || 0, back: c.back || 0, v0: c.v0 };
+      const sp = { tack: c.tack || 'starboard', row: c.row || 0, back: c.back || 0, v0: c.v0, wait: c.wait, drift: c.drift };
       if (c.slot != null && scn.line) { const { pin, boat } = scn.line; sp.slot = { x: pin.x + (boat.x - pin.x) * c.slot, y: pin.y + (boat.y - pin.y) * c.slot }; }
       else sp.pos = c.pos;
       return sp;

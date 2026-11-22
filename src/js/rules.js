@@ -232,9 +232,15 @@
         const sAcc = accelDistance(base, HOLD_V, scn.startAt - goAt, TAU) + (s.row || 0) * 60 + (s.back || 0);
         pos = { x: s.slot.x - f.x * sAcc - fh.x * HOLD_V * goAt, y: s.slot.y - f.y * sAcc - fh.y * HOLD_V * goAt };
       }
-      return { id: 'f' + (i + 1), x: pos.x, y: pos.y, h: h0, v: s.v0 != null ? s.v0 : (isStart ? HOLD_V : 0), tack: s.tack,
+      // canlı filo (scn.crowdLife): her teknenin kendi ritmi (sallanma, sürünme, kayma oranı), tohumlu → her açılışta aynı
+      const rnd = k => { const v = Math.sin((i + 1) * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+      const life = scn.crowdLife ? { ph: rnd(1) * 6.283, per: 2.6 + rnd(2) * 2.4, amp: 3 + rnd(3) * 6, lw: 0.6 + rnd(4) * 0.8 } : null;
+      // dışarıda bekleyen (s.wait {x, y, h, until}): o noktada bekler, until'de yerine (slottan hesaplanan bekleme noktası) süzülür
+      let mode = null, goal = null, start = pos, hs = h0;
+      if (isStart && s.wait) { goal = pos; start = { x: s.wait.x, y: s.wait.y }; mode = 'wait'; if (s.wait.h != null) hs = s.wait.h; }
+      return { id: 'f' + (i + 1), x: start.x, y: start.y, h: hs, v: s.v0 != null ? s.v0 : (isStart ? HOLD_V : 0), tack: s.tack, life, mode, goal, wait: s.wait, drift: s.drift,
         phase: 'race', lastTack: -10, man: null, manUntil: -1, reEval: 0, escH: null, escSpeed: 1, noteUntil: -1, note: '', crossed: false,
-        side: scn.line ? lineSide(scn.line, pos) : 0, out: [{ t: 0, x: pos.x, y: pos.y, h: h0 }] };
+        side: scn.line ? lineSide(scn.line, start) : 0, out: [{ t: 0, x: start.x, y: start.y, h: hs }] };
     });
     // senaryo teknesinin kontrası ve son tramola anı (K13: tramola atan yol verir)
     const sRef = scripted.map((b, i) => ({ id: 's' + (i + 1), ignoresRules: true, phase: 'race', lastTack: -10, tack: null }));
@@ -252,8 +258,18 @@
       const casters = shadowsOn ? snap.map(o => ({ x: o.x, y: o.y, v: o.v, ref: o.ref })) : [];
       const rulesOn = t >= rulesFrom;
       for (const b of boats) {
-        const holding = t < goAt;
+        if (b.mode === 'wait' && t >= b.wait.until) b.mode = 'approach';
+        if (b.mode === 'approach' && Math.hypot(b.goal.x - b.x, b.goal.y - b.y) < 10) b.mode = null;
+        const approaching = b.mode === 'approach' && t < goAt;
+        const holding = t < goAt && !approaching;
         let target = holding ? w + (b.tack === 'starboard' ? -25 : 25) : E.tackHeading(w, b.tack), speedK = 1;   // beklerken orsalayıp durur
+        if (holding && b.mode === 'wait' && b.wait.h != null) target = b.wait.h;
+        if (approaching) {   // yelkeni yarım doldurup bekleme noktasına süzül (yaklaştıkça yavaşla)
+          const dx = b.goal.x - b.x, dy = b.goal.y - b.y, d = Math.hypot(dx, dy);
+          target = E.norm360(Math.atan2(dx, -dy) * 180 / Math.PI);
+          speedK = (b.wait.speed || 0.5) * Math.min(1, 0.35 + d / 80);
+        }
+        if (holding && b.life) target += b.life.amp * Math.sin(t * 6.283 / b.life.per + b.life.ph);   // yelken çırpar, burun oynar
         if (rulesOn) {
           const others = snap.filter(o => o.ref !== b);
           const g = giveWay(b, others, w, t);
@@ -281,7 +297,7 @@
         const diff = E.norm180(target - b.h), rate = (st && !holding ? 160 : TURN_RATE) * DT;
         b.h = E.norm360(b.h + Math.max(-rate, Math.min(rate, diff)));
         const twa = Math.abs(E.norm180(b.h - w));
-        let vt = holding ? (holdStop ? 0 : HOLD_V) : E.speedFor(twa, base) * speedK;
+        let vt = holding ? (holdStop ? 0 : HOLD_V * (b.life ? 1 + 0.9 * Math.sin(t * 6.283 / (b.life.per * 1.7) + b.life.ph * 2) : 1)) : E.speedFor(twa, base) * speedK;
         // start öncesi (kurallar henüz yok): öndeki teknenin kıçına girme, arkasında kal (simülatördeki K12 bilinci)
         if (!rulesOn && !holding) {
           const f = E.fwd(b.h);
@@ -295,13 +311,28 @@
         b.v += (vt - b.v) * Math.min(1, DT / TAU);
       }
       t += DT;
+      // canlı filo: start öncesi kalabalıkta tekneler birbirine sürtünmez, yelkeni çırparak / kürekle hafifçe açılır
+      if (scn.crowdLife && t < rulesFrom) {
+        const R0 = scn.crowdLife.gap || 38;
+        for (const b of boats) {
+          for (const o of [...boats, ...scriptedNow]) {
+            const ref = o.ref || o; if (ref === b) continue;
+            const dx = b.x - o.x, dy = b.y - o.y, d = Math.hypot(dx, dy);
+            if (d < 1e-6 || d >= R0) continue;
+            const k = (R0 - d) / R0 * 14 * DT * (o.ref ? 1 : 0.5);
+            b.x += dx / d * k; b.y += dy / d * k;
+          }
+        }
+      }
       for (const b of boats) {
         const f = E.fwd(b.h); b.x += f.x * b.v * DT; b.y += f.y * b.v * DT;
         // kuvvetli rüzgar (scn.leeway {from, rate}): start öncesi bekleyen filo rüzgaraltına kayar (sancakta sola-aşağı)
-        if (scn.leeway && t < goAt && t >= (scn.leeway.from || 0)) {
-          const lw = scn.leeway, k = lw.ramp ? Math.min(1, (t - (lw.from || 0)) / lw.ramp) : 1;
-          const fd = E.fwd(E.windAt(scn.wind, t) + 180 + (b.tack === 'starboard' ? 30 : -30));
-          b.x += fd.x * lw.rate * k * DT; b.y += fd.y * lw.rate * k * DT;
+        // ang: rüzgaraltından sapma (varsayılan 30°; büyük açı = daha çok yana, pin'e doğru); b.drift / life.lw: teknenin kendi oranı
+        if (scn.leeway && t < goAt && t >= (scn.leeway.from || 0) && b.mode !== 'approach') {
+          const lw = scn.leeway, k = lw.ramp ? Math.min(1, (t - (lw.from || 0)) / lw.ramp) : 1, a = lw.ang != null ? lw.ang : 30;
+          const own = b.drift != null ? b.drift : (b.life ? b.life.lw : 1);
+          const fd = E.fwd(E.windAt(scn.wind, t) + 180 + (b.tack === 'starboard' ? a : -a));
+          b.x += fd.x * lw.rate * k * own * DT; b.y += fd.y * lw.rate * k * own * DT;
         }
         // start hattı geçiş kontrolü
         if (scn.line && !b.crossed) {

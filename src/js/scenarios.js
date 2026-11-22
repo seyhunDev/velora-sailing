@@ -298,6 +298,7 @@
     line: { pin: { x: 250, y: 440 }, boat: { x: 750, y: 440 } },
     startAt: 24,
     rungs: { boat: 'X', from: 25.5 },
+    committeeLabel: 'upright',
     laylines: [{ x: 250, y: 440, tack: 'starboard', len: 330, from: 0, label: 'Pin layline\'ı — tramola bu çizginin ÜSTÜNDE' }],
     boats: [
       { id: 'X', name: 'Apaz gel, layline üstünde tramola', role: 'dogru', color: '#2a9d8f',
@@ -323,24 +324,30 @@
         start: { x: 70, y: 600, h: 15 }, v0: 2,
         segs: [
           { mode: 'hold', h: 15, dur: 14.5, speed: 0.05, turn: 0 },
-          { mode: 'heading', h: 90, dur: 5.0, turn: 1.0, note: 'Geç: 25 sn kala geliyor' },
+          { mode: 'heading', h: 93, dur: 5.0, turn: 1.0, note: 'Geç: 25 sn kala geliyor' },
           { mode: 'heading', h: 81, dur: 6.4, turn: 0.8, note: 'HATA: boşluk yok → herkesin altından' },
           { mode: 'closehauled', tack: 'starboard', dur: 12.1, turn: 1.2 }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.6, ang: 75 },
     crowd: [
-      { slot: 0.27 }, { slot: 0.37 }, { slot: 0.47 }, { slot: 0.57 }, { slot: 0.67 }, { slot: 0.77 }, { slot: 0.84 },
-      { slot: 0.52, row: 1 }, { slot: 0.72, row: 1 }
+      { slot: 0.27, drift: 0.5 }, { slot: 0.378, back: 6 }, { slot: 0.485, back: -4 }, { slot: 0.597, back: 8 }, { slot: 0.70, back: 2 },
+      { slot: 0.23, row: 1, back: 4 }, { slot: 0.33, row: 1 }, { slot: 0.44, row: 1, back: 8 }, { slot: 0.565, row: 1 },
+      // hakem botu ucu baştan boş: üç tekne botun sancağında / kıçında bekler, filo pin'e kaydıkça açılan boşluğa süzülür
+      { slot: 0.865, wait: { x: 845, y: 442, h: 5, until: 15.4, speed: 0.45 } },
+      { slot: 0.785, wait: { x: 818, y: 505, h: 350, until: 14.2, speed: 0.45 } },
+      { slot: 0.74, row: 1, wait: { x: 885, y: 492, h: 0, until: 16.6, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 72 sn: pin grubu oluştu', text: 'Rüzgar 350°: pin hafif avantajlı. Gri tekneler pin\'e yakın yerleri almış, hattın dibinde rüzgara baş vermiş bekliyor. Mavi kesikli çizgi pin layline\'ı: sancak orsa ile pin\'e varan son rota. Yeşil X kavganın dışında, pin\'in SOLUNDA bekliyor.' },
-      { t: 4, title: 'Neden dışarıda, neden solda?', text: 'Grubun içinde 70 saniye yer tutmak zor: sürüklenirsin, biri rüzgarüstünden sokulur, boşluğun kapanır. Pin\'in solunda beklerken hattı, layline\'ı ve boşlukları yandan görürsün; apaz ile hızlı ve kontrollü girersin.' },
+      { t: 0, title: 'Start\'a 72 sn: pin grubu oluştu', text: 'Rüzgar 350°: pin hafif avantajlı. Gri tekneler pin\'e yakın yerleri almış, gerçek bir Optimist startındaki gibi yan yana, yarım-bir boy arayla, iki sıra halinde hattın dibinde rüzgara baş vermiş bekliyor. Hakem botunun dibi ise baştan boş: orada durmaya çalışan botun gövdesine kayar. Üç tekne botun sancağında ve kıçında, dışarıda bekliyor. Mavi kesikli çizgi pin layline\'ı. Yeşil X kavganın dışında, pin\'in SOLUNDA bekliyor.' },
+      { t: 4, title: 'Neden dışarıda, neden solda?', text: 'Grubun içinde 70 saniye yer tutmak zor: yelken boşken tekne rüzgaraltına, pin\'e doğru kayar (filonun yavaşça sola sürüklendiğine bakın), biri rüzgarüstünden sokulur, boşluğun kapanır. Pin\'in solunda beklerken hattı, layline\'ı ve boşlukları yandan görürsün; apaz ile hızlı ve kontrollü girersin. Hakem botu tarafındakiler de aynı şeyi yapıyor: filo kaydıkça botun dibi açılacak.' },
       { t: 9, title: 'Son 45 sn: apaz ile gel', text: 'X yelkenini doldurup apaz (yarım rüzgar) ile hattın hemen altından, pin\'in altından geçip gruba doğru gidiyor. İskele kontrada: herkese yol verir (Kural 10); sancak teknelerin burnuna girmeden, altlarından geçer.' },
       { t: 12.5, title: 'KARAR: boşluk var mı, layline\'ın üstünde mi?', text: 'İki soru: (1) Grubun en alttaki teknesinin rüzgaraltında 1 boy boşluk var mı? (2) Tramola noktası pin layline\'ının ÜSTÜNDE mi? İkisi de evetse gir. Boşluk kapalıysa ya da layline\'ın altındaysan girme: pin\'i kurtaramazsın, çizgi dışından geçersin.' },
       { t: 14.5, title: 'X tramola: Kural 13 ve 15', text: 'X layline\'ın üstünde, grubun en altındaki teknenin rüzgaraltına tramola atıyor. Tramola sırasında herkese yol verir (Kural 13). Sancak kontraya geçip rüzgaraltı tekne olunca hak sahibi; ama Kural 15: rüzgarüstündekine başta kaçınma yeri ver. O yüzden tramola dibine değil, yarım boy aşağısına.' },
       { t: 16.5, title: 'Z HATA: layline\'ın altında tramola', text: 'Turuncu Z aynı hamleyi layline\'ın ALTINDA yaptı. Sancak orsa ile pin\'e varamaz: burnu pin\'in soluna düşer. Ya herkese yol verip tramola atacak ya da pin\'in dışından geçip geri dönecek. Boşluk bulsan bile layline\'ın altındaysan girmenin anlamı yok.' },
       { t: 19.5, title: 'Y HATA: geç geldi', text: 'Mor Y 25 saniye kala geldi; X boşluğu almış, grup sıkışmış. Girecek yer yok: herkesin altından, kirli havada, 3-4 boy geride başlayacak. Zamanlama: hafif rüzgarda 50 sn, kuvvetlide 35-40 sn kala gel.' },
-      { t: 21.5, title: '2.5 sn kala doldur', text: 'X rüzgaraltı hakkıyla yerini korudu (Kural 11); pin layline\'ının üstünde, boşluğu var: bordalayıp hızlanıyor.' },
+      { t: 21.5, title: '2.5 sn kala doldur', text: 'X rüzgaraltı hakkıyla yerini korudu (Kural 11); pin layline\'ının üstünde, boşluğu var: bordalayıp hızlanıyor. Öbür uçta: filo pin\'e kaydıkça hakem botunun dibi açıldı, dışarıda bekleyen üç tekne yavaşça süzülüp girdi. İkisi ön sırada hızla, geç kalan üçüncüsü ikinci sırada.' },
       { t: 24, title: 'START', text: 'X pin\'in hemen yanından, tam hızla, temiz havada. Z pin\'i kurtaramıyor: burnu pin\'in soluna düşüyor. Y hâlâ herkesin altında sağa doğru gidiyor.' },
       { t: 25.5, title: 'Z: dışarıdan çıkılmaz, bordala', text: 'Pin\'in dışından geçmek start sayılmaz. Z\'nin iki yolu var: rüzgarüstüne tramola atıp geri dönmek ya da bordalayıp (gerekirse kavança) hattın altından sağa gidip herkesin ARKASINDAN hattın içinden geçmek. Z bordalıyor: 8-10 saniye ve kirli hava.' },
       { t: 32, title: 'Y ve Z: 25-35 saniye geç', text: 'Y boşluk bulamayınca, Z pin\'i kurtaramayınca ikisi de filonun altından geçip ancak herkesten sonra, kirli havada hattın içinden çıkabiliyor. Geç gelmenin ve layline\'ın altında tramola atmanın maliyeti bu.' },
