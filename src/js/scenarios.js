@@ -88,6 +88,7 @@
     wind: 0,
     line: { pin: { x: 250, y: 420 }, boat: { x: 750, y: 420 } },
     startAt: 20,
+    committeeLabel: 'upright',
     boats: [
       { id: 'D', name: 'Doğru zamanlama', role: 'dogru', color: '#2a9d8f',
         start: { x: 700, y: 540, h: 290 }, v0: 25,
@@ -112,9 +113,14 @@
           { mode: 'closehauled', tack: 'starboard', dur: 8.5, turn: 0.8 }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.215 }, { slot: 0.455 }, { slot: 0.70 }, { slot: 0.79 }, { slot: 0.88 },
-      { slot: 0.17, row: 1 }, { slot: 0.44, row: 1 }
+      { slot: 0.215, drift: 0.5 }, { slot: 0.455, back: 6 }, { slot: 0.70, back: -4 }, { slot: 0.79, back: 6 },
+      { slot: 0.17, row: 1, drift: 0 }, { slot: 0.44, row: 1 },
+      // hakem botunun dibi baştan boş: iki tekne dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 828, y: 442, h: 0, until: 10, speed: 0.45 } },
+      { slot: 0.86, row: 1, wait: { x: 862, y: 485, h: 355, until: 11, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 1 dk 20 sn: filo hattın dibinde', text: 'Gri tekneler hattın 1-1.5 boy gerisinde rüzgara baş vermiş, yelkenleri boş bekliyor. Aralarında boşluklar var: boşluk, hızlanma alanıdır. Yeşil tekne yarım hızla yerine geliyor.' },
@@ -183,6 +189,7 @@
     startSlots: { pin: [0.2], middle: [0.4], committee: [0.6] },
     expectOutside: ['P2'],
     // filo P1'in tramola rotasının sağında: P1 iskele kontrada hepsinin önünden temiz geçer (simülatörde K14/protesto yok)
+    crowdLife: { gap: 38 },
     crowd: [{ slot: 0.36 }, { slot: 0.47 }, { slot: 0.58 }]
   });
 
@@ -234,6 +241,7 @@
     ],
     addBoat: { pin: { x: 300, y: 600 }, middle: { x: 420, y: 660 }, committee: { x: 760, y: 640 } },
     startSlots: { pin: [0.12], middle: [0.3], committee: [0.62] },
+    crowdLife: { gap: 38 },
     crowd: [{ slot: 0.08 }, { slot: 0.2 }, { slot: 0.32 }, { slot: 0.58 }, { slot: 0.14, row: 1 }, { slot: 0.5, row: 1 }]
   });
 
@@ -251,6 +259,7 @@
     wind: 0,
     line: { pin: { x: 250, y: 440 }, boat: { x: 750, y: 440 } },
     startAt: 30,
+    committeeLabel: 'right',
     boats: [
       { id: 'F', name: 'Burnu çizgide', role: 'hata', color: '#e76f51',
         start: { x: 520, y: 520, h: 340 }, v0: 2,
@@ -269,7 +278,12 @@
           { mode: 'closehauled', tack: 'starboard', dur: 8.5, turn: 0.8 }
         ] }
     ],
-    crowd: [{ slot: 0.1 }, { slot: 0.68 }, { slot: 0.8 }, { slot: 0.88 }, { slot: 0.1, row: 1 }, { slot: 0.68, row: 1 }],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
+    crowd: [{ slot: 0.1, drift: 0.3 }, { slot: 0.68, back: 6 }, { slot: 0.8, back: -4 }, { slot: 0.1, row: 1, drift: 0.3 }, { slot: 0.68, row: 1 },
+      // hakem botunun dibi baştan boş: iki tekne dışarıda bekler, açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 828, y: 462, h: 0, until: 19, speed: 0.45 } },
+      { slot: 0.86, row: 1, wait: { x: 862, y: 505, h: 355, until: 20, speed: 0.5 } }],
     steps: [
       { t: 0, title: 'Start\'a 2 dakika: hazırlık bayrağı U', text: 'Hakem botunda hazırlık bayrağı dalgalanıyor: U. Bayrak hangi fodepar (OCS) kuralının geçerli olduğunu söyler. Saat sağ üstte, gerçek zaman (animasyon 4× hızlı).' },
       { t: 6, title: 'Bayrak türleri', text: 'P (mavi-beyaz): fodepar yaparsan geri dönüp hattı yeniden geç, ceza yok. I (sarı-siyah): son 1 dakikada hattın üstündeysen uçlardan dolaşarak geri dön. U (kırmızı-beyaz kare): son 1 dakikada gövdenin bir parçası hat üçgenindeyse yarıştan çıkarsın (UFD) ama genel geri çağırma olursa yeniden yarışabilirsin. Siyah: aynı şey ama genel geri çağırmada bile yarışamazsın (BFD).' },
