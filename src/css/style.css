@@ -891,3 +891,47 @@ body:not(.home-on) .scn-only { display: inline-flex; }
 }
 /* Velora uygulamasının içinde: "‹ Velora" ana sayfada açık temada (ikincil düğme gibi) */
 .home .velora-back { background: var(--raised); color: var(--text); border: 0; }
+
+/* ==========================================================================
+   v2 sadeleştirme (kullanıcı 2026-11-22, Velora uygulamasında ekran görüntüsü):
+   - Velora'nın içinde (çerçeve) güvenli alan payını Velora zaten veriyor: bizde sıfır (üstte boş şerit kalmasın)
+   - Üst düğmeler zeminsiz simge (Velora btn-icon); "‹ Velora" en solda yuvarlak geri (Velora BackButton)
+   - Üç bölüm tek beyaz kartta satır satır (Velora RowList): simge · ad · ›, araları ince çizgi
+   ========================================================================== */
+html.is-embedded, html.is-embedded.is-phone.notch-l, html.is-embedded.is-phone.notch-r { --sat: 0px; --sab: 0px; --sal: 0px; --sar: 0px; }
+html.is-embedded .ver-badge { bottom: 1px; }
+
+.home .home-top { gap: 4px; }
+.home .tool-group { display: contents; }               /* düğmeler doğrudan çubuğun öğesi: "‹ Velora" en sola alınabilsin */
+.home .home-brand { margin-left: 2px; }
+.home .velora-back { order: -1; width: 40px; height: 40px; min-width: 0; padding: 0; margin: 0 6px 0 0; border-radius: 50%; background: var(--raised); color: var(--text); }
+.home .velora-back .lbl { display: none; }
+.home .velora-back svg { width: 20px; height: 20px; }
+.home .tool, .home .set-btn { width: 40px; height: 40px; min-width: 0; padding: 0; border-radius: 50%; background: transparent; color: var(--text2); }
+.home .tool:hover, .home .set-btn:hover { background: var(--hover); }
+.home .tool:active { background: rgba(0,0,0,.08); }
+.home .tool .lbl, .home .set-btn .lbl { display: none; }
+.home .tool svg { width: 22px; height: 22px; }
+.home .acc-chip { width: 34px; height: 34px; margin-left: 4px; font-size: 14px; }
+
+.home-go { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; background: var(--panel-solid); border-radius: 14px; overflow: hidden; }
+.go-tile, .go-tile:hover { flex-direction: row; justify-content: flex-start; text-align: left; gap: 12px; min-height: 56px; padding: 0 14px;
+  border-radius: 0; box-shadow: none; background: transparent; }
+.go-tile + .go-tile { box-shadow: inset 1px 0 0 var(--border); }
+.go-tile:active { transform: none; background: rgba(0,0,0,.04); }
+.go-ic { width: auto; height: auto; background: none; border-radius: 0; }
+.go-ic svg { width: 22px; height: 22px; }
+.go-t { align-items: flex-start; flex: 1; }
+.go-t b { font-size: 15px; font-weight: 600; }
+.go-t small { display: none !important; }
+.go-ar { display: block !important; width: 16px; height: 16px; color: var(--muted2, #aeaeb2); }
+@media (max-width: 640px) {
+  .home .home-top { padding: calc(6px + var(--sat)) 12px 4px; }
+  .home-go { grid-template-columns: 1fr; }
+  .go-tile { min-height: 50px; padding: 0 14px; flex-direction: row; text-align: left; }
+  .go-tile + .go-tile { box-shadow: inset 50px 0 0 var(--panel-solid), inset 0 1px 0 var(--border); }
+  .go-t { align-items: flex-start; }
+}
+@media (max-height: 500px) { .go-tile { min-height: 48px; } }
+/* geniş ekranda üst çubuk içerikle aynı hizada (içerik en çok 1180 px) */
+@media (min-width: 641px) { .home .home-top { padding-left: max(20px, calc((100% - 1180px) / 2)); padding-right: max(20px, calc((100% - 1180px) / 2)); } }

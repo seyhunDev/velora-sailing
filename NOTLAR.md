@@ -264,6 +264,9 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-22 · Açılış ekranı v2 (Velora içinde boşluk, minimal düğmeler)
+- Kullanıcı (Velora iOS içinde ekran görüntüsü): üstte boş şerit var, düğmeler daha minimal olsun. Çerçevede (`html.is-embedded`) güvenli alan payları sıfır (Velora zaten veriyor). Üst düğmeler zeminsiz simge, "‹ Velora" en solda; üç bölüm tek beyaz kartta satır satır (telefon dikeyde alt alta, genişte yan yana, ince çizgili).
+
 ### 2026-11-22 · Açılış ekranı ve düğmeler sadeleşti
 - Kullanıcı: çevir uyarısı açılışta değil yalnız simülatörde; "Ayarlar" yelken ayarına gidiyordu; tasarım sade, Velora (sesliasistan) renk ve düğmeleri; ilk ekranda senaryolar, seç-aç-geri dön, ayrı Ayarlar.
 - Yapılan: yukarıda Güncel durum'daki iki madde. Masaüstü, iPad yatay/dikey, telefon yatay/dikeyde Playwright ile bakıldı; check + smoke temiz. iOS sohbetinin "‹ Velora" düğmesiyle birleşti.
