@@ -1,6 +1,7 @@
 // Uygulama kabuğu: siteyi web sayfası değil uygulama gibi davrandırır. Her sayfada ilk betik.
 // - Sayfa yukarı/aşağı esnemez, kaymaz, iki parmakla büyümez (yalnız kendi kaydırma alanları kayar).
-// - Telefonda yatay zorunlu: dikey tutulunca "telefonu çevir" ekranı. iPad'de iki yön de serbest.
+// - Telefonda yatay zorunlu yalnız <html data-yatay> olan sayfada (simülatör): dikey tutulunca "telefonu çevir" ekranı.
+//   Ana sayfa ve diğer sayfalar telefonda dikey de açılır (kullanıcı 2026-11-22). iPad'de iki yön de serbest.
 // - Ana ekrana eklenince (standalone) tarayıcı çubukları olmadan tam ekran açılır.
 // Sınıflar (<html>): is-phone · is-tablet · is-touch · is-standalone · is-embedded · is-portrait / is-landscape
 (function () {
@@ -43,8 +44,8 @@
   addEventListener('resize', orient);
   addEventListener('orientationchange', () => setTimeout(orient, 120));
 
-  // Telefonda dikey: tam ekran uyarı (uygulama arkada çalışmaya devam eder, döndürünce kaldığı yerden)
-  if (phone) {
+  // Telefonda dikey (yalnız data-yatay sayfada): tam ekran uyarı (uygulama arkada çalışmaya devam eder, döndürünce kaldığı yerden)
+  if (phone && H.hasAttribute("data-yatay")) {
     const build = () => {
       if (document.getElementById('rotateGate')) return;
       const d = document.createElement('div');
@@ -57,7 +58,7 @@
           <path class="rg-arrow" d="m92 70 8 6 4-10" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <b>Telefonu yan çevir</b>
-        <span>Velora Sailing telefonda yatay ekranda kullanılır. Parkur ve düğmeler yan çevrilince tam sığar.</span>
+        <span>Simülatör telefonda yatay ekranda kullanılır. Parkur ve kumanda yan çevrilince tam sığar.</span>
       </div>`;
       document.body.appendChild(d);
     };

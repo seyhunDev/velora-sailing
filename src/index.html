@@ -37,11 +37,49 @@
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-trim" viewBox="0 0 24 24"><path d="M5 6h8M17 6h2M5 12h3M12 12h7M5 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3c3 3.5 4 8 3.5 15h-7C8 11 9 6.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.7 7.7 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.7 7.7 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.7 7.7 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.7 7.7 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sail" viewBox="0 0 24 24"><path d="M11 3v15M11 3.5c4.5 3.5 6.8 8.6 7 13.5H11M7.5 7.5 4 17h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-steps" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   </svg>
 
-  <!-- ÜST ÇUBUK -->
-  <header class="topbar">
+  <!-- ANA SAYFA (açılış): senaryolar + Simülatör / Yarışlar / Yelken ayarı; adreste senaryo (#id) yoksa görünür.
+       Açık tema (Velora "açık": #f5f5f7 zemin, beyaz kart, tek vurgu mavi). js/app.js → setHome -->
+  <section id="home" class="home acik" aria-label="Ana sayfa">
+    <header class="topbar home-top">
+      <div class="home-brand"><svg><use href="#i-logo"/></svg><span>Velora <em>Sailing</em></span></div>
+      <div class="spacer"></div>
+      <!-- sağ düğmeler (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) tek grupta; senaryo açılınca senaryo çubuğuna taşınır -->
+      <div class="tool-group" id="toolGroup">
+        <button id="btnInfo" class="tool scn-only" title="Bilgi kartı (i)"><svg><use href="#i-info"/></svg><span class="lbl">Bilgi</span></button>
+        <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
+      </div>
+    </header>
+    <div class="home-scroll">
+      <nav class="home-go" aria-label="Bölümler">
+        <a id="lnkSim" class="go-tile" href="sim.html"><span class="go-ic"><svg><use href="#i-boat"/></svg></span><span class="go-t"><b>Simülatör</b><small>Elle sür, yarış</small></span><svg class="go-ar"><use href="#i-next"/></svg></a>
+        <a id="lnkRaces" class="go-tile" href="havuz.html"><span class="go-ic"><svg><use href="#i-flag"/></svg></span><span class="go-t"><b>Yarışlar</b><small>Antrenör yarışları</small></span><svg class="go-ar"><use href="#i-next"/></svg></a>
+        <a id="lnkTrim" class="go-tile" href="ayar.html"><span class="go-ic"><svg><use href="#i-sail"/></svg></span><span class="go-t"><b>Yelken ayarı</b><small>Optimist trim</small></span><svg class="go-ar"><use href="#i-next"/></svg></a>
+      </nav>
+      <div class="home-head">
+        <h2>Senaryolar</h2>
+        <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Ara" autocomplete="off"></label>
+      </div>
+      <div class="home-tabs" id="homeTabs" role="tablist"></div>
+      <div class="home-list" id="homeList"></div>
+    </div>
+  </section>
+
+  <!-- AYARLAR (genel): görünüm anahtarları + sürüm -->
+  <div id="settingsDlg" class="set-dlg hidden" role="dialog" aria-modal="true" aria-label="Ayarlar">
+    <div class="set-panel acik">
+      <div class="set-head"><h2>Ayarlar</h2><button id="btnSettingsClose" class="btn-round" title="Kapat (Esc)" aria-label="Kapat"><svg><use href="#i-close"/></svg></button></div>
+      <div class="set-body" id="settingsBody"></div>
+    </div>
+  </div>
+
+  <!-- SENARYO ÇUBUĞU -->
+  <header class="topbar scn-top">
+    <button id="btnHome" class="btn-round home-back" title="Ana sayfa" aria-label="Ana sayfa"><svg><use href="#i-prev"/></svg></button>
     <!-- senaryo seçici + önceki/sonraki senaryo (seçicideki sırayla) tek parça -->
     <div class="scn-group">
       <button id="btnScnPrev" class="scn-step" title="Önceki senaryo" aria-label="Önceki senaryo"><svg><use href="#i-prev"/></svg></button>
@@ -53,12 +91,6 @@
       <button id="btnScnNext" class="scn-step" title="Sonraki senaryo" aria-label="Sonraki senaryo"><svg><use href="#i-next"/></svg></button>
     </div>
     <div class="spacer"></div>
-    <div class="tool-group">
-      <a id="lnkSim" class="tool sim-link" href="sim.html" title="Yarış simülatörü: tekneleri kendin yerleştir, rüzgarı değiştir"><svg><use href="#i-boat"/></svg><span class="lbl">Simülatör</span></a>
-      <a id="lnkRaces" class="tool sim-link race-link" href="havuz.html" title="Antrenör yarışları: yarış oluştur, bağlantıyı gönder, sonuçlar ve tekrarlar"><svg><use href="#i-flag"/></svg><span class="lbl">Yarışlar</span></a>
-      <a id="lnkTrim" class="tool sim-link trim-link" href="ayar.html" title="Optimist yelken ayarları: hafif, orta, sert hava; kılavuz ve özel ayar"><svg><use href="#i-trim"/></svg><span class="lbl">Ayarlar</span></a>
-      <button id="btnInfo" class="tool" title="Bilgi kartı (i)"><svg><use href="#i-info"/></svg><span class="lbl">Bilgi</span></button>
-    </div>
   </header>
 
   <!-- SAHNE -->
@@ -112,8 +144,8 @@
       </div>
     </aside>
 
-    <!-- SAYFA AYARLARI: en sağdaki yuvarlak hesap düğmesinin menüsüne taşınır (js/access.js → #pageSettings) -->
-    <div id="pageSettings" class="page-settings" hidden>
+    <!-- SENARYO GÖRÜNÜMÜ: Ayarlar penceresine taşınır (js/app.js → #settingsBody) -->
+    <div id="viewSettings" class="page-settings view-settings" hidden>
       <div class="pop-title">Görünüm</div>
       <label class="switch row-sw" title="Sahneyi teknelere yakın sığdırır, gerekirse olayı izler (telefonda varsayılan açık)"><span class="sw-lbl">Yakın görünüm</span><input type="checkbox" id="chkZoom"><span class="track"><span class="knob"></span></span></label>
       <div class="pop-title">Sahnede göster</div>

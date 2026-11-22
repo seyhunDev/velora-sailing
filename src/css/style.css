@@ -393,12 +393,6 @@ svg#course { position: absolute; inset: 0; width: 100%; height: 100%; display: b
 a.sim-link { text-decoration: none; color: #fed7aa; background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.6); font-weight: 600; }
 a.sim-link svg { color: #fb923c; }
 a.sim-link:hover { background: rgba(251,146,60,.26); border-color: #fb923c; color: #fff; }
-a.trim-link { color: #a7f3d0; background: rgba(52,211,153,.14); border-color: rgba(52,211,153,.55); }
-a.trim-link svg { color: #34d399; }
-a.trim-link:hover { background: rgba(52,211,153,.24); border-color: #34d399; color: #fff; }
-a.race-link { color: #fde68a; background: rgba(251,191,36,.14); border-color: rgba(251,191,36,.55); }
-a.race-link svg { color: #fbbf24; }
-a.race-link:hover { background: rgba(251,191,36,.24); border-color: #fbbf24; color: #fff; }
 @media (max-width: 1100px) { a.sim-link.tool { width: auto; padding: 0 12px 0 10px; } a.sim-link .lbl { display: inline; } }
 @media (max-width: 640px) { a.sim-link.tool { width: var(--tap); padding: 0; } a.sim-link .lbl { display: none; } }
 /* Tam ekranda (iPad Safari) sol üstte sistemin kapatma (X) düğmesi çıkar: üst çubuğun solunu boş bırak */
@@ -709,7 +703,6 @@ html:not([data-role="sahip"]) .report-btn { display: none; }
   .rig-svg { aspect-ratio: auto; height: clamp(90px, calc(100vh - 290px), 150px); }
   .rig-panel { max-height: calc(100% - 52px); }
 }
-@media (max-height: 500px) { a.trim-link.tool, a.race-link.tool { width: var(--tap); padding: 0; } a.trim-link .lbl, a.race-link .lbl { display: none; } }
 @media (max-height: 500px) { .du-card { padding: 18px 20px 14px; } .du-card .gate-brand { margin-bottom: 10px; } }
 
 /* kayıt izni şeridi (hesabı olan ama izni sorulmamış ziyaretçi) */
@@ -724,3 +717,177 @@ html:not([data-role="sahip"]) .report-btn { display: none; }
 
 /* Doğrudan elle sürüş (2026-11-14): otomatik yarışa ait düğmeler (Teknem, Tramola, Otomatik) simülatörde yok */
 body.sim .hand-off { display: none !important; }
+
+/* ==========================================================================
+   ANA SAYFA (açılış) + AYARLAR penceresi · 2026-11-22
+   Velora "açık" teması (sesliasistan .claude/skills/velora-tasarim): zemin #f5f5f7, beyaz kart (gölge yok, çok ince çerçeve),
+   yazı #1d1d1f, tek vurgu mavi #2563eb. Düğmeler "A · Düz": tek renk dolgu; Ana dolu mavi, İkincil açık gri, Simge zeminsiz.
+   Senaryo sahnesi (deniz) lacivert kalır; ana sayfa ve Ayarlar açık.
+   ========================================================================== */
+.acik {
+  color-scheme: light;
+  --bg: #f5f5f7; --panel: #fff; --panel-solid: #fff; --raised: #eeeef2; --raised2: #e5e5ea; --hover: rgba(0,0,0,.05);
+  --border: #e5e5ea; --border-strong: #d1d1d6;
+  --text: #1d1d1f; --text2: #3a3a3c; --muted: #6e6e73;
+  --accent: #2563eb; --accent-ink: #fff; --accent-soft: #e8effe;
+  --c-taktik: #2563eb; --c-ileri: #7c5cd6; --c-kural: #b7791f; --c-teknik: #2f8a57; --c-ileri-teknik: #c2417f;
+  color: var(--text);
+}
+.home { display: none; }
+body.home-on .home { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: var(--bg);
+  padding-left: var(--sal); padding-right: var(--sar); }
+body.home-on .scn-top { visibility: hidden; }
+
+/* üst: logo + ad solda; Ayarlar, Tam ekran, Hesap sağda (çubuk zemini sayfayla aynı, çizgi yok) */
+.home .home-top { background: var(--bg); border: 0 !important; margin: 0 !important; padding: calc(10px + var(--sat)) 20px 6px; gap: 10px; }
+.home-brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; letter-spacing: -.01em; white-space: nowrap; color: var(--text); }
+.home-brand svg { width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto; }
+.home-brand em { font-style: normal; color: var(--accent); }
+.home .tool-group { display: flex; align-items: center; gap: 6px; }
+.home .tool { height: 40px; border-radius: 12px; border: 0; color: var(--text2); background: transparent; }
+.home .tool:hover { background: var(--hover); color: var(--text); }
+.home .set-btn { background: var(--raised); color: var(--text); padding: 0 14px 0 12px; font-weight: 600; }
+.home .set-btn:hover { background: var(--raised2); }
+.home .fs-btn.fs-exit { background: var(--raised); border: 0; }
+.home .acc-chip { background: var(--raised); border-width: 0; color: var(--text); }
+.home .acc-chip[data-role="kayitli"] { background: var(--accent-soft); color: var(--accent); }
+.home .acc-chip[data-role="sahip"] { background: #e1efe7; color: #2f8a57; }
+.home .acc-chip:hover, .home .acc-chip.on { box-shadow: none; filter: brightness(.96); }
+.home .report-btn { color: #c2410c; }
+.scn-only { display: none; }
+body:not(.home-on) .scn-only { display: inline-flex; }
+
+/* gövde: kendi içinde kayar */
+.home-scroll { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  padding: 10px 20px calc(28px + var(--sab)); }
+.home-scroll > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
+
+/* bölüm girişleri: üç beyaz kart (simge · ad · kısa alt yazı · ›), hepsi aynı boy */
+.home-go { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.go-tile { display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 12px 14px 12px 14px; border-radius: 16px;
+  background: var(--panel-solid); color: var(--text); text-decoration: none; box-shadow: 0 0 0 1px rgba(0,0,0,.05);
+  transition: transform .12s, background-color .12s; }
+.go-tile:hover { background: #fafafc; }
+.go-tile:active { transform: scale(.98); }
+.go-ic { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; flex: 0 0 auto; background: var(--accent-soft); color: var(--accent); }
+.go-ic svg { width: 24px; height: 24px; }
+.go-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.go-t b { font-size: 16px; font-weight: 650; }
+.go-t small { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.go-ar { width: 18px; height: 18px; color: var(--muted); flex: 0 0 auto; }
+
+/* senaryolar: başlık + arama tek satırda, altında kategori çipleri, sonra konu konu kartlar */
+.home-head { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
+.home-head h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.01em; flex: 1; }
+.home-search { flex: 0 1 260px; height: 40px; background: var(--raised); border: 0; border-radius: 12px; }
+.home-search:focus-within { box-shadow: 0 0 0 2px var(--accent); }
+.home-tabs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.home-tabs::-webkit-scrollbar { display: none; }
+.home-tabs button { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; flex: 0 0 auto; border: 0; border-radius: 999px;
+  background: var(--raised); color: var(--text); font-size: 14px; font-weight: 600; transition: background-color .12s, transform .12s; }
+.home-tabs button:active { transform: scale(.97); }
+.home-tabs button .count { font-size: 12px; font-weight: 600; color: var(--muted); }
+.home-tabs button.active { background: var(--accent); color: #fff; }
+.home-tabs button.active .count { color: rgba(255,255,255,.8); }
+.home-tabs button.empty { display: none; }
+.home-list .picker-topic { color: var(--muted); font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 600; margin: 20px 2px 10px; }
+.home-list .picker-topic::after { background: var(--border); }
+.home-list .picker-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px 14px; }
+.home-list .card { color: var(--text); }
+.home-list .card .thumb { border: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.06); }
+.home-list .card:hover .thumb { transform: translateY(-2px); }
+.home-list .card .ttl { font-size: 14px; font-weight: 600; }
+.home-list .card.active .thumb { box-shadow: 0 0 0 2px var(--accent); }
+.home-list .card .thumb .now { color: #fff; background: var(--accent); }
+.home-list .picker-empty { color: var(--muted); }
+
+/* senaryo çubuğunda ana sayfaya dönüş: yuvarlak geri (Velora BackButton) */
+.btn-round { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; flex: 0 0 auto;
+  background: rgba(255,255,255,.1); color: #fff; transition: transform .12s, filter .12s; }
+.btn-round svg { width: 22px; height: 22px; }
+.btn-round:active { transform: scale(.95); }
+.acik .btn-round { background: var(--raised); color: var(--text); }
+.scn-top .tool-group { display: flex; align-items: center; gap: 6px; }
+
+/* Ayarlar penceresi: ortada beyaz panel (telefonda tam ekran) */
+.set-dlg { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(0,0,0,.32); }
+.set-dlg.hidden { display: none; }
+.set-panel { width: min(440px, 100%); max-height: 100%; display: flex; flex-direction: column; background: var(--bg); border-radius: 18px; overflow: hidden; }
+.set-head { display: flex; align-items: center; gap: 10px; padding: 14px 14px 6px 20px; }
+.set-head h2 { margin: 0; flex: 1; font-size: 20px; font-weight: 700; }
+.set-head .btn-round { width: 38px; height: 38px; }
+.set-head .btn-round svg { width: 18px; height: 18px; }
+.set-body { overflow-y: auto; padding: 0 16px 16px; }
+.view-settings { border: 0; margin: 0; padding: 0; }
+.view-settings .pop-title { font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 600; padding: 14px 4px 6px; }
+.view-settings .row-sw { background: var(--panel-solid); padding: 0 14px; min-height: 48px; margin: 0; }
+.view-settings .row-sw .sw-lbl { font-size: 15px; display: inline; }
+.view-settings .pop-title + .row-sw { border-radius: 12px 12px 0 0; }
+.view-settings .row-sw:has(+ .pop-title), .view-settings .row-sw:has(+ .pop-foot) { border-radius: 0 0 12px 12px; }
+.view-settings .pop-title + .row-sw:has(+ .pop-title) { border-radius: 12px; }
+.view-settings .row-sw + .row-sw { box-shadow: inset 0 1px 0 var(--border); }
+.view-settings .switch .track { background: #e5e5ea; border-color: transparent; width: 42px; height: 26px; border-radius: 13px; }
+.view-settings .switch .knob { top: 2px; left: 2px; width: 20px; height: 20px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.view-settings .switch input:checked + .track { background: var(--accent); }
+.view-settings .switch input:checked + .track .knob { transform: translateX(16px); }
+.view-settings .pop-foot { border: 0; margin: 10px 0 0; padding: 0 4px; font-size: 12px; color: var(--muted); }
+
+/* iPad dikey / dar masaüstü */
+@media (max-width: 900px) {
+  .go-t small { display: none; }
+  .go-tile { min-height: 64px; gap: 12px; }
+}
+/* telefon dikey */
+@media (max-width: 640px) {
+  .home .home-top { padding: calc(8px + var(--sat)) 14px 4px; }
+  .pg-index .home .home-top .spacer { display: block; }
+  .home-brand { font-size: 17px; }
+  .home-brand svg { width: 30px; height: 30px; }
+  .home .set-btn { width: var(--tap); padding: 0; }
+  .home .set-btn .lbl { display: none; }
+  .home-scroll { padding: 8px 14px calc(24px + var(--sab)); }
+  .home-go { grid-template-columns: 1fr; gap: 8px; }
+  .go-tile { min-height: 60px; padding: 8px 12px; }
+  .go-t small { display: block; }
+  .go-ic { width: 40px; height: 40px; border-radius: 11px; }
+  .home-head { margin-top: 22px; }
+  .home-search { flex-basis: 150px; }
+  .home-list .picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .set-dlg { padding: 0; align-items: stretch; }
+  .set-panel { width: 100%; border-radius: 0; padding-top: var(--sat); }
+  .scn-top .home-back { width: 40px; height: 40px; }
+}
+/* telefon yatay (alçak ekran) */
+@media (max-height: 500px) {
+  .home .home-top { padding-top: calc(6px + var(--sat)); padding-bottom: 2px; }
+  .home-brand { font-size: 16px; } .home-brand svg { width: 28px; height: 28px; }
+  .home-scroll { padding-top: 6px; }
+  .go-tile { min-height: 54px; padding: 6px 10px; }
+  .go-ic { width: 36px; height: 36px; }
+  .go-t b { font-size: 15px; }
+  .home-head { margin-top: 16px; }
+  .home-list .picker-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .scn-top .home-back { width: 40px; height: 40px; }
+  .set-panel { max-height: 100%; }
+}
+/* kart küçük resmi deniz (koyu) kalır: kod rozeti koyu zeminde beyaz */
+.home-list .card .thumb .code-badge { color: #fff; background: rgba(7, 18, 30, .62); border-color: rgba(255,255,255,.22); }
+/* telefon dikey: üç bölüm yan yana küçük kare (simge üstte, ad altta) */
+@media (max-width: 640px) {
+  .home-go { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .go-tile { flex-direction: column; justify-content: center; gap: 6px; min-height: 92px; padding: 10px 6px; text-align: center; }
+  .go-t { align-items: center; flex: 0 0 auto; }
+  .go-t b { font-size: 14px; }
+  .go-t small, .go-ar { display: none !important; }
+}
+/* telefon dikey, senaryo çubuğu: tam ekran ve hesap ana sayfada; önceki/sonraki seçicide → senaryo adına yer kalır */
+@media (max-width: 640px) {
+  .scn-top :is(.fs-btn, .acc-chip, .report-btn) { display: none; }
+  .scn-top .scn-step { display: none; }
+  .scn-top .scn-btn { border-radius: 12px; }
+  .scn-top .tool { width: var(--tap); padding: 0; }
+  .scn-top .tool .lbl { display: none; }
+}
+/* Velora uygulamasının içinde: "‹ Velora" ana sayfada açık temada (ikincil düğme gibi) */
+.home .velora-back { background: var(--raised); color: var(--text); border: 0; }

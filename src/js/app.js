@@ -656,8 +656,9 @@
   $('btnNext').onclick = () => browse(state.stepIdx + 1);
   $('btnGoto').onclick = () => { state.t = state.scn.steps[state.stepIdx].t; state.playing = false; updatePlayButton(); setFollow(true); render(); };
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { openPicker(false); if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu(); return; }
+    if (e.key === 'Escape') { openPicker(false); openSettings(false); if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu(); return; }
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (homeOn) return;
     if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
     else if (e.shiftKey && e.code === 'ArrowRight') goScn(1);
     else if (e.shiftKey && e.code === 'ArrowLeft') goScn(-1);
@@ -671,6 +672,7 @@
   window.addEventListener('resize', () => setInfoOpen(state.infoOpen));   // görünüm + marka konumu yeniden
 
   // ---------- Senaryo seçici (kategori sekmeleri + kartlar) ----------
+  let seenScn = false;               // kullanıcı bu oturumda bir senaryo açtı mı (ana sayfada "Açık" rozeti için)
   const CATS = ['Taktik', 'İleri Taktik', 'Kurallar', 'Teknik', 'İleri Teknik'];
   let pickerCat = 'Taktik';
   let query = '';
@@ -690,7 +692,8 @@
     const [code, ttl] = splitTitle(x.title);
     const c = document.createElement('button'); c.className = 'card'; c.dataset.id = x.id;
     c.style.setProperty('--cat', CAT_COLORS[x.category] || 'var(--accent)');
-    const active = state.scn && state.scn.id === x.id; c.classList.toggle('active', active);
+    // açılışta arkada yüklü senaryo "Açık" görünmesin (seenScn)
+    const active = seenScn && state.scn && state.scn.id === x.id; c.classList.toggle('active', active);
     const locked = lockedScn(x); c.classList.toggle('locked', locked);
     // kare küçük resim (döngüde oynayan ön izleme) + altında kod ve başlık; özet yalnız ipucunda
     c.title = x.summary;
@@ -706,23 +709,24 @@
     };
     return c;
   }
-  function buildPicker() {
-    if (window.SailThumbs) SailThumbs.reset();
-    const tabs = $('pickerTabs'); tabs.innerHTML = '';
+  // Kategori sekmeleri + konu konu kart ızgarası. Seçici (senaryo içinden açılan) ve ana sayfa aynı kurucuyu kullanır.
+  function buildList(tabs, list, cat, q0, onTab) {
+    tabs.innerHTML = '';
     for (const c of CATS) {
       const n = SCENARIOS.filter(x => x.category === c).length;
       const b = document.createElement('button'); b.setAttribute('role', 'tab'); b.style.setProperty('--cat', CAT_COLORS[c]);
       b.innerHTML = `${c}<span class="count">${n}</span>`;
-      b.classList.toggle('active', !query && c === pickerCat); b.classList.toggle('empty', !n);
-      b.onclick = () => { pickerCat = c; query = ''; $('pickerSearch').value = ''; buildPicker(); }; tabs.appendChild(b);
+      const on = !q0 && c === cat;
+      b.classList.toggle('active', on); b.setAttribute('aria-selected', on); b.classList.toggle('empty', !n);
+      b.onclick = () => onTab(c); tabs.appendChild(b);
     }
-    const list = $('pickerList'); list.innerHTML = '';
-    const q = norm(query.trim());
+    list.innerHTML = '';
+    const q = norm(q0.trim());
     const items = q ? SCENARIOS.filter(x => norm([x.title, x.summary, x.topic || '', x.category].join(' ')).includes(q))
-                    : SCENARIOS.filter(x => x.category === pickerCat);
+                    : SCENARIOS.filter(x => x.category === cat);
     if (!items.length) {
       const d = document.createElement('div'); d.className = 'picker-empty';
-      d.textContent = q ? `"${query}" için sonuç yok.` : 'Bu bölümün animasyonları hazırlanıyor.';
+      d.textContent = q ? `"${q0}" için sonuç yok.` : 'Bu bölümün animasyonları hazırlanıyor.';
       list.appendChild(d); return;
     }
     const groups = [];
@@ -733,6 +737,55 @@
       for (const x of items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname)) grid.appendChild(scenarioCard(x));
     }
   }
+  function buildPicker() {
+    if (window.SailThumbs) SailThumbs.reset();
+    buildList($('pickerTabs'), $('pickerList'), pickerCat, query, c => { pickerCat = c; query = ''; $('pickerSearch').value = ''; buildPicker(); });
+  }
+
+  // ---------- Ana sayfa (açılış): adreste senaryo yoksa görünür ----------
+  const HOME_CAT = 'ps.home.cat';
+  let homeCat = (() => { try { const c = localStorage.getItem(HOME_CAT); return CATS.includes(c) ? c : 'Taktik'; } catch (e) { return 'Taktik'; } })();
+  let homeQuery = '', homeOn = null, fromHome = false;
+  function buildHome() {
+    if (window.SailThumbs) SailThumbs.reset();
+    buildList($('homeTabs'), $('homeList'), homeCat, homeQuery, c => {
+      homeCat = c; homeQuery = ''; $('homeSearch').value = '';
+      try { localStorage.setItem(HOME_CAT, c); } catch (e) { /* yok */ }
+      buildHome(); $('homeList').scrollIntoView({ block: 'nearest' });
+    });
+  }
+  function setHome(on) {
+    if (on === homeOn) return;
+    homeOn = on;
+    document.body.classList.toggle('home-on', on);
+    // sağdaki düğme grubu (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) görünen çubuğa
+    const g = $('toolGroup'), bar = on ? document.querySelector('.home-top') : document.querySelector('.scn-top');
+    if (g.parentElement !== bar) bar.appendChild(g);
+    if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
+    if (on) {
+      state.playing = false; updatePlayButton(); openPicker(false);
+      if (state.scn) homeCat = state.scn.category;
+      buildHome();
+    } else { seenScn = true; if (window.SailThumbs) SailThumbs.reset(); }
+    document.title = on ? 'Velora Sailing' : `${state.scn ? state.scn.title + ' · ' : ''}Velora Sailing`;
+  }
+  $('homeSearch').addEventListener('input', e => { homeQuery = e.target.value; buildHome(); });
+  // Ana sayfaya dön: senaryoya ana sayfadan gelindiyse tarayıcı geri (geçmiş temiz kalır), değilse adresi temizle
+  $('btnHome').onclick = () => {
+    if (fromHome) { history.back(); return; }
+    history.replaceState(null, '', location.pathname + location.search); setHome(true);
+  };
+
+  // ---------- Ayarlar (genel): görünüm anahtarları + sürüm ----------
+  $('settingsBody').appendChild($('viewSettings')); $('viewSettings').hidden = false;
+  function openSettings(open) {
+    $('settingsDlg').classList.toggle('hidden', !open);
+    if (open && window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
+  }
+  $('btnSettings').onclick = e => { e.stopPropagation(); openSettings(true); };
+  $('btnSettingsClose').onclick = () => openSettings(false);
+  $('settingsDlg').addEventListener('click', e => { if (e.target === $('settingsDlg')) openSettings(false); });
+
   // ---------- Önceki / sonraki senaryo: seçicideki sıra (kategori sekmesi → konu başlığı → kart) ----------
   // kilitli (misafire kapalı) senaryolar atlanır; ilk ve son senaryoda ilgili ok pasif
   function scnOrder() {
@@ -799,10 +852,19 @@
     if (lockedScn(s)) { SailAccess.guard('scn.ileri'); return state.scn || SCENARIOS.find(x => !lockedScn(x)); }
     return s;
   };
-  window.addEventListener('hashchange', () => { const s = fromHash(); if (s !== state.scn) loadScenario(s); });
+  const hasScn = () => SCENARIOS.some(s => s.id === location.hash.slice(1));
+  window.addEventListener('hashchange', () => {
+    if (!hasScn()) { fromHome = false; setHome(true); return; }
+    if (homeOn && lockedScn(SCENARIOS.find(s => s.id === location.hash.slice(1)))) {
+      SailAccess.guard('scn.ileri'); history.replaceState(null, '', location.pathname + location.search); return;
+    }
+    const s = fromHash(); if (s !== state.scn) loadScenario(s);
+    if (homeOn) { fromHome = true; setHome(false); }
+  });
   // giriş/kayıt sonrası kilitler değişir: seçici açıksa yenile, adresteki kilitli senaryoyu aç
   document.addEventListener('sail-access', () => {
     if (!$('picker').classList.contains('hidden')) buildPicker();
+    if (homeOn) buildHome();
     updateScnNav();
     const s = SCENARIOS.find(s => s.id === location.hash.slice(1));
     if (s && s !== state.scn && !lockedScn(s)) loadScenario(s);
@@ -816,5 +878,6 @@
     infoOpen: state.infoOpen, show: { ...state.show }, extras: state.extras.length, zoom: state.zoom
   }));
   fitViewBox(); loadScenario(fromHash()); setInfoOpen(true);
+  setHome(!hasScn());
   requestAnimationFrame(ts => { state.lastTs = ts; requestAnimationFrame(tick); });
 })();
