@@ -369,6 +369,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 24,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 24.5 },
     sightline: { from: 0, to: 6, label: 'Transit: pin\'den hakem botuna bak — hat burada' },
     sag: { from: 0, to: 21.5 },
@@ -385,9 +386,15 @@
         ] }
     ],
     // yay: uçlar hatta yakın, orta 2.5-3 boy geride
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.2, ang: 75 },   // gerçekçi
     crowd: [
       { slot: 0.10, back: 0 }, { slot: 0.15, back: 12 }, { slot: 0.20, back: 30 }, { slot: 0.30, back: 118 }, { slot: 0.40, back: 140 },
-      { slot: 0.50, back: 145 }, { slot: 0.60, back: 135 }, { slot: 0.69, back: 95 }, { slot: 0.76, back: 50 }, { slot: 0.87, back: 0 }
+      { slot: 0.50, back: 145 }, { slot: 0.60, back: 135 }, { slot: 0.69, back: 95 }, { slot: 0.76, back: 50 },
+      // hakem botu ucu baştan boş: üç tekne dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 460, h: 0, until: 13.2, speed: 0.45 } },
+      { slot: 0.83, back: 8, wait: { x: 858, y: 505, h: 345, until: 12.2, speed: 0.45 } },
+      { slot: 0.80, row: 1, wait: { x: 912, y: 498, h: 355, until: 14.4, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 72 sn: pin tarafından hatta bak', text: 'Yeşil S pin\'in dışında, tam hattın uzantısında (hattın üstünde) duruyor ve hakem botuna bakıyor: pin ile hakem botunu aynı hizaya getirince hat tam olarak görünür (transit). Gördüğü şey: uçlardaki tekneler hatta yakın, ortadakiler 2-3 boy geride. Bu bir hat yayı (line sag).' },
@@ -416,6 +423,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 24,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 24.5 },
     sightline: { from: 0, to: 6, label: 'Transit: pin\'den hakem botuna bak — hat burada' },
     sag: { from: 0, to: 21.5, label: 'Yay yok: filo hattın dibinde (en fazla {d} boy)' },
@@ -433,9 +441,16 @@
     ],
     // yay yok: herkes hattın dibinde; S için 0.28-0.50 arasında boşluk. S, 4'ün (0.50) hemen rüzgaraltına
     // sokulur (merkezler ~44 px, aynı hiza) ve 4 ile paralel çıkar; 3 ile arasında rüzgaraltı boşluğu kalır.
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.2, ang: 75 },   // gerçekçi
     crowd: [
       { slot: 0.12, back: 0 }, { slot: 0.20, back: 5 }, { slot: 0.28, back: 0 }, { slot: 0.535, back: 5 },
-      { slot: 0.605, back: 0 }, { slot: 0.675, back: 5 }, { slot: 0.745, back: 0 }, { slot: 0.815, back: 5 }
+      { slot: 0.605, back: 0 }, { slot: 0.675, back: 5 }, { slot: 0.745, back: 0 },
+      { slot: 0.57, row: 1 }, { slot: 0.71, row: 1, back: 6 },
+      // hakem botu ucu baştan boş: üç tekne dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 460, h: 0, until: 13.2, speed: 0.45 } },
+      { slot: 0.83, back: 8, wait: { x: 858, y: 505, h: 345, until: 12.2, speed: 0.45 } },
+      { slot: 0.80, row: 1, wait: { x: 912, y: 498, h: 355, until: 14.4, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 72 sn: yine önce hatta bak', text: 'S yine pin\'in dışında, hattın uzantısında: pin ile hakem botunu aynı hizaya getirip hatta bakıyor (transit). Bu kez gördüğü şey farklı: filo hattın dibinde dizilmiş, yay yok. Turuncu çizgi neredeyse hattın üstünde.' },
@@ -461,6 +476,7 @@
     wind: 5,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 30,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 30.5 },
     sightline: { from: 0, to: 5, label: 'Transit: 2 dk kala hatta bak' },
     gaps: { from: 2, to: 27.5, items: [
@@ -491,9 +507,14 @@
         ] }
     ],
     // 7 tekne: 0.12-0.26 DAR (D buraya), 0.34-0.55 GENİŞ orta, 0.64-0.87 GENİŞ avantajlı (S 7'nin rüzgaraltına)
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.06, back: 0 }, { slot: 0.13, back: 4 }, { slot: 0.26, back: 0 }, { slot: 0.34, back: 5 },
-      { slot: 0.55, back: 0 }, { slot: 0.64, back: 4 }, { slot: 0.87, back: 0 }
+      { slot: 0.06, back: 0, drift: 0.2 }, { slot: 0.13, back: 4, drift: 0.5 }, { slot: 0.26, back: 0 }, { slot: 0.34, back: 5 },
+      { slot: 0.55, back: 0 }, { slot: 0.64, back: 4 }, { slot: 0.87, back: 0, drift: 0.3 },
+      // hakem botunun dibi baştan boş: iki tekne dışarıda bekler, son 15 sn'de süzülür (biri dipte, biri ikinci sırada)
+      { slot: 0.92, wait: { x: 880, y: 462, h: 5, until: 18, speed: 0.45 } },
+      { slot: 0.86, row: 1, wait: { x: 905, y: 505, h: 0, until: 19, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: önce hatta bak', text: 'S pin\'in dışında, hattın uzantısında; pin ile hakem botunu aynı hizaya getirip hatta bakıyor (transit). 2 dakika kala bakmak, 1 dakika kala bakmaktan çok daha fazla seçenek verir: uzaktaki bir boşluğa gitmeye hâlâ vakit vardır.' },
@@ -519,6 +540,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 27,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 27.5 },
     boats: [
       { id: 'S', name: 'Rüzgarüstündekinin altına', role: 'dogru', color: '#2a9d8f',
@@ -556,9 +578,14 @@
     ],
     // pin tarafında kalabalık (0.06-0.27); 0.36 ile W (0.56) arası boş: S W'nin hemen rüzgaraltına (~44 px)
     // yanaşır. Sağda L (scripted, 0.75) ve onun hemen rüzgarüstüne yanaşan H.
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.05, back: 0 }, { slot: 0.13, back: 5 }, { slot: 0.21, back: 0 }, { slot: 0.30, back: 5 }, { slot: 0.38, back: 0 }, { slot: 0.08, row: 1 },
-      { slot: 0.615, back: 0, id: 'W', name: 'Rüzgarüstü komşu' }
+      { slot: 0.05, back: 0, drift: 0.2 }, { slot: 0.13, back: 5, drift: 0.5 }, { slot: 0.21, back: 0 }, { slot: 0.30, back: 5 }, { slot: 0.38, back: 0 }, { slot: 0.08, row: 1 },
+      { slot: 0.615, back: 0, drift: 0, id: 'W', name: 'Rüzgarüstü komşu' },
+      // hakem botunun dibi baştan boş: iki tekne dışarıda bekler, son 10 sn'de süzülür
+      { slot: 0.925, wait: { x: 880, y: 462, h: 0, until: 15.5, speed: 0.45 } },
+      { slot: 0.86, row: 1, wait: { x: 905, y: 508, h: 355, until: 16.5, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 81 sn: S sıkışmış', text: 'Pin tarafı kalabalık. S ikinci sırada kalmış: önünde tekneler, havası kirli (pis rüzgar), hızlanacak yeri yok. Burada beklerse start\'ta arkada kalır.' },
@@ -713,9 +740,11 @@
           { mode: 'closehauled', tack: 'starboard', dur: 10.5, turn: 0.8, note: 'H\'nin pis rüzgarında' }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.08 }, { slot: 0.14 }, { slot: 0.20 }, { slot: 0.275 }, { slot: 0.35 }, { slot: 0.425 }, { slot: 0.50 }, { slot: 0.575 }, { slot: 0.65 }, { slot: 0.72 },
-      { slot: 0.16, row: 1 }, { slot: 0.39, row: 1 }, { slot: 0.54, row: 1 }
+      { slot: 0.08, drift: 0.2 }, { slot: 0.14, back: 6, drift: 0.5 }, { slot: 0.20, back: -4 }, { slot: 0.275, back: 8 }, { slot: 0.35 }, { slot: 0.425, back: 6 }, { slot: 0.50, back: -4 }, { slot: 0.575, back: 8 }, { slot: 0.65 }, { slot: 0.72, back: 4 },
+      { slot: 0.17, row: 1, back: 10 }, { slot: 0.39, row: 1, back: 6 }, { slot: 0.54, row: 1 }, { slot: 0.66, row: 1, back: 10 }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: hakem botu ucu avantajlı', text: 'Rüzgar 5° sağa dönmüş: hakem botu ucu biraz avantajlı. Herkes hakem botunun yanından çıkmak ister ama orada tek bir yer var: turuncu bayrağın hemen yanı. O yer erken ve doğru yönden gelenindir.' },
@@ -766,9 +795,14 @@
           { mode: 'closehauled', tack: 'starboard', dur: 6.6, turn: 0.8, speed: 0.9, note: 'Pis rüzgarda, 2. sırada' }
         ] }
     ],
+    crowdLife: { gap: 36 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.14 }, { slot: 0.27 }, { slot: 0.335 }, { slot: 0.40 }, { slot: 0.465 }, { slot: 0.53 }, { slot: 0.595 }, { slot: 0.66 }, { slot: 0.725 }, { slot: 0.79 },
-      { slot: 0.43, row: 1 }, { slot: 0.56, row: 1 }, { slot: 0.69, row: 1 }
+      { slot: 0.14, drift: 0.3 }, { slot: 0.27, back: 6 }, { slot: 0.335, back: -4 }, { slot: 0.40, back: 8 }, { slot: 0.465 }, { slot: 0.53, back: 6 }, { slot: 0.595, back: -4 }, { slot: 0.66, back: 8 }, { slot: 0.725 }, { slot: 0.79, back: 4 },
+      { slot: 0.43, row: 1 }, { slot: 0.56, row: 1, back: 8 }, { slot: 0.69, row: 1 },
+      // Y gibi dışarıda bekleyen iki tekne daha: geç gelir, ön sıra dolu, ikinci-üçüncü sırada kalır
+      { slot: 0.91, row: 1, back: 6, wait: { x: 905, y: 560, h: 0, until: 15, speed: 0.5 } },
+      { slot: 0.82, row: 2, wait: { x: 990, y: 525, h: 355, until: 16, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: hakem botu ucu kalabalık', text: 'Rüzgar 5° sağa dönmüş, hakem botu ucu avantajlı. Filonun yarısı hakem botu tarafına yığılmış. En değerli yer turuncu bayrağın hemen yanı ve orada tek kişilik yer var: önce gelen alır.' },
@@ -776,7 +810,7 @@
       { t: 5.5, title: 'Bayrağın dibinde yerini al', text: 'D turuncu bayrağın hemen yanında, hattın yarım boy altında, filoyla aynı hizada rüzgara baş verip duruyor. Hakem botuyla arasında tekne sığmaz; rüzgaraltındaki tekneye kadar yaklaşık 1 boy hızlanma yeri var. Yer artık D\'nin: 1,5 dakika boyunca burnunu rüzgarda tutup orada bekleyecek.' },
       { t: 9, title: 'Y dışarıda bekliyor', text: 'Turuncu Y kalabalığa girmemiş; hakem botunun sağında, açıkta rahat rahat bekliyor: "Son dakika gelir, araya girerim." Açıkta beklemek kolaydır ama yer tutmaz. Kalabalık uçta yer, bekleyerek değil, erken girip orada durarak alınır.' },
       { t: 14, title: '1 dk kala: Y geç geliyor', text: 'Y şimdi hakem botuna doğru geliyor. Ama ön sıra dolu: bayrağın dibinde D, onun rüzgaraltında filo, aralarda tekne sığacak boşluk yok. Rüzgarüstünden, D ile hakem botu arasına girmek ise barging olur: hak vermez (Kural 11) ve hakem botuna değerse Kural 31.' },
-      { t: 20.5, title: 'Yer yok: Y, D\'nin altında kaldı', text: 'Y giremedi; D\'nin hemen altında, arkasında ikinci sırada duruyor. Arkadan gelen tekne öndekine yol verir (Kural 12): D\'nin yerini isteyemez. Önünde D, rüzgaraltında filo teknesi var: sinyalde düşüp hızlanacağı yer de yok.' },
+      { t: 20.5, title: 'Yer yok: Y, D\'nin altında kaldı', text: 'Y giremedi; D\'nin hemen altında, arkasında ikinci sırada duruyor. Arkadan gelen tekne öndekine yol verir (Kural 12): D\'nin yerini isteyemez. Önünde D, rüzgaraltında filo teknesi var: sinyalde düşüp hızlanacağı yer de yok. Y yalnız değil: dışarıda bekleyen iki tekne daha aynı planla geldi, onlar da ikinci-üçüncü sırada, pis rüzgarda kaldı. Hakem botu kalabalığında "son anda girerim" diyen hep birden fazladır.' },
       { t: 27.4, title: '10 sn kala doldur', text: 'D burnunu rüzgaraltındaki küçük boşluğa düşürüp yelkeni dolduruyor ve hızlanıyor. Y ancak D gittikten sonra hareket edebiliyor ve D\'nin pis rüzgarında (mor gölge) hızlanıyor.' },
       { t: 30, title: 'START: erken giren ön sırada', text: 'D avantajlı uçtan, hakem botunun hemen yanından, temiz havada ve tam hızda çıkıyor. Y ikinci sırada, D\'nin arkasında; havası kirli, hızı düşük ve her saniye biraz daha geride.' },
       { t: 34, title: 'Özet', text: 'Hakem botu ucu kalabalıksa: erken gel, layline\'dan rüzgaraltından gir, bayrağın dibinde yerini al ve start\'a kadar orada tut. Dışarıda bekleyip son dakika girmeyi planlarsan ön sıra dolar ve birinin altında, arkasında kalırsın. Geç kaldıysan inat etme: 3-4 boy aşağıda boş bir yer seç.' }
@@ -822,9 +856,13 @@
           { mode: 'closehauled', tack: 'starboard', dur: 10.5, turn: 1.0 }
         ] }
     ],
+    crowdLife: { gap: 36 },
     crowd: [
-      { slot: 0.14, back: -12 }, { slot: 0.26, back: -12 }, { slot: 0.325, back: -12 }, { slot: 0.39, back: -12 }, { slot: 0.455, back: -12 }, { slot: 0.52, back: -12 }, { slot: 0.585, back: -12 }, { slot: 0.65, back: -12 }, { slot: 0.715, back: -12 },
-      { slot: 0.42, row: 1, back: -12 }, { slot: 0.55, row: 1, back: -12 }, { slot: 0.73, row: 1, back: -12 }
+      { slot: 0.14, back: -12, drift: 0.4 }, { slot: 0.26, back: -6 }, { slot: 0.325, back: -14 }, { slot: 0.39, back: -4 }, { slot: 0.455, back: -12 }, { slot: 0.52, back: -6 }, { slot: 0.585, back: -14 }, { slot: 0.65, back: -4 }, { slot: 0.715, back: -12 },
+      { slot: 0.42, row: 1, back: -12 }, { slot: 0.55, row: 1, back: -6 }, { slot: 0.75, row: 1, back: -12 },
+      // D gibi dışarıda bekleyen iki tekne daha: biri açılan boşluğa D'den önce, alttan girer; geç kalan ikinci sırada
+      { slot: 0.80, back: -12, wait: { x: 870, y: 575, h: 355, until: 21.5, speed: 0.55 } },
+      { slot: 0.86, row: 1, back: -12, wait: { x: 965, y: 520, h: 0, until: 24, speed: 0.5 } }
     ],
     spots: [{ x: 772, y: 482, r: 27, from: 23.5, to: 30, label: 'Boşluk', dx: -48, dy: 4 }],
     steps: [
@@ -834,7 +872,7 @@
       { t: 11, title: 'Kuvvetli rüzgarda durmak zor', text: 'Yelken boşken rüzgar teknenin gövdesini ve direğini iter; tekne yana ve geriye, rüzgaraltına doğru kayar. Y sık sık yelkeni bir an doldurup burnunu rüzgara veriyor ama her düzeltmede biraz daha aşağı iniyor. Filo da aynı sorunu yaşıyor.' },
       { t: 18, title: 'Son 1 dakika: tekneler aşağı kayıyor', text: 'Beklemek uzadıkça kayma artıyor. Y ve yanındaki tekneler hem aşağı hem rüzgaraltına, pin tarafına doğru kayıyor. Hakem botunun dibi yavaş yavaş boşalıyor. Kuvvetli rüzgarda bu hemen her start\'ta olur: son 30-40 saniyede hakem botunun yanında boşluk açılır.' },
       { t: 21.6, title: 'D boşluğu önceden görüp yavaşça geliyor', text: 'D boşluğun açılacağını biliyor, açılmasını beklemeden yola çıkıyor: yelkeni yarım doldurup yavaşça hakem botunun kıçına doğru düşüyor. Hızlı gelirse erken varıp beklemek zorunda kalır; yavaş gelirse boşluk açıldığı anda oradadır. Hakem botuna değmek Kural 31: ceza turu.' },
-      { t: 24.5, title: 'Boşluk açıldı: D botun kıçından dolaşıp giriyor', text: 'Y ve filo 1-1,5 boy aşağı kaydı; hakem botunun dibinde bir tekne sığacak boşluk var (sarı halka). D botun kıçından dolaşıp oraya giriyor. Rüzgarüstü olduğu için Y\'den uzak durur (Kural 11); boşluk yoksa zorlamak barging olur.' },
+      { t: 24.5, title: 'Boşluk açıldı: D botun kıçından dolaşıp giriyor', text: 'Y ve filo 1-1,5 boy aşağı kaydı; hakem botunun dibinde bir tekne sığacak boşluk var (sarı halka). D botun kıçından dolaşıp oraya giriyor. Rüzgarüstü olduğu için Y\'den uzak durur (Kural 11); boşluk yoksa zorlamak barging olur. Dışarıda bekleyen tek D değil: alttan gelen bir tekne de boşluğa D\'nin rüzgaraltından giriyor, geç kalan üçüncüsü ise ikinci sırada kalıyor. Boşluğu ilk gören ve hızı olan alır.' },
       { t: 28.5, title: 'Hızı var, yeri var', text: 'D boşluğa yavaşça ama hareket halinde girdi. Bekleyen tekneler sıfır hızdan hızlanacak; D\'nin ise zaten biraz hızı var. Kayan Y, kendi yerinden 1,5 boy geride ve filonun arasında sıkışık.' },
       { t: 30.2, title: '7 sn kala doldur', text: 'D yelkeni dolduruyor ve orsa rotasına dönüyor. Kuvvetli rüzgarda Optimist hızlı hızlanır; geç doldurmak hızlanma yolu boyunca geride kalmak demektir. Y de dolduruyor ama hattın çok gerisinden başlıyor.' },
       { t: 32, title: 'START: hakem botu ucundan, temiz havada', text: 'D filonun en sağından, hakem botunun yanından, avantajlı uçtan, temiz havada ve hızla çıkıyor. Bayrağın dibine erken park eden Y ise kaydığı için hattın yaklaşık 1,5 boy gerisinde, D\'nin rüzgaraltında-arkasında.' },
@@ -857,6 +895,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 32.5 },
     leeway: { from: 0, ramp: 2, rate: 0.5 },
     boats: [
@@ -887,9 +926,12 @@
         ] }
     ],
     // iki grup: rüzgaraltı (pin tarafı) ve rüzgarüstü (hakem botu tarafı); aradaki boşlukta S ve H
+    crowdLife: { gap: 38 },
     crowd: [
-      { slot: 0.10 }, { slot: 0.175 }, { slot: 0.25 }, { slot: 0.18, row: 1 },
-      { slot: 0.62, id: 'W', name: 'Rüzgarüstü grubun en alttakisi' }, { slot: 0.695 }, { slot: 0.77 }, { slot: 0.845 }, { slot: 0.72, row: 1 }
+      { slot: 0.10, drift: 0.3 }, { slot: 0.175, back: 6 }, { slot: 0.25, back: -4 }, { slot: 0.18, row: 1 },
+      { slot: 0.62, id: 'W', name: 'Rüzgarüstü grubun en alttakisi' }, { slot: 0.695, back: 6 }, { slot: 0.77 }, { slot: 0.72, row: 1 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: iki grubun arasında', text: 'Rüzgar 12 knot, akıntı da rüzgaraltına doğru. Yeşil S iki grup teknenin arasında bekliyor. Yeri belli: sağdaki (rüzgarüstü) grubun en alttaki teknesi W\'nin hemen rüzgaraltı. Orada W\'nin altındaki boşluk S\'nin hızlanma yolu olur.' },
@@ -922,6 +964,7 @@
     wind: 345,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 30,
+    committeeLabel: 'upright',
     rungs: { boat: 'P', from: 30.5 },
     laylines: [{ x: 200, y: 440, tack: 'starboard', len: 330, from: 0, to: 31, label: 'Pin layline\'ı: bunun ALTINDA pin dönülmez' }],
     boats: [
@@ -951,9 +994,13 @@
           { mode: 'closehauled', tack: 'starboard', dur: 9.5, turn: 0.8, note: 'Pis rüzgarda' }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.19 }, { slot: 0.28 }, { slot: 0.37 }, { slot: 0.46 }, { slot: 0.55 }, { slot: 0.24, row: 1 }, { slot: 0.42, row: 1 },
-      { slot: 0.68 }, { slot: 0.82 }
+      { slot: 0.19, drift: 0.3 }, { slot: 0.28, back: 6 }, { slot: 0.37, back: -4 }, { slot: 0.46, back: 8 }, { slot: 0.55 }, { slot: 0.24, row: 1 }, { slot: 0.42, row: 1 },
+      { slot: 0.68, back: 4 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: pin çok avantajlı', text: 'Rüzgar 15° sola dönmüş: pin ucu hattın neredeyse 3 boy önünde. Herkes pin\'den çıkmak istiyor; filonun yarısı pin\'e yığılıyor. Mavi kesikli çizgi pin layline\'ı: sancak orsa ile pin\'e varabileceğin son rota.' },
@@ -985,6 +1032,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'upright',
     rungs: { boat: 'B', from: 32.5 },
     expectEarly: ['E'],
     boats: [
@@ -1012,9 +1060,13 @@
           { mode: 'closehauled', tack: 'starboard', dur: 9.8, turn: 0.8, note: 'Kirli havada' }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.06 }, { slot: 0.135 }, { slot: 0.21 }, { slot: 0.39 }, { slot: 0.465 }, { slot: 0.69 }, { slot: 0.765 }, { slot: 0.84 },
-      { slot: 0.10, row: 1 }, { slot: 0.80, row: 1 }
+      { slot: 0.06, drift: 0 }, { slot: 0.145, drift: 0.1 }, { slot: 0.21, back: -4 }, { slot: 0.39, back: 6 }, { slot: 0.465 }, { slot: 0.69, back: 6 }, { slot: 0.765, back: -4 },
+      { slot: 0.10, row: 1, drift: 0.2 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: boşluğa hızla geliyorsun', text: 'Yeşil B hattın ortasındaki boşluğu seçmiş ve tam hızla geliyor. Hat yakın: bu hızla hiçbir şey yapmazsa hattın üstüne çıkar. Turuncu E de aynı durumda, solundaki boşluğa geliyor.' },
@@ -1044,6 +1096,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 32.5 },
     boats: [
       { id: 'S', name: 'Boşluğunu savunan', role: 'dogru', color: '#2a9d8f',
@@ -1079,10 +1132,14 @@
           { mode: 'closehauled', tack: 'starboard', dur: 10.4, turn: 0.8 }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.05 }, { slot: 0.115 }, { slot: 0.175 }, { slot: 0.43 }, { slot: 0.495 },
-      { slot: 0.67, id: 'W', name: 'S\'nin rüzgarüstü komşusu' }, { slot: 0.745 }, { slot: 0.82 },
-      { slot: 0.12, row: 1 }, { slot: 0.80, row: 1 }
+      { slot: 0.05, drift: 0 }, { slot: 0.115, drift: 0.2 }, { slot: 0.175, drift: 0.3 }, { slot: 0.43, drift: 0 }, { slot: 0.495 },
+      { slot: 0.67, drift: 0, id: 'W', name: 'S\'nin rüzgarüstü komşusu' }, { slot: 0.745, back: 6 },
+      { slot: 0.12, row: 1, drift: 0.2 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: yer tuttun, şimdi koru', text: 'Yeşil S erken geldi ve rüzgarüstü komşusu W\'nin hemen altına yerleşti (İA4\'teki gibi). Rüzgaraltında bir tekne sığacak açık su var: S\'nin hızlanma yolu. Turuncu H de yerini almış ama boşluğunun tam ortasında duruyor.' },
@@ -1111,6 +1168,7 @@
     wind: 5,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'upright',
     rungs: { boat: 'S', from: 32.5 },
     sightline: { from: 0, to: 5, label: 'Transit: 2 dk kala hatta bak, iki boşluk seç' },
     gaps: { from: 2, to: 29, items: [
@@ -1146,10 +1204,14 @@
           { mode: 'closehauled', tack: 'starboard', dur: 10.4, turn: 0.8 }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.06 }, { slot: 0.13 }, { slot: 0.20 }, { slot: 0.27 }, { slot: 0.34 },
-      { slot: 0.52 }, { slot: 0.59 }, { slot: 0.80 }, { slot: 0.87 },
-      { slot: 0.16, row: 1 }, { slot: 0.84, row: 1 }
+      { slot: 0.06, drift: 0.2 }, { slot: 0.13, back: 6, drift: 0.5 }, { slot: 0.20, back: -4 }, { slot: 0.27, back: 6 }, { slot: 0.34 },
+      { slot: 0.52, drift: 0 }, { slot: 0.59, drift: 0 }, { slot: 0.80 },
+      // hakem botunun dibi baştan boş: tekne dışarıda bekler, açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 5, until: 21, speed: 0.45 } },
+      { slot: 0.16, row: 1, drift: 0.3 }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 0, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: iki boşluk seç', text: 'Rüzgar 5° sağda: hakem botu ucu biraz avantajlı. S hattın uzantısından bakıyor ve iki boşluk seçiyor: avantajlı taraftaki geniş boşluk (A planı, yeşil) ve yolda kalan orta boşluk (B planı, sarı).' },
@@ -1178,6 +1240,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'upright',
     rungs: { boat: 'X', from: 32.5 },
     gaps: { from: 14, to: 29.5, items: [
       { a: 3, b: 4, label: 'Geniş: tramola + hızlanma yeri', color: '#34d399' },
@@ -1212,9 +1275,13 @@
           { mode: 'closehauled', tack: 'starboard', dur: 3.0, turn: 0.9, note: 'Herkesin arkasında' }
         ] }
     ],
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.06 }, { slot: 0.13 }, { slot: 0.20 }, { slot: 0.27 }, { slot: 0.48 }, { slot: 0.55 }, { slot: 0.62 },
-      { slot: 0.715 }, { slot: 0.785 }, { slot: 0.855 }
+      { slot: 0.06, drift: 0.2 }, { slot: 0.13, back: 6, drift: 0.5 }, { slot: 0.20, back: -4 }, { slot: 0.27, back: 6 }, { slot: 0.48 }, { slot: 0.55, back: 6 }, { slot: 0.62, drift: 0 },
+      { slot: 0.725, drift: 0 }, { slot: 0.785, back: -4 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Start\'a 2 dk: filo hattın dibinde', text: 'Filo hattın dibinde, rüzgara baş vermiş bekliyor. İki boşluk var: ortada geniş bir boşluk (yeşil) ve hakem botu tarafında dar bir boşluk (kırmızı). Yeşil X ve turuncu P kalabalığın dışında, pin tarafında, iskele kontrada bekliyor.' },
@@ -1246,6 +1313,7 @@
     wind: 0,
     line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
     startAt: 32,
+    committeeLabel: 'right',
     rungs: { boat: 'S', from: 32.5 },
     sightline: { from: 0, to: 6, label: 'Transit: pin\'den hakem botuna bak — hat burada' },
     sag: { from: 2, to: 30 },
@@ -1279,10 +1347,14 @@
         ] }
     ],
     // temkinli filo: uçlar hatta yakın, orta 1-1,5 boy geride (siyah bayrak yayı)
+    crowdLife: { gap: 38 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [
-      { slot: 0.06, back: 0 }, { slot: 0.13, back: 10 }, { slot: 0.33, back: 45 },
-      { slot: 0.40, back: 55 }, { slot: 0.60, back: 55 }, { slot: 0.73, back: 40 },
-      { slot: 0.80, back: 32 }, { slot: 0.89, back: 8 }
+      { slot: 0.06, back: 0, drift: 0.2 }, { slot: 0.13, back: 10, drift: 0.5 }, { slot: 0.33, back: 45, drift: 0 },
+      { slot: 0.40, back: 55, drift: 0 }, { slot: 0.60, back: 55 }, { slot: 0.73, back: 40 },
+      { slot: 0.80, back: 32 },
+      // hakem botunun dibi baştan boş: tekneler dışarıda bekler, filo kaydıkça açılan boşluğa süzülür
+      { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
       { t: 0, title: 'Az önce: genel geri çağırma', text: 'İlk start\'ta filonun çoğu hattın üstündeydi ve hakem kimin erken çıktığını tek tek ayıramadı. Genel geri çağırma yaptı: Birinci Tekrar bayrağı (üç köşeli, sarı-mavi) ve iki ses. Herkes geri döndü; start sırası yeniden başlıyor. Bu kez hazırlık bayrağı SİYAH.' },

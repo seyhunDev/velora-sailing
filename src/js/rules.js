@@ -318,8 +318,9 @@
           for (const o of [...boats, ...scriptedNow]) {
             const ref = o.ref || o; if (ref === b) continue;
             const dx = b.x - o.x, dy = b.y - o.y, d = Math.hypot(dx, dy);
-            if (d < 1e-6 || d >= R0) continue;
-            const k = (R0 - d) / R0 * 14 * DT * (o.ref ? 1 : 0.5);
+            const R = b.mode === 'approach' || o.mode === 'approach' ? R0 * 1.35 : R0;   // yanlamasına süzülen tekne daha uzun yer kaplar
+            if (d < 1e-6 || d >= R) continue;
+            const k = (R - d) / R * 14 * DT * (o.ref ? 1 : 0.5);
             b.x += dx / d * k; b.y += dy / d * k;
           }
         }
