@@ -49,7 +49,7 @@ for (const scn of globalThis.SCENARIOS) {
         prevTack[p.id] = tk; p.lastTack = lastTack[p.id] ?? -10;
       }
       scn.boats.forEach((sb, i) => {
-        if (sb.role === 'hata' || (scn.expectFaults || []).includes(sb.id)) return;
+        if (sb.role === 'hata' || sb.crowd || (scn.expectFaults || []).includes(sb.id)) return;
         const S = pos[i];
         if ((S.v || 0) < (scn.baseSpeed || 55) * 0.2) return;          // beklerken (yelken boş) kural sorunu sayma
         for (const O of pos) {

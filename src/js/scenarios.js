@@ -5,6 +5,19 @@
 */
 (function (global) {
   const S = [];
+  /* Gri filo dizisi (kullanıcı 2026-11-22, gerçekçi kalabalık): bir ders teknesinin rotasını zamanda kaydırıp
+     arkasına (k > 0) ya da önüne (k < 0) aynı yoldan giden tekneler üretir. İlk segment (orsa) k·gap sn uzar/kısalır,
+     başlangıç noktası o kadar geriye/ileriye taşınır. Kurallara göre değil, ders teknesi gibi rotalı; listede tek satır. */
+  const DEG = Math.PI / 180;
+  function fleetTrain(base, ks, gap, speed, from) {
+    return ks.map((k, i) => {
+      const d = k * gap * speed, s0 = base.start;
+      const last = base.segs.length - 1;   // öndekiler son ayakta o kadar uzun gider (sahnede durmasınlar)
+      const segs = base.segs.map((sg, j) => ({ ...sg, note: undefined, dur: sg.dur + (j === 0 ? k * gap : 0) + (j === last ? Math.max(0, -k * gap) + 2 : 0) }));
+      return { id: String(from + i), name: 'Filo', crowd: true, color: '#b8c7d6', v0: base.v0,
+        start: { x: s0.x - Math.sin(s0.h * DEG) * d, y: s0.y + Math.cos(s0.h * DEG) * d, h: s0.h }, segs };
+    });
+  }
 
   // ---------- A1: Start çizgisi avantajı ----------
   S.push({
@@ -693,24 +706,28 @@
     baseSpeed: 40,
     wind: 0,
     marks: [{ x: 450, y: 168, label: 'Orsa şamandırası (iskelede bırak)', zone: true }],
-    boats: [
+    // Optimist kalabalığı: I'nın önünde ve arkasında aynı layline'dan gelen dizi, O'nun arkasında dıştan gelenler
+    boats: (() => {
+      const I =
       { id: 'I', name: 'İçteki · yer hakkı', role: 'hak', color: '#2a9d8f',
-        start: { x: 830, y: 460, h: 315 }, v0: 40,
-        segs: [
-          { mode: 'closehauled', tack: 'starboard', dur: 9.3, turn: 0 },
-          { mode: 'heading', h: 250, dur: 1.4, turn: 1.4 },
-          { mode: 'run', tack: 'starboard', dur: 6.8, turn: 1.8 }
-        ] },
+          start: { x: 830, y: 460, h: 315 }, v0: 40,
+          segs: [
+            { mode: 'closehauled', tack: 'starboard', dur: 9.3, turn: 0 },
+            { mode: 'heading', h: 250, dur: 1.4, turn: 1.4 },
+            { mode: 'run', tack: 'starboard', dur: 6.8, turn: 1.8 }
+          ] };
+      const O =
       { id: 'O', name: 'Dıştaki · yer verir', role: 'yol', color: '#e76f51',
-        start: { x: 876, y: 420, h: 315 }, v0: 40,
-        segs: [
-          { mode: 'closehauled', tack: 'starboard', dur: 12.2, turn: 0 },
-          { mode: 'heading', h: 250, dur: 1.6, turn: 1.4 },
-          { mode: 'run', tack: 'starboard', dur: 3.7, turn: 1.8 }
-        ] }
-    ],
+          start: { x: 876, y: 420, h: 315 }, v0: 40,
+          segs: [
+            { mode: 'closehauled', tack: 'starboard', dur: 12.2, turn: 0 },
+            { mode: 'heading', h: 250, dur: 1.6, turn: 1.4 },
+            { mode: 'run', tack: 'starboard', dur: 3.7, turn: 1.8 }
+          ] };
+      return [I, O, ...fleetTrain(I, [-3.4, -1.8, 1.5, 3, 4.5], 1, 40, 1), ...fleetTrain(O, [1.5, 3], 1, 40, 6)];
+    })(),
     steps: [
-      { t: 0, title: 'İki tekne layline\'da', text: 'İki tekne de sancak kontra, bindirmeli (overlap) şekilde orsa şamandırasına geliyor. Yeşil tekne rüzgaraltında ve şamandıraya daha yakın: "içteki" tekne. Kesikli daire 3 tekne boyu "zone".' },
+      { t: 0, title: 'İki tekne layline\'da', text: 'İki tekne de sancak kontra, bindirmeli (overlap) şekilde orsa şamandırasına geliyor. Yeşil tekne rüzgaraltında ve şamandıraya daha yakın: "içteki" tekne. Kesikli daire 3 tekne boyu "zone". Gri filo da aynı layline\'da: Optimist yarışında şamandıraya tek tek değil, yarım-bir boy arayla dizi halinde gelinir; önde dönenler, arkada bekleyen sıra ve dıştan gelenler var.' },
       { t: 7.6, title: 'Zone\'a giriş', text: 'İlk tekne zone\'a girdiği anda bindirme var mı diye bakılır. Var: yeşil içte. Bu andan itibaren turuncu, yeşile şamandırayı dönmesi için YER vermek zorunda (Kural 18.2). Bindirme daha sonra bozulsa bile hak devam eder.' },
       { t: 9.6, title: 'Dönüş', text: 'Yeşil şamandırayı yakından dönüyor; turuncu dışarıdan, daha geniş dönüyor. Turuncu "ben de buradayım" diye sıkıştıramaz; sıkıştırırsa ceza alır.' },
       { t: 12.5, title: 'Şamandıra sonrası', text: 'Dönüş tamamlanınca Kural 18 biter; normal kurallar (10, 11, 12) geçerli olur. Pupa seyrine geçildi; şimdi rüzgaraltı/rüzgarüstü ilişkisine bakılır.' },

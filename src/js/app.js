@@ -78,7 +78,7 @@
     const add = (x, y) => { if (x < b.x0) b.x0 = x; if (x > b.x1) b.x1 = x; if (y < b.y0) b.y0 = y; if (y > b.y1) b.y1 = y; };
     // izleme penceresinde yalnız dersin tekneleri (filo görünümün dışında kalabilir); tam kutuda herkes.
     // Yazı boyları bilinmediğinden tekne yazıları için kenarlarda CAM.pad payı bırakılır.
-    for (const bt of full ? [...state.boats, ...state.extras] : state.boats) for (let t = t0; t <= t1 + 1e-6; t += 0.5) { const q = E.sampleTrack(bt.track, t); add(q.x, q.y); }
+    for (const bt of full ? [...state.boats, ...state.extras] : state.boats.filter(b => !b.crowd)) for (let t = t0; t <= t1 + 1e-6; t += 0.5) { const q = E.sampleTrack(bt.track, t); add(q.x, q.y); }
     // sabit nesneler (pin, hakem botu + yazısı, şamandıra + yazısı): tam kutuda hepsi; izlemede yalnız teknelere
     // yakın olanlar (ders o uçta geçiyorsa uç görünsün). Hazırlık bayrağı gösterilen senaryoda hat hep görünür.
     const fixed = [];
@@ -173,16 +173,17 @@
     const c = $('legend'); c.innerHTML = '';
     const used = new Set();
     for (const b of state.boats) {
+      if (b.crowd) continue;                                // senaryonun gri filo tekneleri tek satırda
       const r = ROLES[b.role]; if (r) used.add(b.role);
       const row = document.createElement('div'); row.className = 'boat-row'; row.title = b.name + (r ? ' · ' + r.label : '');
       row.innerHTML = `<span class="boat-id" style="--c:${b.color}">${esc(b.id)}</span><span class="boat-name">${esc(b.name)}</span>` +
         (r ? `<span class="role" style="--r:${r.color}"><i>${r.glyph}</i>${r.label}</span>` : '');
       c.appendChild(row);
     }
-    const crowd = state.extras.filter(b => b.crowd).length;
-    if (crowd) {
-      const row = document.createElement('div'); row.className = 'boat-row crowd-row';
-      row.innerHTML = `<span class="boat-id">1–${crowd}</span><span class="boat-name">Filo · ${crowd} tekne, kurallara göre</span>`;
+    const crowd = state.extras.filter(b => b.crowd).length, fleet = state.boats.filter(b => b.crowd).length;
+    if (crowd || fleet) {
+      const n = crowd + fleet, row = document.createElement('div'); row.className = 'boat-row crowd-row';
+      row.innerHTML = `<span class="boat-id">1–${n}</span><span class="boat-name">Filo · ${n} tekne${crowd ? ', kurallara göre' : ''}</span>`;
       c.appendChild(row);
     }
     const key = $('roleKey');

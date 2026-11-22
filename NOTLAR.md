@@ -122,6 +122,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-22 · **Rotalı gri filo (`fleetTrain`, scenarios.js başı):** kural motoruyla sürülemeyen sahnelerde (şamandıra dönüşü) kalabalık, ders teknesinin rotası zamanda kaydırılarak kurulur; tekne `crowd: true` → listede tek 'Filo' satırı, izleme kamerası saymaz, kural denetimi ders sayılmaz.
 - 2026-11-22 · **Gerçekçi start kalabalığı (kullanıcı: "Optimist kalabalıkları gibi; hakem botu tarafı baştan boş, kalabalık kayar, bekleyen birden fazla tekne")**: yeni davranışlar senaryo başına açılır (`crowdLife`, `leeway.ang`, crowd `wait`/`drift`); açılmayan senaryolar birebir eskisi gibi. Yatay hat + rüzgar 350° gibi açılarda ön sıra aralığı ≥ ~52 px kalmalı (öndekinin kıçına girme kuralı), sıklık ikinci sırayla sağlanır.
 - 2026-11-22 · **Velora uygulamasının içinde çerçevede açılır** (kullanıcı: "web açılınca yukarıdaki kısım rahatsız edici… Velora uygulamasının içine dahil edebilir miyiz?"). Velora (sesliasistan) `/sailing` sayfası siteyi tam ekran iframe'de açar, giriş anahtarı yine `#t=` ile. Bu tarafta `app-shell.js` çerçeveyi anlar (`html.is-embedded`, `is-standalone` de açılır): tam ekran düğmesi ve sorusu yok, yerine "‹ Velora" (`#btnVelora`) düğmesi `parent.postMessage({type:'velora-sailing',event:'close'})` gönderir. Çerçeve dışında hiçbir şey değişmez, site dışarıdan da kullanılır. Güvenli alan (çentik) Velora tarafında çerçevenin etrafında bırakılır.
 - 2026-11-15 · **Depo gizli, yalnız Netlify** (kullanıcı): `deploy.yml` artık yalnız Netlify'a yükler (Pages adımları ve izinleri kaldırıldı). Velora'daki "Velora Sailing" kartının adresi sesliasistan deposunda Netlify'a çevrilmeli (bu depodan yapılamaz).
@@ -218,7 +219,7 @@
 | İA3 | `ia3-committee-hold` | ✅ | Hakem botu ucu (rüzgar 5°): H 2 dk kala layline'dan gelir, turuncu bayrağın hemen solunda (merkez ~(767,487), hakem botu engeline ~22 px) hattın 1 boy altında `hold` (hız 0.008, sürünmez) bekler; rüzgaraltında 6 numaraya kadar ~2 boy boşluk. B (hata) 1 dk kala sağdan apaz barging dener, bordalayıp H'nin kıçından dolaşır, 2. sırada H'nin pis rüzgarında çıkar. `committeeLabel: 'right'` (yazı H ile çakışmasın). Fikir: H'nin rüzgaraltındaki boşluğa sokulmaya çalışan 3. tekne ve H'nin bordalayıp boşluğu koruması (H3); geri yelken ile yer düzeltme (motor `backing` gelince). | A4, A17, İA4 |
 | İA2c | `ia2c-pick-gap` | ✅ | İA2b'nin alt senaryosu (2026-11-12): rüzgar 5° (hakem botu ucu avantajlı), 7 tekne, üç boşluk: pin yanında DAR (2-3), ortada GENİŞ (4-5), hakem botu tarafında GENİŞ avantajlı (6-7); `gaps` katmanı. S 2 dk kala bakar (`clockScale: 4`), filonun altından avantajlı boşluğa gider, 7'nin hemen rüzgaraltına sokulur (~45 px). D 1 dk kala bakar, dar boşluğa sıkışır; startta komşuları K11/K14 ile yer açar. Sonraki varyant fikirleri: "İA2b ailesi fikir listesi". | İA2b, A1, A5 |
 | B1 | `b1-rule10` | ✅ | Tek tekne bordalama. Fikir: lee-bow varyantı. | B2 |
-| B8 | `b8-rule18` | ✅ | Zone + bindirme. Fikir: 18.3 zone içinde tramola varyantı. | B9 |
+| B8 | `b8-rule18` | ✅ | Zone + bindirme. 2026-11-22: gri filo dizisi (`fleetTrain`): I'nın önünde 2, arkasında 3, O'nun arkasında 2 tekne aynı layline'dan. Fikir: 18.3 zone içinde tramola varyantı. | B9 |
 | C1 | `c1-header-tack` | ✅ | Salınımlı rüzgar. Fikir: pusula okuması katmanı. | C2, C3 |
 
 ### İA2b ailesi: sonraki varyant fikirleri (kullanıcı isteği 2026-11-12, sırayla eklenecek)
@@ -270,7 +271,7 @@
 ### 2026-11-22 · İleri Taktik gerçekçi kalabalık: İA1
 - Kullanıcı: İleri Taktik senaryolarını İA1'den başlayarak gerçekçi yap (aralıklar, kalabalık, animasyon; hakem botu dibi baştan boş, filo kayar, birden çok bekleyen).
 - Yapılan: motorda canlı filo + dışarıda bekleyen tekneler (Güncel durum), İA1 filo ve adım metinleri. check temiz. Görüntüler: proje dosyaları `gercekci-start/ia1/`.
-- Aynı gün devamı: kullanıcı onayladı, İA2-İA13 de yapıldı (Güncel durum). Görüntüler `gercekci-start/hepsi/`. Sonra A2/A3/A4/A12 de yapıldı (v1.181).
+- Aynı gün devamı: kullanıcı onayladı, İA2-İA13 de yapıldı (Güncel durum). Görüntüler `gercekci-start/hepsi/`. Sonra A2/A3/A4/A12 de yapıldı (v1.181). Ardından şamandıra kalabalığı: B8 (v1.182).
 
 ### 2026-11-22 · Açılış ekranı v2 (Velora içinde boşluk, minimal düğmeler)
 - Kullanıcı (Velora iOS içinde ekran görüntüsü): üstte boş şerit var, düğmeler daha minimal olsun. Çerçevede (`html.is-embedded`) güvenli alan payları sıfır (Velora zaten veriyor). Üst düğmeler zeminsiz simge, "‹ Velora" en solda; üç bölüm tek beyaz kartta satır satır (telefon dikeyde alt alta, genişte yan yana, ince çizgili).
