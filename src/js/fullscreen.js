@@ -6,6 +6,7 @@
 // - iPhone Safari tam ekranı desteklemez: soru yerine "Ana Ekrana Ekle" rehberi; ana ekrandan açılınca
 //   uygulama tarayıcı çubukları olmadan açılır (manifest + apple-mobile-web-app-capable). Orada düğme gizli.
 // - iPad Safari tam ekranda sol üstte kendi ✕ düğmesini gösterir; bizimki o sırada gizlenir (iki ✕ olmasın).
+// - Velora uygulamasının içinde (çerçeve, html.is-embedded): yukarıdakilerin hiçbiri yok, yerine "Velora'ya dön" düğmesi.
 // localStorage 'velora.fs.v1': 'on' (tam ekran ister) · 'off' (istemez) · 'ios' (rehber gösterildi)
 (function () {
   const KEY = 'velora.fs.v1';
@@ -156,7 +157,31 @@
     } else show();
   }
 
-  function init() { buildBtn(); armReenter(); maybeAsk(); }
+  // ---------- Velora uygulamasının içinde ----------
+  // Çerçevede tam ekran düğmesi ve sorusu yok (uygulama zaten tam ekran); aynı yerde "Velora'ya dön" düğmesi.
+  // Velora (sesliasistan /sailing) { type: 'velora-sailing', event: 'close' } mesajını alınca kendi ana sayfasına döner.
+  const ICON_BACK = '<svg viewBox="0 0 24 24"><path d="M14.5 5.5L8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function buildBack() {
+    const b = D.createElement('button');
+    b.id = 'btnVelora'; b.className = 'tool velora-back'; b.type = 'button';
+    b.title = "Velora'ya dön"; b.setAttribute('aria-label', "Velora'ya dön");
+    b.innerHTML = ICON_BACK + '<span class="lbl">Velora</span>';
+    const acc = D.getElementById('btnAccount');
+    const old = D.getElementById('btnFull');                         // simülatörün hazır tam ekran düğmesi gizlenir
+    if (old) old.style.display = 'none';
+    const bar = (acc && acc.parentElement) || D.querySelector('.topbar .tool-group') || D.querySelector('.topbar');
+    if (!bar) return;
+    acc && acc.parentElement === bar ? bar.insertBefore(b, acc) : bar.appendChild(b);
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      try { window.parent.postMessage({ type: 'velora-sailing', event: 'close' }, '*'); } catch (err) { /* yok */ }
+    });
+  }
+
+  function init() {
+    if (H.classList.contains('is-embedded')) { buildBack(); return; }
+    buildBtn(); armReenter(); maybeAsk();
+  }
   // hesap düğmesi access.js'de DOMContentLoaded sırasında eklenir; ondan sonra yerleş
   D.readyState === 'loading' ? D.addEventListener('DOMContentLoaded', () => setTimeout(init, 0)) : setTimeout(init, 0);
 

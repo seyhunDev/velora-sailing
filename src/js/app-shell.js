@@ -2,7 +2,7 @@
 // - Sayfa yukarı/aşağı esnemez, kaymaz, iki parmakla büyümez (yalnız kendi kaydırma alanları kayar).
 // - Telefonda yatay zorunlu: dikey tutulunca "telefonu çevir" ekranı. iPad'de iki yön de serbest.
 // - Ana ekrana eklenince (standalone) tarayıcı çubukları olmadan tam ekran açılır.
-// Sınıflar (<html>): is-phone · is-tablet · is-touch · is-standalone · is-portrait / is-landscape
+// Sınıflar (<html>): is-phone · is-tablet · is-touch · is-standalone · is-embedded · is-portrait / is-landscape
 (function () {
   const H = document.documentElement;
   const mq = q => window.matchMedia(q).matches;
@@ -15,7 +15,12 @@
   H.classList.toggle('is-touch', touch);
   H.classList.toggle('is-phone', phone);
   H.classList.toggle('is-tablet', tablet);
-  H.classList.toggle('is-standalone', !!standalone);
+  // Velora uygulamasının içinde (sesliasistan /sailing sayfası, çerçeve): tarayıcı çubuğu yok, tam ekran sorulmaz,
+  // üst çubukta "Velora'ya dön" düğmesi çıkar (fullscreen.js). Çerçeve dışında (doğrudan site) hiçbir şey değişmez.
+  let embedded = false;
+  try { embedded = window.self !== window.top; } catch (e) { embedded = true; }
+  H.classList.toggle('is-embedded', embedded);
+  H.classList.toggle('is-standalone', !!standalone || embedded);
   // Ziyaret kayıtları gibi uzun sayfalar kendi içinde kaysın diye kabuk istisnası: <body data-shell="page">
   const isPage = () => document.body && document.body.dataset.shell === 'page';
 

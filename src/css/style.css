@@ -405,6 +405,12 @@ a.race-link:hover { background: rgba(251,191,36,.24); border-color: #fbbf24; col
 html.is-fs.is-ios .topbar { padding-left: 76px; }
 
 /* ---------- Tam ekran (js/fullscreen.js) ---------- */
+/* Velora uygulamasının içinde (html.is-embedded): tam ekran düğmesi yerine "‹ Velora" (Velora'ya dön) */
+.velora-back { padding: 0 12px 0 6px; gap: 2px; font-weight: 600; }
+.velora-back svg { width: 18px; height: 18px; }
+.sim-top .tool-group .tool.velora-back { width: auto; min-width: 0; padding: 0 10px 0 4px; margin-left: 4px; }
+.sim-top .tool-group .tool.velora-back .lbl { display: inline; }
+@media (max-width: 560px) { .velora-back .lbl { display: none; } .velora-back { padding: 0; } }
 /* üst çubukta hesap düğmesinin solunda: dört köşe ↔ ✕. Tam ekranda ✕ belirgin ama sakin (kırmızı değil). */
 .fs-btn.fs-exit { color: var(--text); background: var(--raised); border-color: var(--border-strong); }
 .fs-btn.fs-exit:hover { background: var(--raised2); }

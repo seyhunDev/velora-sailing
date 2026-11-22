@@ -119,6 +119,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-22 · **Velora uygulamasının içinde çerçevede açılır** (kullanıcı: "web açılınca yukarıdaki kısım rahatsız edici… Velora uygulamasının içine dahil edebilir miyiz?"). Velora (sesliasistan) `/sailing` sayfası siteyi tam ekran iframe'de açar, giriş anahtarı yine `#t=` ile. Bu tarafta `app-shell.js` çerçeveyi anlar (`html.is-embedded`, `is-standalone` de açılır): tam ekran düğmesi ve sorusu yok, yerine "‹ Velora" (`#btnVelora`) düğmesi `parent.postMessage({type:'velora-sailing',event:'close'})` gönderir. Çerçeve dışında hiçbir şey değişmez, site dışarıdan da kullanılır. Güvenli alan (çentik) Velora tarafında çerçevenin etrafında bırakılır.
 - 2026-11-15 · **Depo gizli, yalnız Netlify** (kullanıcı): `deploy.yml` artık yalnız Netlify'a yükler (Pages adımları ve izinleri kaldırıldı). Velora'daki "Velora Sailing" kartının adresi sesliasistan deposunda Netlify'a çevrilmeli (bu depodan yapılamaz).
 - 2026-11-14 · **Simülatör varsayılan parkuru trapez** (kullanıcı: "Orsa'da bitirmeyelim, trapez varsayılan olsun, Optimist için; ILCA'nın kendi parkuru olacak"). Geometri Velora'daki rota kartıyla aynı oranlarda (tek kaynak orası). "Yalnız orsa" seçenek olarak kaldı; eski kayıtlar o türde oynar. ILCA parkuru (Velora `CARD_TYPES.std`: Start, 4s/4p, 1, 1A, 2, 3s/3p, finiş) sonraki iş.
 - 2026-11-14 · **Görevler Firestore'da** (`sailChallenges`, alt koleksiyon `runs`), kurulum ve kayıt JSON metni olarak (Firestore iç içe dizileri kabul etmiyor, rota noktaları dizi). Sporcu kimliği: Velora hesabı ya da adıyla anonim Firebase girişi (kullanıcı seçimi: "ikisi de"). Deneme sınırı belge kimliğiyle (`uid_n`, n ≤ hak) kuralda. Yarış akışı motorda (sim-core), istemcide değil: tekrar oynatma deterministik kalsın.
@@ -226,6 +227,7 @@
 6. **Avantaj vs kalabalık:** avantajlı uç dolu (barging riski, A4), az avantajlı tarafta geniş boşluk; hangisi daha çok kazandırır? (5° bias ≈ 600 px hatta 1 boy hesabıyla.)
 
 ## Sohbetler arası mesajlar
+- 2026-11-22 · (Velora iOS entegrasyonu → arayüz/tasarım) Site Velora uygulamasının içinde çerçevede açılabiliyor: `html.is-embedded` iken üst çubuğun sağında tam ekran düğmesi yerine "‹ Velora" düğmesi var (`fullscreen.js` `buildBack`). Üst çubuğu yeniden tasarlarken bu düğmeye yer bırakın.
 - 2026-11-21 · (Online ekleri → simülatörde çalışan herkes) `SimApi.netWatch(setup, net)` izleyici modu: `st.netWatch`, `body.net-watch`; `tickBody`'de ayrı dal, `newHandRace` ve `backToSetup` izlerken çalışmaz.
 - 2026-11-16 · (Kural 12 → simülatör / online / antrenör yarışı) `handRow` 8. alan `touch` (değilen teknenin no'su, yoksa 0); eski kayıtlarda yok, sorun değil. `R.closest(a,h,v,c,H,hull)`, `R.giveWay(...,hull)`, `chooseEscape` opts.hull: senaryolar eskisi gibi (hull kapalı). Online'da uzaktaki tekne (`remote`) elle sürülen gibi yerinden oynatılmaz. Fuzz 150'de 1 TAKILDI kaldı (#102: 15 teknenin tek şamandırada sıkıştığı sıra, 8 sn yavaş ilerleme).
 - 2026-11-16 · (Yarışları elle yönet → simülatör / online / antrenör yarışı) Elle sürülen tekne artık `round`/`penalty` evresine girmez, `b.hand` kendiliğinden kalkmaz (sim.js `driveTick` yalnız `!m.hand`'de çıkar). Yeni alanlar: `b.rnd {no,n,t}` (son dönüş ve sırası), `b.rc` (ışın sayacı), `b.penHand/penAcc/penH`, `b.hpx/hpy/hpt`. Bildirimleri sim.js `handNotes` verir (online dahil). Otomatik tekne start ettikten sonra hattın altına geri düşerse `started=false` olur ve hattı yeniden arar (hakem botu dibinde dönüp duruyordu; fuzz 150'de 0 sorun).
@@ -260,6 +262,10 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-22 · Velora iOS uygulamasının içinde açılma
+- Yapılan: çerçevede açılınca tam ekran sorusu/düğmesi kalktı, "‹ Velora" dönüş düğmesi eklendi (`app-shell.js`, `fullscreen.js`, `style.css`).
+- Velora tarafı: sesliasistan deposunda `/sailing` sayfası (PR, kullanıcı onayıyla birleşecek). Birleşince Velora ana sayfasındaki "Velora Sailing" kartı uygulamanın içinde açar.
+- Sonraki: gerçek iPhone'da deneme (çerçevede Firebase oturumu, yatay çevirme, çentik payı).
 ### 2026-11-21 · Online yarış ekleri
 - Kullanıcı: "Yap" (önerilen ekler).
 - Yapılan: hazırım işareti, kısa mesajlar, izleyici ekranı (`SimApi.netWatch`), kayıtlı sonuçlar + seri puan tablosu, otomatik yarış sonu, başka antrenörlere oda açma yetkisi (`sailHosts`). `?net=yerel` ile üç sekmeli deneme temiz; `npm run check` + `npm run smoke` temiz.
