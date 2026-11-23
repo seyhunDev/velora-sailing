@@ -873,6 +873,113 @@
     addBoat: { pin: { x: 160, y: 670 }, middle: { x: 260, y: 670 }, committee: { x: 460, y: 670 } }
   });
 
+  // ---------- C4: lee-bow — geçemeyeceğin sancak teknenin önüne, rüzgaraltına tramola ----------
+  S.push({
+    id: 'c4-lee-bow',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C4 · Lee-bow: geçemiyorsan önüne, rüzgaraltına tramola at',
+    summary: 'İskele kontradaki tekne sancak tekneyi geçemiyorsa iki yolu vardır: arkasından dolanmak ya da önüne, rüzgaraltına tramola atmak. Buna lee-bow denir. Yeşil D tramolayı bir boy önde ve yeterince uzakta atar. Yelkeninden kıvrılan rüzgar sancak teknenin yelkenini bozar, o yavaşlar ve tramola atıp gider. Turuncu Y tramolayı çok yakında atar. Sancak tekne kaçmak zorunda kalır, Y protesto edilir ve iki tur ceza döner.',
+    duration: 22,
+    baseSpeed: 20,
+    wind: 0,
+    boats: (() => {
+      const D =
+      { id: 'D', name: 'Doğru lee-bow', role: 'dogru', color: '#2a9d8f',
+        start: { x: 220, y: 470, h: 45 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 4.6, turn: 0, note: 'Sancak tekneyi geçemiyorum' },
+          { mode: 'closehauled', tack: 'starboard', dur: 21.4, turn: 1.4, note: 'Önüne, rüzgaraltına tramola' }
+        ] };
+      const S1 =
+      { id: '1', name: 'Sancak tekne', color: '#b8c7d6', crowd: true,
+        start: { x: 440, y: 490, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 7.5, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 4.5, turn: 0, speed: 0.7, note: 'Ters rüzgar, yelkenim bozuldu' },
+          { mode: 'closehauled', tack: 'port', dur: 13, turn: 1.4, note: 'Tramola atıp kaçıyor' }
+        ] };
+      const Y =
+      { id: 'Y', name: 'Çok yakın tramola', role: 'hata', color: '#e76f51',
+        start: { x: 660, y: 470, h: 45 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 6.2, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 2, turn: 1.4, note: 'HATA: burnunun dibine tramola' },
+          { mode: 'closehauled', tack: 'starboard', dur: 1.5, turn: 0, note: 'Protesto! Kural 15' },
+          { mode: 'heading', h: 250, dur: 1.4, turn: 0.8, speed: 0.8, note: 'İki tur ceza' },
+          { mode: 'heading', h: 160, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: 70, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -20, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -110, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -200, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -290, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'closehauled', tack: 'starboard', dur: 8, turn: 1.0, note: 'Geride kaldı' }
+        ] };
+      const S2 =
+      { id: '2', name: 'Sancak tekne', color: '#b8c7d6', crowd: true,
+        start: { x: 880, y: 490, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 7.0, turn: 0 },
+          { mode: 'hold', h: 350, dur: 1.4, speed: 0.25, turn: 0.4, note: 'Kaçmak zorunda! Protesto!' },
+          { mode: 'closehauled', tack: 'starboard', dur: 15, turn: 1.2 }
+        ] };
+      return [D, S1, Y, S2];
+    })(),
+    steps: [
+      { t: 0, title: 'İki ayrı karşılaşma', text: 'Solda yeşil D, sağda turuncu Y iskele kontrada. İkisinin de önüne sancak kontrada gri bir tekne çıkıyor. Sancak tekne yol hakkına sahip.' },
+      { t: 4, title: 'Geçebilir miyim?', text: 'D ve Y sancak teknenin önünden geçemiyor. İki yol var. Arkasından dolanmak ya da önüne, rüzgaraltına tramola atmak.' },
+      { t: 4.6, title: 'D lee-bow yapıyor', text: 'D, sancak teknenin bir boy önünde ve rüzgaraltında tramola atıyor. Buna lee-bow denir. Gri teknenin rotasını değiştirmesi gerekmiyor.' },
+      { t: 6.8, title: 'Y çok yakın', text: 'Y tramolayı sancak teknenin burnunun dibinde attı. Gri tekne çarpmamak için orsalamak zorunda kaldı. Tramola atıp yol hakkı kazanan tekne, öbürüne kaçacak yer bırakmalı. Bu Kural 15.' },
+      { t: 8.5, title: 'Ters rüzgar', text: 'Solda, D\'nin yelkeninden kıvrılan rüzgar arkadaki gri teknenin yelkenine çarpıyor. Gri tekne yavaşladı.' },
+      { t: 10, title: 'Y ceza dönüyor', text: 'Sağdaki gri tekne protesto diye seslendi. Y iki tur ceza dönüyor ve geride kalıyor.' },
+      { t: 13, title: 'Lee-bow işe yaradı', text: 'Soldaki gri tekne yavaş kalmamak için tramola atıp gitti. D tek başına, temiz havada devam ediyor.' },
+      { t: 18, title: 'Özet', text: 'Lee-bow için tramolayı sancak teknenin önünde ve rüzgaraltında at. Arada bir boy kadar boşluk bırak. Çok yakında atarsan ceza alırsın. Çok geride atarsan onun pis havasında kalırsın.' }
+    ],
+    addBoat: { pin: { x: 300, y: 640 }, middle: { x: 560, y: 640 }, committee: { x: 880, y: 640 } }
+  });
+
+  // ---------- C4b: kapama (cover) — öndeki, arkadakinin tam rüzgarüstünde kalır ----------
+  S.push({
+    id: 'c4b-tight-cover',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C4b · Kapama: rakibin her tramolasına tramolayla cevap ver',
+    summary: 'Öndeysen ve arkandaki tek rakibin seni geçmesin istiyorsan onun tam rüzgarüstünde kal. Yeşil Ö böyle yapar. Mor A pis havadan kaçmak için tramola atar, Ö de hemen tramola atıp yine onun rüzgarüstüne geçer. A her seferinde Ö\'nün pis havasında kalır ve yaklaşamaz.',
+    duration: 26,
+    baseSpeed: 20,
+    wind: 0,
+    shadowLen: 110,
+    rungs: { boat: 'Ö', from: 2 },
+    boats: (() => {
+      const O =
+      { id: 'Ö', name: 'Kapatan', role: 'dogru', color: '#2a9d8f',
+        start: { x: 560, y: 470, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 3.8, turn: 0, note: 'A\'nın rüzgarüstündeyim' },
+          { mode: 'closehauled', tack: 'port', dur: 7.6, turn: 1.4, note: 'Tramolasına tramolayla cevap' },
+          { mode: 'closehauled', tack: 'starboard', dur: 14, turn: 1.4, note: 'Yine tam rüzgarüstünde' }
+        ] };
+      const A =
+      { id: 'A', name: 'Kaçmaya çalışan', color: '#8e6bbf',
+        start: { x: 572, y: 545, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 3, turn: 0, note: 'Pis havadayım' },
+          { mode: 'closehauled', tack: 'port', dur: 7.2, turn: 1.4, note: 'Temiz havaya kaçıyorum' },
+          { mode: 'closehauled', tack: 'starboard', dur: 7.8, turn: 1.4, note: 'Yine pis havada' },
+          { mode: 'closehauled', tack: 'starboard', dur: 8, turn: 0, note: 'Çok geride kaldı' }
+        ] };
+      return [O, A, ...fleetCopies(O, [{ dx: 260, dy: -60 }, { dx: 330, dy: 80 }, { dx: 250, dy: 190 }], 1).map(b => ({ ...b, segs: [{ mode: 'closehauled', tack: 'starboard', dur: 26, turn: 0 }] }))];
+    })(),
+    steps: [
+      { t: 0, title: 'Ö önde', text: 'Yeşil Ö önde. Mor A hemen arkasında ve Ö\'nün tam rüzgaraltında. A, Ö\'nün pis havasında, yavaş gidiyor.' },
+      { t: 3, title: 'A kaçıyor', text: 'A temiz havaya çıkmak için tramola atıyor.' },
+      { t: 3.8, title: 'Ö kapatıyor', text: 'Ö hemen tramola atıyor ve yine A\'nın tam rüzgarüstüne geçiyor. Buna kapama denir. İngilizcesi cover.' },
+      { t: 8, title: 'A yine pis havada', text: 'Ö\'nün gölgesi yine A\'nın yelkeninde. A kaçamadı.' },
+      { t: 10.2, title: 'İkinci deneme', text: 'A yeniden tramola atıyor. Ö de hemen ardından tramola atıp yine üstüne geçiyor.' },
+      { t: 16, title: 'Fark büyüyor', text: 'Kesikli çizgiye bak. A her tramolada biraz daha geride kaldı. Ö önde kalıyor.' },
+      { t: 22, title: 'Özet', text: 'Öndeysen rakibinle şamandıra arasında kal. Yakındaysa tam rüzgarüstüne geç, buna sıkı kapama denir. Çok öndeysen aynı kontrada kalman yeter, buna gevşek kapama denir. Filonun geri kalanını da unutma.' }
+    ],
+    addBoat: { pin: { x: 300, y: 620 }, middle: { x: 640, y: 640 }, committee: { x: 840, y: 620 } }
+  });
+
   // ---------- D3: pupada arkadan gölgeyle saldırı ----------
   S.push({
     id: 'd3-shadow-attack',
