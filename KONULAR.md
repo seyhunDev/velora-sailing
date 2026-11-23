@@ -82,7 +82,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 
 | # | Konu | Animasyonda ne gösterilecek | Durum |
 |---|------|-----------------------------|-------|
-| E1 | Geniş gir – dar çık (wide in, tight out) | Doğru ve yanlış dönüş yayları. | ⬜ |
+| E1 | Geniş gir – dar çık (wide in, tight out) | Doğru ve yanlış dönüş yayları. | ✅ |
 | E2 | Orsa şamandırasına starboard layline'dan yaklaşma | Kalabalıkta sancak layline'ın değeri. E2: 6 teknelik sıra, D erken layline'a girer; P bölgede tramola atar (K18.3, K15), protesto, iki tur ceza. | ✅ |
 | E3 | Offset / gate (kapı) şamandırası seçimi | Hangi kapı ucu rüzgara yakın? D4'te kalabalık/boş kapı seçimi var; rüzgara yakın uç varyantı eksik. | ✅ (D4 içinde) |
 | E4 | Finiş çizgisi: avantajlı uç | Starttaki mantığın tersi. | ⬜ |

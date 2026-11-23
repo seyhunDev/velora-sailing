@@ -999,6 +999,59 @@
     addBoatLabels: { pin: 'Önde (iç)', middle: 'Arkada', committee: 'Dışta' }
   });
 
+  // ---------- E1: geniş gir, dar çık ----------
+  S.push({
+    id: 'e1-wide-in-tight-out',
+    category: 'Taktik', topic: 'Şamandıra',
+    title: 'E1 · Pupa şamandırası: geniş gir, dar çık',
+    summary: 'Pupa şamandırasını dönerken önce biraz dışarı açıl, sonra yumuşak bir yayla dön ve şamandırayı orsaya dönmüş hâlde, dibinden sıyırarak çık. Yeşil D böyle döner ve yukarıda çıkar. Turuncu Y şamandıraya dümdüz gelir, dibinde sert döner ve dışarı savrulur. Aşağıda kalır, arkasındaki tekne içeriden geçer.',
+    duration: 34,
+    baseSpeed: 20,
+    wind: 0,
+    rungs: { boat: 'D', from: 26 },
+    marks: [{ x: 330, y: 450, label: 'Şamandıra · D', zone: true }, { x: 680, y: 450, label: 'Şamandıra · Y', zone: true }],
+    boats: (() => {
+      // şamandıra sancakta bırakılır (saat yönünde): doğudan gelinir, altından geçilir, batıdan orsaya çıkılır
+      const wide = (mx, my) => [
+        { mode: 'run', tack: 'starboard', dur: 11, turn: 0 },
+        { mode: 'goto', x: mx + 85, y: my - 30, dur: 8, rate: 60, note: 'Önce dışarı açıl' },
+        { mode: 'goto', x: mx + 45, y: my + 34, dur: 6, rate: 70, note: 'Yumuşak yay' },
+        { mode: 'goto', x: mx - 4, y: my + 22, dur: 6, rate: 70, note: 'Dibinden sıyır, orsada çık' },
+        { mode: 'goto', x: mx - 30, y: my - 4, dur: 4, rate: 60 },
+        { mode: 'closehauled', tack: 'starboard', dur: 12, turn: 0.6 }
+      ];
+      const D =
+      { id: 'D', name: 'Geniş gir, dar çık', role: 'dogru', color: '#2a9d8f',
+        start: { x: 520, y: 120, h: 210 }, v0: 20, segs: wide(330, 450) };
+      const Y =
+      { id: 'Y', name: 'Dar gir, geniş çık', role: 'hata', color: '#e76f51',
+        start: { x: 870, y: 120, h: 210 }, v0: 20,
+        segs: [
+          { mode: 'run', tack: 'starboard', dur: 12, turn: 0 },
+          { mode: 'goto', x: 702, y: 430, dur: 10, rate: 60, note: 'Şamandıraya dümdüz' },
+          { mode: 'goto', x: 684, y: 478, dur: 4, rate: 160, speed: 0.7, note: 'Dibinde sert dönüş' },
+          { mode: 'goto', x: 636, y: 526, dur: 4, rate: 100, speed: 0.7, note: 'HATA: dışarı savruldu' },
+          { mode: 'closehauled', tack: 'starboard', dur: 12, turn: 0.8, note: 'Aşağıda kaldı' }
+        ] };
+      // Y'nin arkasındaki gri tekne: geniş girip Y'nin içinden, rüzgarüstünden çıkar
+      const G = { id: '1', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 930, y: 92, h: 210 }, v0: 20, segs: wide(680, 450).map(sg => ({ ...sg, note: undefined })) };
+      const G2 = { id: '2', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 470, y: 30, h: 210 }, v0: 20, segs: wide(330, 450).map(sg => ({ ...sg, note: undefined, dur: sg.dur })) };
+      return [D, Y, G, G2];
+    })(),
+    steps: [
+      { t: 0, title: 'İki ayrı şamandıra', text: 'Burada aynı dönüşü yan yana görüyorsun. Solda yeşil D, sağda turuncu Y dönecek. İkisi de pupada iniyor, şamandırayı sağında bırakacak.' },
+      { t: 11, title: 'D dışarı açılıyor', text: 'D şamandıraya iki boy kala biraz dışarı açılıyor. Böylece dönüşe geniş ve yumuşak bir yayla girecek.' },
+      { t: 14, title: 'Y dümdüz geliyor', text: 'Y şamandıraya dümdüz gidiyor. Dibine gelince sert dönmek zorunda kalacak.' },
+      { t: 22, title: 'D dar çıkıyor', text: 'D dönüşün sonunda şamandıranın dibinden geçiyor. Çıkarken burnu zaten orsada. Hızını kaybetmedi.' },
+      { t: 23.5, title: 'Y savruluyor', text: 'Y dibinde sert döndü. Tekne yavaşladı ve dışarı savruldu. Şamandıradan uzakta, aşağıda orsaya başlıyor.' },
+      { t: 26, title: 'Arkadaki içeriden geçiyor', text: 'Y\'nin arkasındaki gri tekne geniş girip dar çıktı. Y\'nin içinden, rüzgarüstünden geçti. Şimdi Y onun pis havasında.' },
+      { t: 29, title: 'Kim yukarıda?', text: 'Kesikli çizgi kimin daha yukarıda olduğunu gösterir. D daha yukarıda. Geniş girip dar çıkan tekne orsaya önde başlar.' },
+      { t: 31, title: 'Özet', text: 'Pupa şamandırasında geniş gir, dar çık. Dönüşe şamandıradan biraz uzakta başla. Şamandırayı, orsaya dönmüşken dibinden sıyır.' }
+    ],
+    addBoat: { pin: { x: 560, y: 60 }, middle: { x: 660, y: 40 }, committee: { x: 840, y: 60 } },
+    addBoatLabels: { pin: 'Önde', middle: 'Ortada', committee: 'Arkada' }
+  });
+
   // ---------- E2: orsa şamandırası kalabalığı — sancak layline sırası, bölgede tramola ----------
   S.push({
     id: 'e2-windward-queue',
