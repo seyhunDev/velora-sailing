@@ -281,7 +281,7 @@
   function lifeOf(b) {
     let hsh = 7; for (const c of String(b.id)) hsh = (hsh * 31 + c.charCodeAt(0)) % 100003;
     const r = k => { const v = Math.sin(hsh * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
-    return { ph: r(1) * 6.283, per: 3 + r(2) * 3, amp: 3 + r(3) * 5 };
+    return { ph: r(1) * 6.283, per: 3 + r(2) * 3, amp: 3 + r(3) * 5, lw: 0.6 + r(4) * 0.5, lwMax: 45 + r(5) * 35 };
   }
   function approachHeading(b, w) {
     const h = E.tackHeading(w, b.tack), u = rayLineU(b, h);
@@ -1133,6 +1133,15 @@
         const L = lifeOf(b), a = L.ph + s.t * CLOCK_SCALE * 6.283 / (L.per * 1.6), side = E.fwd(s.wind + 180 + (b.tack === 'starboard' ? 75 : -75));
         const m = 2.2 * Math.cos(a) / CLOCK_SCALE;       // px / sim sn (gerçek saniyede ~2 px)
         b.x += side.x * m * DT; b.y += side.y * m * DT;
+        // yelken boş beklerken filo yavaşça rüzgaraltına ve pin'e kayar (geri sayım boyunca toplam ~1-1,6 boy):
+        // hakem botu dibi giderek boşalır. Hattın dışındaki (hakem botunun yanında bekleyen) ve pin'e varmış tekne kaymaz
+        const P = LINE.pin, Q = LINE.boat, lx = Q.x - P.x, ly = Q.y - P.y, ll = Math.hypot(lx, ly);
+        const u = ((b.x - P.x) * lx + (b.y - P.y) * ly) / (ll * ll);
+        if (u > 0.1 && u < 0.97 && (b.lwD || 0) < L.lwMax) {
+          const lw = E.fwd(s.wind + 180), dx = -lx / ll + lw.x * 0.35, dy = -ly / ll + lw.y * 0.35, dl = Math.hypot(dx, dy);
+          const v = L.lwMax / Math.max(10, s.startAt * 0.8) * (0.8 + L.lw * 0.3) * Math.min(1, (u - 0.1) / 0.08);   // geri sayımın ~%80inde toplam kaymaya varır
+          b.x += dx / dl * v * DT; b.y += dy / dl * v * DT; b.lwD = (b.lwD || 0) + v * DT;
+        }
       }
     }
     // temas: gövde biçimiyle (kapsül: baş-kıç doğrusu ±HULLC.half, yarıçap HULLC.r). Eskiden merkezler 26 px'e
