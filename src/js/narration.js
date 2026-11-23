@@ -20,7 +20,10 @@
   function speechText(title, text) {
     const ORD = ['', 'birincisi', 'ikincisi', 'üçüncüsü', 'dördüncüsü'];
     let s = (title ? title.trim() + (/[.:!?]$/.test(title.trim()) ? ' ' : '. ') : '') + (text || '');
-    s = s.replace(/\s*→\s*/g, ', ').replace(/\s*·\s*/g, ', ').replace(/\s\+\s/g, ' ve ')
+    s = s.replace(/[“”"«»]/g, '').replace(/\s*\(([^)]*)\)/g, ', $1,')   // tırnak yok, parantez → virgül
+      .replace(/[≈~]\s*/g, 'yaklaşık ').replace(/%\s*(\d+)/g, 'yüzde $1').replace(/(\d+)\s*%/g, 'yüzde $1')
+      .replace(/(\d)\s*×/g, '$1 kat').replace(/\s*\/\s*/g, ' ya da ').replace(/−/g, 'eksi ')
+      .replace(/\s*→\s*/g, ', ').replace(/\s*·\s*/g, ', ').replace(/\s\+\s/g, ' ve ')
       .replace(/(\d)\s*°/g, '$1 derece')
       // ondalık sayılar yazıyla (kullanıcı 2026-11-23: "2.5 sn" "iki buçuk saniye" okunmalı): 2.5 → iki buçuk, 1.3 → bir virgül üç
       .replace(/\b(\d{1,3})[.,](\d)\b/g, (m, a, b) => a === '0' && b === '5' ? 'yarım' : numTr(+a) + (b === '5' ? ' buçuk' : ' virgül ' + numTr(+b)))
@@ -36,7 +39,7 @@
       .replace(/([\wÇĞİÖŞÜçğıöşü])['’](?=[a-zçğıöşü])/g, '$1')
       // tamamı büyük harf vurgu kelimeleri harf harf okunmasın (3+ harf, rakamsız)
       .replace(/[A-ZÇĞİÖŞÜ]{3,}/g, w => w.toLocaleLowerCase('tr'))
-      .replace(/\s+([,.;:])/g, '$1').replace(/\s+/g, ' ').trim();
+      .replace(/\s+([,.;:])/g, '$1').replace(/,([,.;:])/g, '$1').replace(/\s+/g, ' ').trim();
     return s;
   }
   // Okunuşlar: yabancı kelimeler ve harf adları (ekle birleşince doğru okunsun: "Z'nin" → "Zenin")

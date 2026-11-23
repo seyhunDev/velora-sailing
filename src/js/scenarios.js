@@ -48,10 +48,10 @@
         segs: [{ mode: 'closehauled', tack: 'starboard', dur: 13, turn: 0 }], v0: 48 }
     ],
     steps: [
-      { t: 0, title: 'Aynı anda start', text: 'A ve B start sinyalinde aynı anda, aynı hızla, sancak kontra orsa çıkıyor. Rüzgar 15° sağdan (hakem botu tarafından) geliyor; çizgi ise yatay. Yani hakem botu ucu rüzgara daha yakın.' },
-      { t: 1.5, title: 'Merdiven basamağı', text: 'Kesikli çizgi rüzgara DİK bir "merdiven basamağı"dır. Rüzgara karşı yarışta kim önde sorusunun cevabı bu çizgidir: B\'nin basamağı A\'nın önünde. A çizgiye dik ilerlediği hâlde B\'nin gerisindedir.' },
-      { t: 5, title: 'A tramola atıyor', text: 'A iskele kontraya tramola atıp B\'ye doğru gidiyor. Gerçekten geride mi? Kural 10 gereği iskele kontralı A, sancak kontralı B\'ye yol vermek zorunda; zaten onun arkasından geçecek.' },
-      { t: 10, title: 'Sonuç', text: 'A, B\'nin kıç tarafından geçiyor. Farkın tek sebebi start çizgisinin avantajlı ucu. Start öncesi mutlaka ölçün: rüzgara karşı durup çizgiye bakın; burnunuzun gösterdiği tarafın GERİSİNDE kalan uç avantajlıdır. Pratik yol: çizgi boyunca gidip her iki uca aynı kontrada seyredin; hangisi daha orsa (rüzgara yakın) gidiyorsa o uç avantajlıdır.' }
+      { t: 0, title: 'Aynı anda start', text: 'A ve B aynı anda, aynı hızla start alıyor. İkisi de sancak kontrada, orsa gidiyor. Rüzgar biraz sağdan, hakem botu tarafından esiyor. Bu yüzden hakem botu ucu rüzgara daha yakın.' },
+      { t: 1.5, title: 'Merdiven basamağı', text: 'Kesikli çizgi rüzgara dik duran bir merdiven basamağı. Rüzgara karşı kim önde, bu çizgi gösterir. B\'nin basamağı A\'nınkinden önde. A da düz gidiyor ama B\'nin gerisinde kalıyor.' },
+      { t: 5, title: 'A tramola atıyor', text: 'A tramola atıp iskele kontraya geçiyor ve B\'ye doğru gidiyor. İskele kontradaki tekne, sancak kontradakine yol verir. Bu Kural 10. A zaten B\'nin arkasından geçecek.' },
+      { t: 10, title: 'Sonuç', text: 'A, B\'nin arkasından geçiyor. Farkın tek sebebi start çizgisinin avantajlı ucu. Start\'tan önce bunu mutlaka ölç. Kolay yol şu: çizgi boyunca iki uca da seyret. Hangi uca giderken daha orsa gidiyorsan, o uç avantajlıdır.' }
     ],
     addBoat: { pin: { x: 400, y: 612 }, middle: { x: 500, y: 612 }, committee: { x: 620, y: 612 } },
     // filo ön sırada, B'ye 1 boy aralıkla (merkezler ~50 px). 2. sıra yok: A'nın iskele rotası onların önünü keserdi
@@ -82,13 +82,13 @@
         ] }
     ],
     steps: [
-      { t: 0, title: 'Yöntem 1: rüzgara karşı dur', text: 'Hattın ortasında burnunuzu tam rüzgara çevirip durun. Rüzgar sağ üstteki ok: 15°, yani hat yönüne (0°) göre sağdan geliyor.' },
-      { t: 1.5, title: 'Basamağı oku', text: 'Kesikli çizgi teknenin omuz hizası: rüzgara dik "merdiven basamağı". Hangi uç bu çizginin ÖNÜNDE (rüzgar tarafında) kalıyorsa o uç avantajlıdır. Burada hakem botu çizginin üstünde, pin altında kaldı: hakem botu ucu avantajlı. Pratikte: burnunuz rüzgara dönükken omzunuz hangi uca daha yakın bakıyorsa o uç.' },
-      { t: 7.5, title: 'Yöntem 2: hat boyunca iki yöne seyret', text: 'Hattın hemen gerisinde önce bir uca, sonra diğerine seyredin. Yelkeninizin ne kadar açık olduğuna ve rüzgar açısına bakın.' },
-      { t: 9, title: 'Pin\'e doğru: yelken açık', text: 'Pin\'e giderken rüzgar açısı ~105°: apaz, yelken iyice açık. Bu yön "rüzgardan uzaklaşan" yön.' },
-      { t: 12.5, title: 'Hakem botuna doğru: yelken kapalı', text: 'Hakem botuna giderken rüzgar açısı ~75°: daha orsa, yelken daha kapalı. Kural: hangi uca doğru daha ORSA gidiyorsanız (yelken daha kapalıysa) o uç avantajlıdır. Fark ne kadar büyükse avantaj o kadar büyük.' },
-      { t: 18, title: 'Yöntem 3: pusula', text: 'Hat yönü: pin → hakem botu 90°. Hatta dik rüzgar 0° olurdu. Rüzgar 15°\'den geliyor: dikten 15° hakem botu tarafına dönmüş → hakem botu ucu avantajlı. Kabaca: 400 px\'lik (≈8 boy) hatta 15° fark ≈ 2 tekne boyu kazanç. Her 5° ≈ hat uzunluğunun %9\'u.' },
-      { t: 21, title: 'Pratik', text: 'Üç yöntemi birlikte kullanın; rüzgar salınıyorsa son 3 dakikada ölçümü tekrarlayın. Ölçtükten sonra plan: hangi uç, hangi sıra, hangi boşluk? Bunlar A3 ve A4 senaryolarında.' }
+      { t: 0, title: 'Yöntem 1: rüzgara karşı dur', text: 'Hattın ortasında burnunu tam rüzgara çevir ve dur. Sağ üstteki ok rüzgarı gösteriyor. Rüzgar biraz sağdan geliyor.' },
+      { t: 1.5, title: 'Basamağı oku', text: 'Kesikli çizgi senin omuz hizan. Bu çizginin önünde kalan uç avantajlıdır. Burada hakem botu çizginin önünde, pin ise geride kaldı. Yani hakem botu ucu avantajlı.' },
+      { t: 7.5, title: 'Yöntem 2: iki uca seyret', text: 'Hattın hemen gerisinde önce bir uca, sonra öbür uca seyret. Her seferinde yelkenin ne kadar açık, ona bak.' },
+      { t: 9, title: 'Pin\'e doğru: yelken açık', text: 'Pin\'e giderken yelken iyice açık. Apaz gidiyorsun. Bu yön rüzgardan uzaklaşıyor.' },
+      { t: 12.5, title: 'Hakem botuna doğru: yelken kapalı', text: 'Hakem botuna giderken yelken daha kapalı. Daha orsa gidiyorsun. Hangi uca giderken daha orsa gidiyorsan, o uç avantajlıdır. Fark büyükse avantaj da büyüktür.' },
+      { t: 18, title: 'Yöntem 3: pusula', text: 'Pusulayla hattın yönünü ve rüzgarın yönünü ölç. Rüzgar hatta tam dik değilse, rüzgarın döndüğü uç avantajlıdır. Burada fark 15 derece. Bu, yaklaşık 2 tekne boyu kazanç demek.' },
+      { t: 21, title: 'Pratik', text: 'Üç yöntemi birlikte kullan. Rüzgar dönüyorsa son 3 dakikada yeniden ölç. Sonra planını yap: hangi uç, hangi boşluk? Bunları A3 ve A4 derslerinde göreceksin.' }
     ],
     addBoat: { pin: { x: 380, y: 520 }, middle: { x: 520, y: 560 }, committee: { x: 660, y: 520 } }
   });
@@ -141,13 +141,13 @@
       { slot: 0.86, row: 1, wait: { x: 862, y: 485, h: 355, until: 11, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 1 dk 20 sn: filo hattın dibinde', text: 'Gri tekneler hattın 1-1.5 boy gerisinde rüzgara baş vermiş, yelkenleri boş bekliyor. Aralarında boşluklar var: boşluk, hızlanma alanıdır. Yeşil tekne yarım hızla yerine geliyor.' },
-      { t: 4, title: 'Yerini al, rüzgara baş ver', text: 'Yeşil tekne de hattın dibinde durdu. Burnu rüzgara yakın, yelken boş ("sallanıyor"). Küçük teknede bekleme burada yapılır: hattan uzakta değil, hemen gerisinde. Rüzgaraltınızdaki boşluğu koruyun; biri sokulursa orsa edip kapatın (Kural 11).' },
-      { t: 17.2, title: 'Turuncu 1 saniye erken doldurdu', text: 'Turuncu 11 saniye kala yelkenini doldurdu; yeşil 12 saniye kala ama 1 boy daha gerideydi. Bekleme yerine göre 1-2 saniye bile küçük teknede yarım boy eder.' },
-      { t: 19.6, title: 'Burnu çizgiyi geçti: fodepar (OCS)', text: 'Sinyalde teknenin herhangi bir parçası (burun!) çizginin öbür tarafındaysa erken start = fodepar (OCS). Çoğu fodepar böyle olur: yarım boy. P bayrağında geri dönüp hattı yeniden geçmek yeter; I bayrağında uçlardan dolaşılır; U ve siyah bayrakta son 1 dakikada bu burun yarıştan çıkarır (bkz. A12).' },
-      { t: 16.5, title: '14 sn kala: doldurmaya hazırlan', text: 'Yeşil tekne bordalayıp yelkeni dolduruyor; filo 10 saniye kala dolduruyor. Optimist yelkeni doldurunca tam hıza ~10-12 saniyede çıkar (simülatördeki tekne tablosuyla aynı). Bu yüzden bekleme hattın dibinde, hızlanma son 10-12 saniyedir.' },
-      { t: 20, title: 'START', text: 'Yeşil tekne tam bu anda, tam hızla çizgide; filo da birlikte çıkıyor. Turuncu geri dönüyor: 20-25 saniye ve kirli hava. Gri tekne geç doldurdu: çizgiyi ~9 saniye sonra, yavaş geçecek.' },
-      { t: 25, title: 'Sonuç', text: 'Formül: hattın dibinde (1-1.5 boy) rüzgara baş verip bekle, rüzgaraltında boşluk tut, sinyalden 10-12 sn önce doldur. Antrenmanda "kaç saniyede 1 boy?" hissini çalışın: yelkeni doldurup çizgiye varma süresini tekrar tekrar ölçün.' }
+      { t: 0, title: 'Start\'a 1 dakika 20 saniye', text: 'Gri tekneler hattın 1 boy kadar gerisinde bekliyor. Burunları rüzgara yakın, yelkenleri boş. Aralarında boşluklar var. Boşluk, hızlanacağın yerdir. Yeşil tekne yavaşça yerine geliyor.' },
+      { t: 4, title: 'Yerini al, rüzgara baş ver', text: 'Yeşil tekne de hattın dibinde durdu. Yelkeni boş, sallanıyor. Optimist hattan uzakta değil, hemen gerisinde bekler. Rüzgaraltındaki boşluğu koru. Biri sokulursa orsa et ve kapat. Bu Kural 11.' },
+      { t: 17.2, title: 'Turuncu bir saniye erken doldurdu', text: 'Turuncu yelkenini 11 saniye kala doldurdu. Yeşil 12 saniye kala doldurdu ama bir boy daha gerideydi. Bir iki saniye bile yarım boy eder.' },
+      { t: 19.6, title: 'Burun çizgiyi geçti: erken start', text: 'Start anında teknenin bir parçası, mesela burnu, çizginin önündeyse erken start yaptın. Buna fodepar denir. Çoğu fodepar böyle yarım boyla olur. Hangi bayrak varsa ona göre geri dönersin. A12 dersinde bayrakları göreceksin.' },
+      { t: 16.5, title: '14 saniye kala: hazırlan', text: 'Yeşil tekne yelkenini dolduruyor. Filo 10 saniye kala dolduracak. Optimist yelkeni doldurunca tam hıza 10 12 saniyede çıkar. Bu yüzden hattın dibinde bekle, son 10 12 saniyede hızlan.' },
+      { t: 20, title: 'START', text: 'Yeşil tekne tam start anında, tam hızla çizgide. Filo da onunla çıkıyor. Turuncu geri dönmek zorunda, çok zaman kaybedecek. Gri tekne geç doldurdu, çizgiyi yavaş ve geç geçecek.' },
+      { t: 25, title: 'Sonuç', text: 'Formül şu: hattın bir boy gerisinde rüzgara baş ver, bekle. Rüzgaraltında boşluk tut. Start\'tan 10 12 saniye önce yelkeni doldur. Antrenmanda bir boyu kaç saniyede gittiğini tekrar tekrar ölç.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 390, y: 640 }, committee: { x: 720, y: 560 } },
     expectEarly: ['E'],
@@ -193,15 +193,15 @@
         ] }
     ],
     steps: [
-      { t: 0, title: 'Pin ucu avantajlı', text: 'Rüzgar 335°\'den, yani pin (sol) tarafından geliyor. Hat geniş (12 boy); pin ucu hakem botundan ~5 tekne boyu "önde". Filo hattın dibinde rüzgara baş vermiş bekliyor; herkes pin tarafına yığılmış, hakem botu tarafı boş. Start\'a 24 saniye var.' },
-      { t: 2, title: 'Pin layline\'ı', text: 'Mavi kesikli çizgi: pin\'den geriye, sancak orsa rotası boyunca çizilen layline. Bu çizginin ÜSTÜNDE (sağında) olan tekne pin\'e yetişir; altında kalan yetişemez. Yeşil P1 tam layline\'da, turuncu P2 altında.' },
-      { t: 4, title: 'P2 pin\'e yetişemiyor', text: 'P2 orsa gittiği hâlde burnu pin\'in soluna düşüyor. Seçenekleri: tramola atıp iskele kontrada filoya girmek (tehlikeli, Kural 10) ya da pin\'in dışından geçip geri dönmek. İkisi de pahalı.' },
-      { t: 6, title: 'START: P1 pin\'de', text: 'P1 start anında pin\'in hemen yanında, tam hızda. Avantajlı uçtan, temiz havada, rüzgaraltında kimse yok.' },
-      { t: 7.0, title: 'P1 hemen tramola', text: 'Pin\'den çıkan tekne sancakta uzun gitmez: pin\'i temizler temizlemez iskele kontraya döner. Neden? Pin avantajı onu filonun ÖNÜNE koydu; iskele kontrada herkesin önünden geçip istediği tarafa gidebilir. Sancakta kalsa sol kenara sıkışır.' },
-      { t: 8.6, title: 'P2 çizgi dışından geçti', text: 'P2 hattı pin\'in dışından geçti: start almış sayılmaz. Geri dönüp hattı uçlar arasından yeniden geçmek zorunda.' },
-      { t: 11, title: 'P1 P3\'ün önünden geçiyor', text: 'İskele kontradaki P1, sancak kontradaki P3\'ün önünden rahatça geçiyor. Normalde iskele yol verirdi (Kural 10) ama P1 yeterince önde. Basamak çizgisi farkı gösteriyor: ~1.5 boy.' },
-      { t: 12.5, title: 'P2 geri dönüyor', text: 'P2 hattın altına inip yeniden start alıyor: yarım dakika ve filonun arkasında kirli hava. Pin\'e sıkışmanın maliyeti bu.' },
-      { t: 15, title: 'Sonuç', text: 'Pin avantajlıysa: layline\'ı son 30 saniyede gözle kontrol edin, layline\'ın biraz ÜSTÜNDE gelin, son 10 saniyede hızlanın, pin\'i temizleyince tramola atın. Emin değilseniz pin\'den 2-3 boy sağda start alın: küçük kayıp, sıfır risk.' }
+      { t: 0, title: 'Pin ucu avantajlı', text: 'Rüzgar sol taraftan, pin tarafından geliyor. Pin ucu hakem botundan yaklaşık 5 tekne boyu önde. Herkes pin tarafına toplanmış, hakem botu tarafı boş. Start\'a 24 saniye var.' },
+      { t: 2, title: 'Pin layline\'ı', text: 'Mavi kesikli çizgi pin\'in layline\'ı. Bu çizginin üstündeki tekne pin\'e yetişir. Altında kalan yetişemez. Yeşil P1 tam çizginin üstünde, turuncu P2 altında.' },
+      { t: 4, title: 'P2 pin\'e yetişemiyor', text: 'P2 orsa gidiyor ama burnu pin\'in soluna düşüyor. İki seçeneği var. Tramola atıp filoya girmek tehlikeli, çünkü iskele kontrada yol vermek zorunda. Pin\'in dışından geçip geri dönmek de zaman kaybettirir.' },
+      { t: 6, title: 'START: P1 pin\'de', text: 'P1 start anında pin\'in hemen yanında, tam hızda. Avantajlı uçta, temiz havada. Rüzgaraltında kimse yok.' },
+      { t: 7.0, title: 'P1 hemen tramola', text: 'Pin\'den çıkan tekne sancakta uzun gitmez. Pin\'i geçer geçmez tramola atar. Neden? Çünkü filonun önünde. İskele kontrada herkesin önünden geçip istediği tarafa gidebilir.' },
+      { t: 8.6, title: 'P2 çizgi dışından geçti', text: 'P2 pin\'in dışından geçti. Bu start sayılmaz. Geri dönüp hattı iki ucun arasından yeniden geçmesi gerekiyor.' },
+      { t: 11, title: 'P1, P3\'ün önünden geçiyor', text: 'İskele kontradaki P1, sancak kontradaki P3\'ün önünden rahatça geçiyor. Normalde iskele kontra yol verir ama P1 yeterince önde. Fark yaklaşık bir buçuk boy.' },
+      { t: 12.5, title: 'P2 geri dönüyor', text: 'P2 hattın altına inip yeniden start alıyor. Yarım dakika kaybediyor ve filonun arkasında pis havada kalıyor. Pin\'e sıkışmanın bedeli bu.' },
+      { t: 15, title: 'Sonuç', text: 'Pin avantajlıysa layline\'ı son 30 saniyede kontrol et. Layline\'ın biraz üstünden gel. Son 10 saniyede hızlan. Pin\'i geçince tramola at. Emin değilsen pin\'den 2 3 boy sağda start al. Az kaybedersin ama risk yok.' }
     ],
     addBoat: { pin: { x: 400, y: 650 }, middle: { x: 560, y: 660 }, committee: { x: 660, y: 650 } },
     startSlots: { pin: [0.2], middle: [0.4], committee: [0.6] },
@@ -248,14 +248,14 @@
         ] }
     ],
     steps: [
-      { t: 0, title: 'Hakem botu ucu avantajlı', text: 'Rüzgar 15°: hakem botu tarafından. Herkes hakem botunun hemen yanından çıkmak ister; ama orada tek bir yer var.' },
-      { t: 1, title: 'Layline ve güvenli yer', text: 'Mavi çizgi hakem botunun kıçına giden sancak layline\'ı. Yeşil L tam bu çizgide, rüzgaraltından geliyor: o yerin sahibi. Mavi C ise 4 boy aşağıda, kalabalıktan uzak, temiz havada.' },
-      { t: 2.2, title: 'W barging yapıyor', text: 'Turuncu W rüzgarüstünden, apaz hızla L ile hakem botu arasındaki boşluğa sokulmaya çalışıyor. Buna "barging" denir. Kurallarda yeri yok: aynı kontra, bindirmeli → rüzgarüstündeki W, rüzgaraltındaki L\'ye yol vermek zorunda (Kural 11). Start öncesinde "uygun rota" sınırı da yoktur: L rüzgara kadar orsa edebilir.' },
-      { t: 2.6, title: 'L kapıyı kapatıyor', text: 'L orsa ediyor ve "Yer yok!" diye sesleniyor. W\'nin hakem botuna sığacak yeri kalmadı; hakem botuna çarpmak da Kural 31 ihlali.' },
-      { t: 3.9, title: 'W bordalayıp arkadan geçiyor', text: 'W\'nin tek seçeneği: sert bordalayıp L\'nin kıçından geçmek ve çok daha aşağıdan start almak. Hız ve yer kaybı: 2-3 boy, üstelik kirli hava.' },
-      { t: 7.5, title: 'START', text: 'L hakem botunun hemen rüzgaraltında, tam hızda, avantajlı uçta. C 4 boy aşağıda ama temiz. W geride.' },
-      { t: 10, title: 'Basamak: kim nerede?', text: 'L önde. C hakem botu avantajından ~1 boy feragat etti ama kavga etmeden temiz çıktı. W hem geride hem L\'nin rüzgar gölgesinde: en kötüsü.' },
-      { t: 14, title: 'Sonuç', text: 'Hakem botu ucu için ya layline\'da erkenden yer alın ve rüzgaraltınızı koruyun, ya da 3-5 boy aşağıda güvenli yeri seçin. Asla rüzgarüstünden sokulmayın: kapı kapanır, çarparsanız ceza sizin.' }
+      { t: 0, title: 'Hakem botu ucu avantajlı', text: 'Rüzgar hakem botu tarafından geliyor. Herkes hakem botunun hemen yanından çıkmak ister. Ama orada sadece tek kişilik yer var.' },
+      { t: 1, title: 'Layline ve güvenli yer', text: 'Mavi çizgi hakem botuna giden layline. Yeşil L tam bu çizgide, aşağıdan geliyor. O yer onun. Mavi C ise 4 boy aşağıda. Kalabalıktan uzak, temiz havada.' },
+      { t: 2.2, title: 'W araya sokulmaya çalışıyor', text: 'Turuncu W yukarıdan, hızla geliyor. L ile hakem botu arasına girmek istiyor. Buna barging denir ve kurallara aykırıdır. İki tekne aynı kontrada ve yan yanaysa, yukarıdaki tekne aşağıdakine yol verir. Bu Kural 11.' },
+      { t: 2.6, title: 'L kapıyı kapatıyor', text: 'L orsa ediyor ve yer yok diye bağırıyor. W\'nin girecek yeri kalmadı. Hakem botuna çarparsa yine ceza alır.' },
+      { t: 3.9, title: 'W arkadan geçmek zorunda', text: 'W\'nin tek çaresi var: sert bordalayıp L\'nin arkasından geçmek. Çok daha aşağıdan start alacak. 2 3 boy kaybediyor, üstelik pis havada kalıyor.' },
+      { t: 7.5, title: 'START', text: 'L hakem botunun hemen yanında, tam hızda, avantajlı uçta. C 4 boy aşağıda ama temiz havada. W geride.' },
+      { t: 10, title: 'Kim önde?', text: 'L önde. C biraz kaybetti ama kavga etmeden temiz çıktı. W hem geride hem de L\'nin rüzgar gölgesinde. En kötüsü W.' },
+      { t: 14, title: 'Sonuç', text: 'Hakem botu ucunu istiyorsan layline\'a erken gel ve rüzgaraltını koru. Ya da 3 5 boy aşağıda güvenli bir yer seç. Asla yukarıdan araya sokulma. Kapı kapanır, çarparsan ceza senin olur.' }
     ],
     addBoat: { pin: { x: 300, y: 600 }, middle: { x: 420, y: 660 }, committee: { x: 760, y: 640 } },
     startSlots: { pin: [0.12], middle: [0.3], committee: [0.62] },
@@ -303,14 +303,14 @@
       { slot: 0.905, wait: { x: 828, y: 462, h: 0, until: 19, speed: 0.45 } },
       { slot: 0.86, row: 1, wait: { x: 862, y: 505, h: 355, until: 20, speed: 0.5 } }],
     steps: [
-      { t: 0, title: 'Start\'a 2 dakika: hazırlık bayrağı U', text: 'Hakem botunda hazırlık bayrağı dalgalanıyor: U. Bayrak hangi fodepar (OCS) kuralının geçerli olduğunu söyler. Saat sağ üstte, gerçek zaman (animasyon 4× hızlı).' },
-      { t: 6, title: 'Bayrak türleri', text: 'P (mavi-beyaz): fodepar yaparsan geri dönüp hattı yeniden geç, ceza yok. I (sarı-siyah): son 1 dakikada hattın üstündeysen uçlardan dolaşarak geri dön. U (kırmızı-beyaz kare): son 1 dakikada gövdenin bir parçası hat üçgenindeyse yarıştan çıkarsın (UFD) ama genel geri çağırma olursa yeniden yarışabilirsin. Siyah: aynı şey ama genel geri çağırmada bile yarışamazsın (BFD).' },
-      { t: 12, title: 'Turuncu hattın dibine fazla sokuldu', text: 'Turuncu bekleme yerini hattın tam dibine aldı. Rüzgar ve dalga tekneyi öne iter; küçük teknede yarım boy 2-3 saniyede gider.' },
-      { t: 15, title: '1 dakika: bayrak indi, uzun ses', text: 'Hazırlık bayrağı indi. U bayrağı kuralı şimdi başladı: bu andan start sinyaline kadar burnun çizgiyi geçmesi yarıştan çıkarır. Fodepar yalnızca son saniyede olmaz; son 1 dakikanın tamamında olur.' },
-      { t: 18, title: 'Burun çizgide: UFD', text: 'Turuncunun burnu çizginin üstünde. U bayrağı altında bu tekne artık fodepar: komite not aldı, start sonrası sonuçlarda "UFD" yazacak. Geri çekilmesi kurtarmaz; yalnızca genel geri çağırma (Birinci Tekrar) kurtarır. P bayrağı olsaydı geri çekilip start tarafına dönmesi yeterdi.' },
-      { t: 20, title: 'Geri çekiliyor', text: 'Turuncu yelkeni geri basıp (backing) geri çekiliyor. Geri giden tekne herkese yol verir (Kural 22.3). P bayrağında bu hamle doğru; U ve siyah bayrakta artık geç.' },
-      { t: 24, title: 'Yeşil: hattın dibinde ama altında', text: 'Yeşil de filoyla birlikte hattın dibinde bekliyor ama burnu çizginin yarım boy kadar altında. Hattı görmek için transit (kerteriz) kullanın; emin değilseniz yarım boy geride durun. U ve siyah bayrakta "yarım boy fazla" değil, "yarım boy eksik" tarafında hata yapın.' },
-      { t: 30, title: 'START', text: 'Filo çıkıyor. Turuncu da geçiyor ama UFD: sonuçlarda yarıştan çıkarılmış sayılacak. Özet: bayrağa bak, kuralı bil; U/siyah bayrakta son 1 dakikada burnu çizgiden uzak tut.' }
+      { t: 0, title: 'Start\'a 2 dakika: U bayrağı', text: 'Hakem botunda hazırlık bayrağı var: U bayrağı. Bu bayrak, erken start yaparsan ne olacağını söyler. Sağ üstteki saat gerçek zamanı gösteriyor. Animasyon dört kat hızlı.' },
+      { t: 6, title: 'Bayrak türleri', text: 'P bayrağı mavi beyazdır. Erken çıkarsan geri dön, hattı yeniden geç, ceza yok. I bayrağı sarı siyahtır. Son dakikada hattın önündeysen uçlardan dolaşarak dönersin. U bayrağı kırmızı beyaz karedir. Son dakikada hattın önündeysen yarıştan çıkarsın. Siyah bayrak da aynısı, ama start tekrarlansa bile o yarışa giremezsin.' },
+      { t: 12, title: 'Turuncu hatta fazla yaklaştı', text: 'Turuncu hattın tam dibinde bekliyor. Rüzgar ve dalga tekneyi öne iter. Optimist yarım boyu iki üç saniyede gider.' },
+      { t: 15, title: '1 dakika: bayrak indi', text: 'Hazırlık bayrağı indi. U bayrağı kuralı şimdi başladı. Bu andan start\'a kadar burnun çizgiyi geçerse yarıştan çıkarsın. Yani dikkat sadece son saniyede değil, son dakikanın tamamında.' },
+      { t: 18, title: 'Burun çizgide', text: 'Turuncunun burnu çizginin önünde. U bayrağında bu tekne yarıştan çıktı. Hakem not aldı. Geri çekilmesi kurtarmaz. Sadece start tekrarlanırsa kurtulur. P bayrağı olsaydı geri dönmesi yeterdi.' },
+      { t: 20, title: 'Geri çekiliyor', text: 'Turuncu yelkeni ters basıp geri gidiyor. Geri giden tekne herkese yol verir. P bayrağında bu doğru bir hamle. U ve siyah bayrakta artık çok geç.' },
+      { t: 24, title: 'Yeşil: dipte ama geride', text: 'Yeşil de hattın dibinde bekliyor. Ama burnu çizginin yarım boy gerisinde. Hattı görmek için pin ile hakem botunu bir hizaya getir. Emin değilsen yarım boy geride dur. U ve siyah bayrakta hep geride kalma tarafında hata yap.' },
+      { t: 30, title: 'START', text: 'Filo çıkıyor. Turuncu da çıkıyor ama yarıştan çıkarılmış sayılacak. Özet: bayrağa bak, kuralı bil. U ve siyah bayrakta son dakikada burnunu çizgiden uzak tut.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 500, y: 560 }, committee: { x: 720, y: 560 } },
     startSlots: { pin: [0.4], middle: [0.5], committee: [0.9] },
@@ -355,13 +355,13 @@
       { slot: 0.16, row: 1 }, { slot: 0.61, row: 1 }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 6 sn', text: 'Filo hattın dibinde doldurup hızlanıyor. Yeşil X ve turuncu Y ikinci sırada: ikisi de öndeki teknenin hemen rüzgaraltında-arkasında.' },
-      { t: 6, title: 'START: ikinci sıradasın', text: 'Herkes sancak kontrada orsa çıkıyor. Öndeki teknelerin yelkeninden çıkan bozuk hava (pis rüzgar) rüzgaraltına doğru uzanır; kalabalık bir ön sıranın arkasında 2-3 boy boyunca hava bozuktur (koyu koniler). X ve Y bu gölgenin içinde: hızları %20-30 düşüyor (mor rozet).' },
-      { t: 7, title: 'X omzunun üstünden bakıyor', text: 'X ilk birkaç saniyede karar verir: sağında, rüzgarüstünde tekne var mı? Sağ taraf boş: tramola atabilir. Kural 10: iskele kontraya geçince sancak teknelere yol verecek, onların kıçından geçecek.' },
-      { t: 9, title: 'Tramola: kıçlardan geç', text: 'X tramola attı, iskele kontrada sağdaki sancak teknelerin kıçından geçiyor. Kimseyi kaçmaya zorlamıyor. Gölgeden çıktığı an tam hıza dönüyor.' },
-      { t: 14, title: 'Merdiven: kim önde?', text: 'Kesikli çizgi rüzgara dik merdiven basamağı. X temiz havada tam hızda, Y hâlâ öndeki filonun gölgesinde. Tramolada kaybettiği mesafeyi birkaç saniyede geri alıyor; fark her saniye büyüyor.' },
-      { t: 17, title: 'X sancağa dönüyor', text: 'X filonun rüzgarüstünde, kendi temiz şeridinde (lane) sancağa döndü. Artık kimse onun havasını kesmiyor.' },
-      { t: 30, title: 'Özet', text: 'Starttan sonra ilk iş hızına bakmak: yanındakilerden yavaşsan pis havadasın. Önce omzuna bak, yer varsa tramola at ve kıçlardan geç. Yarım dakikada X, Y\'nin yaklaşık 1 boy önüne geçti; gölgede kalmak her dakika birkaç boy demek.' }
+      { t: 0, title: 'Start\'a 6 saniye', text: 'Filo yelkenini doldurup hızlanıyor. Yeşil X ve turuncu Y ikinci sırada. İkisi de öndeki teknenin hemen arkasında ve altında.' },
+      { t: 6, title: 'START: ikinci sıradasın', text: 'Herkes sancak kontrada orsa çıkıyor. Öndeki yelkenler arkaya bozuk hava bırakır. Buna pis hava denir. Koyu gölgeler bunu gösteriyor. X ve Y bu gölgenin içinde, yavaşlıyorlar.' },
+      { t: 7, title: 'X omzunun üstünden bakıyor', text: 'X hemen karar verir: sağında, yukarıda tekne var mı? Sağ taraf boş. Tramola atabilir. İskele kontraya geçince sancak teknelere yol verecek, arkalarından geçecek. Bu Kural 10.' },
+      { t: 9, title: 'Tramola: arkalardan geç', text: 'X tramola attı. Sağdaki teknelerin arkasından geçiyor. Kimseyi rahatsız etmiyor. Gölgeden çıkınca hemen hızlanıyor.' },
+      { t: 14, title: 'Kim önde?', text: 'Kesikli çizgi merdiven basamağı. X temiz havada, tam hızda. Y hâlâ gölgede. X tramolada kaybettiğini birkaç saniyede geri aldı. Fark her saniye büyüyor.' },
+      { t: 17, title: 'X sancağa dönüyor', text: 'X filonun yukarısında, kendi temiz yolunda tekrar sancağa döndü. Artık kimse onun havasını kesmiyor.' },
+      { t: 30, title: 'Özet', text: 'Start\'tan sonra ilk iş hızına bakmak. Yanındakilerden yavaşsan pis havadasın. Önce omzuna bak. Yer varsa tramola at, arkalardan geç. Yarım dakikada X, Y\'nin bir boy önüne geçti. Gölgede kalmak çok kaybettirir.' }
     ],
     addBoat: { pin: { x: 380, y: 600 }, middle: { x: 640, y: 600 }, committee: { x: 860, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
@@ -415,14 +415,14 @@
       { slot: 0.16, row: 1 }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 6 sn', text: 'Yeşil S ve turuncu H ikinci sırada, öndeki teknenin hemen rüzgaraltında-arkasında. İkisinin de sağında (rüzgarüstünde) yan yana bir tekne var. Öndeki sırada iki boşluk var (yeşil parantez).' },
-      { t: 6, title: 'START: gölgedesin', text: 'Filo sancak kontrada çıkıyor. S ve H öndeki teknenin pis havasında: hız %20-30 düşük (mor rozet). Bozuk hava öndeki teknenin 1-2 boy arkasına uzanır.' },
-      { t: 6.8, title: 'Tramola yolu kapalı', text: 'Tramola atsalar sağdaki tekneye çarparlar ya da önünü keserler (Kural 13: tramola atarken yol ver). Bu durumda çıkış yolu rüzgaraltı.' },
-      { t: 8, title: 'S bordalıyor', text: 'S burnu 20-25° düşürüyor, yelkeni biraz kaçırıp hızlanıyor (footing) ve rüzgaraltındaki boşluğa kayıyor. Rüzgarüstü tekne olduğu için soldaki tekneden uzak duruyor (Kural 11).' },
-      { t: 10, title: 'H sıkıştırıyor', text: 'H gölgeden yukarı, orsalayarak çıkmaya çalışıyor (pinch). Yelken boşalıyor, tekne yavaşlıyor; öndeki tekne uzaklaşmadığı için gölgeden de çıkamıyor.' },
-      { t: 13, title: 'S boşlukta orsaya döndü', text: 'S boşluğa yerleşti: önü ve rüzgarüstü açık, temiz havada tam hızda. Bordalarken kaybettiği yükseklik birkaç saniyede geri geliyor.' },
-      { t: 18, title: 'Merdiven: kim önde?', text: 'Rüzgara dik kesikli çizgi. S temiz havada filoyla aynı hızda gidiyor; H hem sıkıştırma hem gölge yüzünden geride kalıyor.' },
-      { t: 30, title: 'Özet', text: 'Pis havadaysan ve tramola yolun kapalıysa: rüzgaraltına bak. Boşluk varsa bordala, hızlan, boşlukta orsaya dön. Gölgeden orsalayarak çıkmaya çalışma: sıkıştıran tekne hem yavaşlar hem gölgede kalır. Yarım dakikada S, H\'nin yaklaşık 1 boy önüne geçti.' }
+      { t: 0, title: 'Start\'a 6 saniye', text: 'Yeşil S ve turuncu H ikinci sırada, öndeki teknenin hemen arkasında. İkisinin de sağında, yukarısında bir tekne var. Ön sırada iki boşluk var. Yeşil işaretler onları gösteriyor.' },
+      { t: 6, title: 'START: gölgedesin', text: 'Filo sancak kontrada çıkıyor. S ve H öndeki teknenin pis havasında. Bu yüzden yavaşlar. Pis hava öndeki teknenin bir iki boy arkasına kadar uzanır.' },
+      { t: 6.8, title: 'Tramola yolu kapalı', text: 'Tramola atsalar sağdaki tekneye çarparlar. Tramola atan tekne herkese yol verir. Bu Kural 13. O zaman çıkış yolu aşağıda, rüzgaraltında.' },
+      { t: 8, title: 'S bordalıyor', text: 'S burnunu biraz düşürüyor. Yelkeni biraz kaçırıp hızlanıyor ve aşağıdaki boşluğa kayıyor. Soldaki tekneden uzak duruyor, çünkü yukarıdaki tekne o. Bu Kural 11.' },
+      { t: 10, title: 'H sıkıştırıyor', text: 'H gölgeden yukarı doğru, orsalayarak çıkmaya çalışıyor. Yelken boşalıyor, tekne yavaşlıyor. Öndeki tekne uzaklaşmadığı için gölgeden de çıkamıyor.' },
+      { t: 13, title: 'S boşlukta orsaya döndü', text: 'S boşluğa yerleşti. Önü ve yukarısı açık. Temiz havada, tam hızda. Aşağı inerken kaybettiğini birkaç saniyede geri alıyor.' },
+      { t: 18, title: 'Kim önde?', text: 'Kesikli çizgi merdiven basamağı. S temiz havada, filoyla aynı hızda gidiyor. H hem sıkıştırdığı hem de gölgede kaldığı için geride.' },
+      { t: 30, title: 'Özet', text: 'Pis havadaysan ve tramola atamıyorsan aşağıya bak. Boşluk varsa bordala, hızlan, boşlukta orsaya dön. Gölgeden orsalayarak çıkmaya çalışma. Sıkıştıran tekne yavaşlar ve gölgede kalır. Yarım dakikada S, H\'nin bir boy önüne geçti.' }
     ],
     addBoat: { pin: { x: 380, y: 600 }, middle: { x: 560, y: 620 }, committee: { x: 860, y: 620 } },
     startSlots: { pin: [0.1], middle: [0.4], committee: [0.67] }
@@ -483,18 +483,18 @@
       { slot: 0.74, row: 1, wait: { x: 885, y: 492, h: 0, until: 16.6, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 72 sn: pin grubu oluştu', text: 'Rüzgar 350°: pin hafif avantajlı. Gri tekneler pin\'e yakın yerleri almış, gerçek bir Optimist startındaki gibi yan yana, yarım-bir boy arayla, iki sıra halinde hattın dibinde rüzgara baş vermiş bekliyor. Hakem botunun dibi ise baştan boş: orada durmaya çalışan botun gövdesine kayar. Üç tekne botun sancağında ve kıçında, dışarıda bekliyor. Mavi kesikli çizgi pin layline\'ı. Yeşil X kavganın dışında, pin\'in SOLUNDA bekliyor.' },
-      { t: 4, title: 'Neden dışarıda, neden solda?', text: 'Grubun içinde 70 saniye yer tutmak zor: yelken boşken tekne rüzgaraltına, pin\'e doğru kayar (filonun yavaşça sola sürüklendiğine bakın), biri rüzgarüstünden sokulur, boşluğun kapanır. Pin\'in solunda beklerken hattı, layline\'ı ve boşlukları yandan görürsün; apaz ile hızlı ve kontrollü girersin. Hakem botu tarafındakiler de aynı şeyi yapıyor: filo kaydıkça botun dibi açılacak.' },
-      { t: 9, title: 'Son 45 sn: apaz ile gel', text: 'X yelkenini doldurup apaz (yarım rüzgar) ile hattın hemen altından, pin\'in altından geçip gruba doğru gidiyor. İskele kontrada: herkese yol verir (Kural 10); sancak teknelerin burnuna girmeden, altlarından geçer.' },
-      { t: 12.5, title: 'KARAR: boşluk var mı, layline\'ın üstünde mi?', text: 'İki soru: (1) Grubun en alttaki teknesinin rüzgaraltında 1 boy boşluk var mı? (2) Tramola noktası pin layline\'ının ÜSTÜNDE mi? İkisi de evetse gir. Boşluk kapalıysa ya da layline\'ın altındaysan girme: pin\'i kurtaramazsın, çizgi dışından geçersin.' },
-      { t: 14.5, title: 'X tramola: Kural 13 ve 15', text: 'X layline\'ın üstünde, grubun en altındaki teknenin rüzgaraltına tramola atıyor. Tramola sırasında herkese yol verir (Kural 13). Sancak kontraya geçip rüzgaraltı tekne olunca hak sahibi; ama Kural 15: rüzgarüstündekine başta kaçınma yeri ver. O yüzden tramola dibine değil, yarım boy aşağısına.' },
-      { t: 16.5, title: 'Z HATA: layline\'ın altında tramola', text: 'Turuncu Z aynı hamleyi layline\'ın ALTINDA yaptı. Sancak orsa ile pin\'e varamaz: burnu pin\'in soluna düşer. Ya herkese yol verip tramola atacak ya da pin\'in dışından geçip geri dönecek. Boşluk bulsan bile layline\'ın altındaysan girmenin anlamı yok.' },
-      { t: 19.5, title: 'Y HATA: geç geldi', text: 'Mor Y 25 saniye kala geldi; X boşluğu almış, grup sıkışmış. Girecek yer yok: herkesin altından, kirli havada, 3-4 boy geride başlayacak. Zamanlama: hafif rüzgarda 50 sn, kuvvetlide 35-40 sn kala gel.' },
-      { t: 21.5, title: '2.5 sn kala doldur', text: 'X rüzgaraltı hakkıyla yerini korudu (Kural 11); pin layline\'ının üstünde, boşluğu var: bordalayıp hızlanıyor. Öbür uçta: filo pin\'e kaydıkça hakem botunun dibi açıldı, dışarıda bekleyen üç tekne yavaşça süzülüp girdi. İkisi ön sırada hızla, geç kalan üçüncüsü ikinci sırada.' },
-      { t: 24, title: 'START', text: 'X pin\'in hemen yanından, tam hızla, temiz havada. Z pin\'i kurtaramıyor: burnu pin\'in soluna düşüyor. Y hâlâ herkesin altında sağa doğru gidiyor.' },
-      { t: 25.5, title: 'Z: dışarıdan çıkılmaz, bordala', text: 'Pin\'in dışından geçmek start sayılmaz. Z\'nin iki yolu var: rüzgarüstüne tramola atıp geri dönmek ya da bordalayıp (gerekirse kavança) hattın altından sağa gidip herkesin ARKASINDAN hattın içinden geçmek. Z bordalıyor: 8-10 saniye ve kirli hava.' },
-      { t: 32, title: 'Y ve Z: 25-35 saniye geç', text: 'Y boşluk bulamayınca, Z pin\'i kurtaramayınca ikisi de filonun altından geçip ancak herkesten sonra, kirli havada hattın içinden çıkabiliyor. Geç gelmenin ve layline\'ın altında tramola atmanın maliyeti bu.' },
-      { t: 34.5, title: 'Özet', text: 'Dışarıda bekle → apaz ile gel → boşluk + layline kontrolü → en alttaki teknenin rüzgaraltına tramola → yerini koru. Erken gelirsen boşluk yok ya da sürüklenirsin; geç gelirsen kapanmıştır; layline\'ın altında tramola pin\'i kaybettirir.' }
+      { t: 0, title: 'Start\'a 72 saniye: pin grubu', text: 'Pin ucu biraz avantajlı. Gri tekneler pin\'e yakın yerleri almış. Yan yana, iki sıra halinde, hattın dibinde bekliyorlar. Hakem botunun dibi ise boş. Üç tekne botun yanında, dışarıda bekliyor. Mavi kesikli çizgi pin\'in layline\'ı. Yeşil X kalabalığın dışında, pin\'in solunda bekliyor.' },
+      { t: 4, title: 'Neden dışarıda bekliyor?', text: 'Kalabalığın içinde 70 saniye yer tutmak zordur. Yelken boşken tekne aşağı, pin\'e doğru kayar. Biri yukarıdan sokulur, boşluğun kapanır. Pin\'in solunda beklersen hattı, layline\'ı ve boşlukları yandan görürsün. Sonra hızlı ve kontrollü girersin.' },
+      { t: 9, title: 'Son 45 saniye: apaz gel', text: 'X yelkenini doldurdu. Apaz gidiyor, hattın ve pin\'in hemen altından gruba doğru. İskele kontrada olduğu için herkese yol verir. Bu Kural 10. Teknelerin önünü kesmez, altlarından geçer.' },
+      { t: 12.5, title: 'Karar anı', text: 'İki soru sor. Bir: en alttaki teknenin altında bir boy boşluk var mı? İki: tramola atacağın yer layline\'ın üstünde mi? İkisi de evetse gir. Biri hayırsa girme. Pin\'i kurtaramazsın.' },
+      { t: 14.5, title: 'X tramola atıyor', text: 'X layline\'ın üstünde. En alttaki teknenin hemen altına tramola atıyor. Tramola atarken herkese yol verir. Bu Kural 13. Sancağa geçince hak onundur. Ama yukarıdaki tekneye kaçacak yer bırakmalı. Bu da Kural 15. O yüzden biraz aşağıya, yarım boy açığa tramola atıyor.' },
+      { t: 16.5, title: 'Z\'nin hatası: layline\'ın altında', text: 'Turuncu Z aynı şeyi layline\'ın altında yaptı. Orsa gitse de pin\'e yetişemez, burnu pin\'in soluna düşer. Boşluk bulsan bile layline\'ın altındaysan girmenin anlamı yok.' },
+      { t: 19.5, title: 'Y\'nin hatası: geç geldi', text: 'Mor Y çok geç geldi, 25 saniye kala. X boşluğu almış, grup sıkışmış. Y\'ye yer yok. Herkesin altından, pis havada, 3 4 boy geriden başlayacak. Hafif havada 50 saniye, sert havada 40 saniye kala gel.' },
+      { t: 21.5, title: '2.5 saniye kala doldur', text: 'X yerini korudu. Layline\'ın üstünde ve boşluğu var. Bordalayıp hızlanıyor. Öbür uçta filo pin\'e kaydı, hakem botunun dibi açıldı. Dışarıda bekleyen üç tekne oraya girdi.' },
+      { t: 24, title: 'START', text: 'X pin\'in hemen yanında, tam hızda, temiz havada. Z pin\'e yetişemiyor. Y hâlâ herkesin altında, sağa doğru gidiyor.' },
+      { t: 25.5, title: 'Z dışarıdan çıkamaz', text: 'Pin\'in dışından geçmek start sayılmaz. Z ya tramola atıp geri dönecek ya da bordalayıp herkesin arkasından hattı geçecek. Z bordalıyor. Bu ona 8 10 saniye ve pis hava kaybettiriyor.' },
+      { t: 32, title: 'Y ve Z çok geride', text: 'Y boşluk bulamadı, Z pin\'e yetişemedi. İkisi de en sonda, pis havada start alıyor. Geç gelmenin ve layline\'ın altında tramola atmanın bedeli bu.' },
+      { t: 34.5, title: 'Özet', text: 'Dışarıda bekle. Apaz gel. Boşluğa ve layline\'a bak. En alttaki teknenin altına tramola at. Yerini koru. Erken gelirsen sürüklenirsin, geç gelirsen yer kalmaz. Layline\'ın altında tramola atarsan pin\'i kaçırırsın.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 500, y: 560 }, committee: { x: 720, y: 560 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -540,15 +540,15 @@
       { slot: 0.80, row: 1, wait: { x: 912, y: 498, h: 355, until: 14.4, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 72 sn: pin tarafından hatta bak', text: 'Yeşil S pin\'in dışında, tam hattın uzantısında (hattın üstünde) duruyor ve hakem botuna bakıyor: pin ile hakem botunu aynı hizaya getirince hat tam olarak görünür (transit). Gördüğü şey: uçlardaki tekneler hatta yakın, ortadakiler 2-3 boy geride. Bu bir hat yayı (line sag).' },
-      { t: 2, title: 'Yay neden oluşur?', text: 'Uzun hatta ortadaki tekne hattı göremez; iki ucu birden hizalayamaz. Herkes komşusuna göre durur, her komşu biraz geri kalır; orta kayar. Yayı yalnızca hattı GÖREN bilir: uçtan bakan ya da kıyıda transit alan.' },
-      { t: 4, title: 'Vakit var: hattın altından ortaya', text: 'S hattın uzantısından ayrılıp önce hattın altına iniyor, sonra yelkenini doldurup apaz ile uçtaki teknelerin altından ortaya doğru gidiyor. İskele kontrada: herkese yol verir (Kural 10). Ortaya giderken filonun rüzgar gölgesine girer, hızı düşer: bunu zamanına ekle.' },
-      { t: 12, title: 'Hangi boşluk, ne zaman?', text: 'Hedef: yayın derinleştiği yerde, iki teknenin arasında bir boşluk. Zamanı öyle ayarla ki 45-50 sn kala orada ol: daha erken gelirsen sürüklenirsin, daha geç gelirsen boşluk kapanır. Kargaşanın içinde değil, uzaktan planla.' },
-      { t: 14, title: 'Boşluğa gir ama YUKARI dur', text: 'S boşluğa giriyor ama komşuları gibi 3 boy geride değil, hattın 1 boy altında duruyor. Komşulara göre "öne çıkmış" görünür; aslında hattın doğru yerindedir. Bunun için hattı gerçekten biliyor olman lazım: transit şart.' },
-      { t: 17.5, title: 'Yerini koru, hattı kontrol et', text: 'Rüzgara baş vermiş bekliyor; rüzgaraltında boşluğu var. Son 30 sn\'de transiti bir kez daha kontrol et: pin ile hakem botu hizası nerede, burnun ona göre nerede?' },
-      { t: 21.5, title: '2.5 sn kala doldur', text: 'Komşular 3 boy geriden hızlanacak; S 1 boydan. Sinyalde S hatta, onlar değil.' },
-      { t: 24, title: 'START: 2 boy önde, temiz hava', text: 'S tam hatta, tam hızda. Ortadaki tekneler 2-3 saniye sonra geçecek. Basamak çizgisi farkı gösteriyor. Üstelik S\'nin rüzgarüstünde kimse yok: temiz hava.' },
-      { t: 28, title: 'Yay yoksa?', text: 'Hatta baktın, yay yok: herkes hattın dibinde. O zaman "yukarı durmak" diye bir şey yok: herhangi bir boşluğa, herkesle aynı hizada dur; zamanlamaya ve rüzgaraltı boşluğuna odaklan. Her iki durumda da kural aynı: kargaşadan uzak dur, uzaktan bak, planla, son dakikada gir. Bu durumu İA2b\'de izleyebilirsin.' }
+      { t: 0, title: 'Start\'a 72 saniye: hatta bak', text: 'Yeşil S pin\'in dışında, tam hattın uzantısında. Hakem botuna bakıyor. Pin ile hakem botu bir hizaya gelince hat tam görünür. S şunu görüyor: uçtaki tekneler hatta yakın, ortadakiler 2 3 boy geride. Buna hat yayı denir.' },
+      { t: 2, title: 'Yay neden oluşur?', text: 'Uzun hatta ortadaki tekne hattı göremez. Herkes yanındakine göre durur. Her tekne biraz geride kalır ve orta geriye kayar. Yayı sadece hattı gören bilir. Yani uçtan bakan tekne.' },
+      { t: 4, title: 'Vakit var: ortaya git', text: 'S önce hattın altına iniyor. Sonra yelkenini doldurup uçtaki teknelerin altından ortaya gidiyor. İskele kontrada, herkese yol verir. Filonun gölgesinde yavaşlar. Bunu zamanına ekle.' },
+      { t: 12, title: 'Hangi boşluk, ne zaman?', text: 'Hedefin yayın en derin yerindeki bir boşluk. 45 50 saniye kala orada ol. Erken gelirsen sürüklenirsin. Geç gelirsen boşluk kapanır. Planını kalabalığın içinde değil, uzaktan yap.' },
+      { t: 14, title: 'Boşluğa gir ama yukarıda dur', text: 'S boşluğa giriyor. Ama komşuları gibi 3 boy geride değil, hattın bir boy gerisinde duruyor. Komşulara göre önde görünür. Aslında doğru yerde. Bunun için hattı gerçekten bilmen gerekir.' },
+      { t: 17.5, title: 'Yerini koru, hattı kontrol et', text: 'S rüzgara baş vermiş bekliyor. Altında boşluğu var. Son 30 saniyede hattı bir kez daha kontrol et. Pin ile hakem botu hizası nerede, senin burnun nerede?' },
+      { t: 21.5, title: '2.5 saniye kala doldur', text: 'Komşular 3 boy geriden hızlanacak, S ise bir boydan. Start anında S hatta olacak, onlar değil.' },
+      { t: 24, title: 'START: 2 boy önde', text: 'S tam hatta, tam hızda. Ortadaki tekneler 2 3 saniye sonra geçecek. Merdiven çizgisi farkı gösteriyor. Üstelik S\'nin yukarısında kimse yok. Havası temiz.' },
+      { t: 28, title: 'Yay yoksa?', text: 'Hatta baktın ve yay yoksa, herkes hattın dibindedir. O zaman herhangi bir boşluğa, herkesle aynı hizada dur. Zamanlamaya ve altındaki boşluğa odaklan. Her durumda kalabalıktan uzak dur, uzaktan bak, planla, son dakikada gir. Bunu İA2b dersinde görebilirsin.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 500, y: 560 }, committee: { x: 720, y: 560 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -596,12 +596,12 @@
       { slot: 0.80, row: 1, wait: { x: 912, y: 498, h: 355, until: 14.4, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 72 sn: yine önce hatta bak', text: 'S yine pin\'in dışında, hattın uzantısında: pin ile hakem botunu aynı hizaya getirip hatta bakıyor (transit). Bu kez gördüğü şey farklı: filo hattın dibinde dizilmiş, yay yok. Turuncu çizgi neredeyse hattın üstünde.' },
-      { t: 4, title: 'Yay yoksa plan değişir', text: 'Ortaya gidip "herkesten yukarı durmak" diye bir avantaj yok: yukarı duran erken çıkar (OCS). Avantaj artık iki şeyden gelir: doğru zamanda doğru boşluk ve rüzgaraltında açık su. S yine hattın altından, apaz ile ortaya gidiyor.' },
-      { t: 8, title: 'Rüzgar gölgesi', text: 'Filonun rüzgaraltından geçerken her teknenin kıçından yaklaşık 1 boy uzanan bir pis rüzgar (dirty air) konisi var. S bunların içinden geçerken yavaşlar (etiketteki yüzde): ortaya gitme süreni buna göre hesapla, son anda değil, erken yola çık.' },
-      { t: 13.5, title: 'Boşluğa gir, herkesle AYNI hizada', text: 'S, 3 ile 4 arasındaki boşluğa giriyor ama ortasına değil: 4\'ün hemen rüzgaraltına sokuluyor, ona yakın ve aynı hizada. Böylece 4 S\'nin rüzgarüstünde kalıyor (Kural 11: rüzgarüstü tekne yol verir) ve S\'nin rüzgaraltında, 3\'e kadar açık bir boşluk oluşuyor. Yukarı çıkmıyor; çünkü komşular zaten hattın dibinde. Sinyalde bu boşluğa doğru doldurup hızlanacak.' },
-      { t: 21.5, title: '2.5 sn kala doldur', text: 'Herkes aynı mesafeden hızlanıyor. Fark zamanlamada: geç kalan ya da boşluğu kapatılan geride kalır. S rüzgaraltındaki boşluk sayesinde temiz hızlanıyor.' },
-      { t: 24, title: 'START: aynı hizada, temiz', text: 'S komşularıyla aynı anda hatta. İA2\'deki gibi 2 boy önde değil, ama temiz havada ve tam hızda. Yay yoksa amaç öne geçmek değil, kötü start yapmamak.' }
+      { t: 0, title: 'Start\'a 72 saniye: yine hatta bak', text: 'S yine pin\'in dışında, hattın uzantısında. Pin ile hakem botunu bir hizaya getirip hatta bakıyor. Bu kez durum farklı. Filo hattın dibinde dizilmiş. Yay yok.' },
+      { t: 4, title: 'Yay yoksa plan değişir', text: 'Şimdi herkesten önde durmanın faydası yok. Önde duran erken çıkar. Avantaj iki şeyden gelir: doğru zamanda doğru boşluk ve altında boş su. S yine hattın altından, apaz ile ortaya gidiyor.' },
+      { t: 8, title: 'Rüzgar gölgesi', text: 'Filonun altından geçerken her teknenin arkasında pis hava var. S bunların içinden geçerken yavaşlar. Etiketteki sayı ne kadar yavaşladığını gösterir. Bu yüzden yola erken çık.' },
+      { t: 13.5, title: 'Boşluğa gir, herkesle aynı hizada', text: 'S, 3 ile 4 arasındaki boşluğa giriyor. Ama ortasına değil, 4\'ün hemen altına, ona yakın. Böylece 4 yukarıda kalıyor ve S\'ye yol vermek zorunda. Bu Kural 11. S\'nin altında da 3\'e kadar boş su oluyor. Start\'ta oraya doğru hızlanacak.' },
+      { t: 21.5, title: '2.5 saniye kala doldur', text: 'Herkes aynı yerden hızlanıyor. Fark zamanlamada. Geç kalan ya da boşluğu kapanan geride kalır. S altındaki boşluk sayesinde rahat hızlanıyor.' },
+      { t: 24, title: 'START: aynı hizada, temiz', text: 'S komşularıyla aynı anda hatta. İA2\'deki gibi önde değil ama temiz havada ve tam hızda. Yay yoksa amaç öne geçmek değil, kötü start yapmamaktır.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 500, y: 560 }, committee: { x: 720, y: 560 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -660,12 +660,12 @@
       { slot: 0.86, row: 1, wait: { x: 905, y: 505, h: 0, until: 19, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: önce hatta bak', text: 'S pin\'in dışında, hattın uzantısında; pin ile hakem botunu aynı hizaya getirip hatta bakıyor (transit). 2 dakika kala bakmak, 1 dakika kala bakmaktan çok daha fazla seçenek verir: uzaktaki bir boşluğa gitmeye hâlâ vakit vardır.' },
-      { t: 3, title: 'Üç boşluk, iki soru', text: 'Yay yok, filo hattın dibinde. Sırada üç boşluk var: pin yanında DAR (tek tekne zor sığar), ortada GENİŞ, hakem botu tarafında GENİŞ. Rüzgar 5° sağa dönmüş: hakem botu ucu biraz avantajlı (A1). İki soru sor: (1) Hangisine zamanında yetişirim? (2) Hangisi daha avantajlı?' },
-      { t: 6, title: 'Süre var: avantajlıya git', text: 'S\'nin 1 dakikadan fazla vakti var; filonun 1-2 boy altından apaz ile hakem botu tarafındaki geniş boşluğa gidiyor. Filonun pis rüzgarından geçerken yavaşlar; bunu hesaba katıp erken yola çıkıyor. Dar boşluk en yakın ama riskli: komşular biraz düşerse kapanır, rüzgaraltında yer yok.' },
-      { t: 15, title: 'D 1 dk kala bakıyor', text: 'D ancak şimdi hatta bakıyor. Avantajlı boşluğa gidecek vakit yok (filonun altından ~13 boy). Geriye en yakın boşluk kalıyor: pin yanındaki dar boşluk. D oraya sıkışıyor: komşularıyla arasında yarım boy bile yok.' },
-      { t: 21, title: 'Geniş boşlukta doğru yer', text: 'S geniş boşluğun ortasına değil, rüzgarüstü komşusu 7\'nin hemen rüzgaraltına sokuluyor (İA2b\'deki gibi), aynı hizada. 7 S\'nin rüzgarüstünde (Kural 11: rüzgarüstü yol verir); S\'nin rüzgaraltında 6\'ya kadar açık su var. Sinyalde oraya doldurup hızlanacak.' },
-      { t: 30, title: 'START: avantajlı uçta, temiz', text: 'S avantajlı tarafta, temiz havada ve tam hızda çıkıyor. D dar boşlukta: çıkarken komşuları ona yer açmak zorunda kalıyor (sahnedeki K11/K14 notları), her an temas ve protesto riski; biri biraz düşse boşluk tamamen kapanırdı. Üstelik dezavantajlı uçta: 5° fark 600 px hatta yaklaşık 1 boy eder, S bu boyu avantajlı uçtan bedavaya aldı. Kural: hatta erken bak; süren varsa avantajlı geniş boşluğu seç, yoksa yakındaki geniş boşluğu seç, dar boşluğu son çare bırak.' }
+      { t: 0, title: 'Start\'a 2 dakika: hatta bak', text: 'S pin\'in dışında, hattın uzantısında. Pin ile hakem botunu bir hizaya getirip hatta bakıyor. İki dakika kala bakmak sana daha çok seçenek verir. Uzaktaki bir boşluğa gitmeye hâlâ vaktin vardır.' },
+      { t: 3, title: 'Üç boşluk, iki soru', text: 'Yay yok, filo hattın dibinde. Üç boşluk var. Pin yanındaki dar, tek tekne zor sığar. Ortadaki ve hakem botu tarafındaki geniş. Rüzgar biraz sağa dönmüş, hakem botu ucu biraz avantajlı. Kendine iki soru sor. Hangisine zamanında yetişirim? Hangisi daha avantajlı?' },
+      { t: 6, title: 'Vakit var: avantajlıya git', text: 'S\'nin bir dakikadan fazla vakti var. Filonun altından, apaz ile hakem botu tarafındaki geniş boşluğa gidiyor. Pis havada yavaşlayacağını bildiği için erken yola çıkıyor. Dar boşluk en yakını ama riskli. Kolayca kapanır.' },
+      { t: 15, title: 'D bir dakika kala bakıyor', text: 'D hatta ancak şimdi bakıyor. Avantajlı boşluğa gidecek vakti yok. En yakın boşluk kalıyor: pin yanındaki dar boşluk. D oraya sıkışıyor. Komşularıyla arasında neredeyse hiç yer yok.' },
+      { t: 21, title: 'Geniş boşlukta doğru yer', text: 'S boşluğun ortasına değil, yukarıdaki komşusu 7\'nin hemen altına giriyor, aynı hizada. 7 yukarıda olduğu için S\'ye yol verir. Bu Kural 11. S\'nin altında 6\'ya kadar boş su var. Start\'ta oraya doğru hızlanacak.' },
+      { t: 30, title: 'START: avantajlı uçta, temiz', text: 'S avantajlı tarafta, temiz havada ve tam hızda çıkıyor. D dar boşlukta. Komşuları ona yer açmak zorunda kalıyor. Her an çarpışma riski var. Üstelik D kötü uçta. Kural şu: hatta erken bak. Vaktin varsa avantajlı geniş boşluğa git. Yoksa yakındaki geniş boşluğa git. Dar boşluk en son çaren olsun.' }
     ],
     addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 580 }, committee: { x: 720, y: 580 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -731,12 +731,12 @@
       { slot: 0.86, row: 1, wait: { x: 905, y: 508, h: 355, until: 16.5, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 81 sn: S sıkışmış', text: 'Pin tarafı kalabalık. S ikinci sırada kalmış: önünde tekneler, havası kirli (pis rüzgar), hızlanacak yeri yok. Burada beklerse start\'ta arkada kalır.' },
-      { t: 3, title: 'Geri çekil, kalabalıktan çık', text: 'S rüzgaraltına dönüp kalabalığın arkasından çıkıyor, kavança atıp filonun 2 boy altından apaz ile hattın ortasına gidiyor. Sıkıştığın yerde inat etme: vakit varken daha boş bir yere geç.' },
-      { t: 12, title: 'Boş yerde: rüzgarüstündekinin ALTINA yanaş', text: 'Ortada boşluk var. S boşluğun ortasına değil, rüzgarüstü komşusu W\'nin hemen rüzgaraltına, ona yakın yanaşıyor (yaklaşık 1 boy). W rüzgarüstünde olduğu için S\'ye yol verir (Kural 11), üstüne inemez. S\'nin rüzgaraltında ise açık su kalıyor: sinyalde hızlanacağı yer orası.' },
-      { t: 15.5, title: 'Hata: rüzgaraltındakinin ÜSTÜNE yanaşmak', text: 'H de kalabalıktan çıkıp sağa gitti ama yanlış tarafa yanaştı: L\'nin hemen rüzgarüstüne, ona çok yakın. Şimdi rüzgaraltı tekne L; L orsalarsa H yol vermek zorunda (Kural 11). H\'nin altında açık su yok, kendi yeri L\'nin elinde.' },
-      { t: 24.5, title: '2.5 sn kala doldur', text: 'S ve L altlarındaki boşluğa doğru biraz düşüp yelkeni dolduruyor, hızlanıyor. H\'nin düşecek yeri yok: hemen altında L var.' },
-      { t: 27, title: 'START: altı boş olan kazanır', text: 'S temiz havada, tam hızda çıkıyor; W üstte kalıyor. Sağda L hızlanınca biraz orsalıyor (Kural 11): H yol vermek için duruyor, L\'nin ters rüzgarında kalıyor ve geride düşüyor. Kural: yer tutarken hep rüzgarüstündeki teknenin altına, ona yakın yanaş; altındaki boşluk senindir. Rüzgaraltındakinin üstüne yanaşırsan boşluk onundur.' }
+      { t: 0, title: 'Start\'a 81 saniye: S sıkışmış', text: 'Pin tarafı kalabalık. S ikinci sırada kalmış. Önünde tekneler var, havası pis, hızlanacak yeri yok. Burada beklerse start\'ta geride kalır.' },
+      { t: 3, title: 'Geri çekil, kalabalıktan çık', text: 'S aşağı dönüp kalabalığın arkasından çıkıyor. Kavança atıp filonun altından, apaz ile hattın ortasına gidiyor. Sıkıştığın yerde inat etme. Vakit varken boş bir yere geç.' },
+      { t: 12, title: 'Yukarıdakinin altına yanaş', text: 'Ortada boşluk var. S boşluğun ortasına değil, yukarıdaki komşusu W\'nin hemen altına yanaşıyor, yaklaşık bir boy yakına. W yukarıda olduğu için S\'ye yol verir. Bu Kural 11. S\'nin altında ise boş su kalıyor. Start\'ta orada hızlanacak.' },
+      { t: 15.5, title: 'Hata: aşağıdakinin üstüne yanaşmak', text: 'H de kalabalıktan çıktı ama yanlış tarafa yanaştı. L\'nin hemen üstüne, çok yakınına. Şimdi hak L\'nin. L orsa ederse H yol vermek zorunda. H\'nin altında boş su yok.' },
+      { t: 24.5, title: '2.5 saniye kala doldur', text: 'S ve L altlarındaki boşluğa doğru biraz düşüp yelkenlerini dolduruyor. H\'nin düşecek yeri yok. Hemen altında L var.' },
+      { t: 27, title: 'START: altı boş olan kazanır', text: 'S temiz havada, tam hızda çıkıyor. Sağda L biraz orsa ediyor. H yol vermek için yavaşlıyor, L\'nin pis havasında kalıyor ve geride düşüyor. Kural şu: hep yukarıdaki teknenin altına, ona yakın yanaş. Altındaki boşluk senindir.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -765,11 +765,11 @@
         ] }
     ],
     steps: [
-      { t: 0, title: 'İki tekne kesişiyor', text: 'Yeşil tekne rüzgarı SANCAK tarafından alıyor (bumba iskelede): sancak kontra. Turuncu tekne rüzgarı iskeleden alıyor: iskele kontra. Kural 10: iskele kontralı tekne yol verir.' },
-      { t: 3, title: 'Karar anı', text: 'Turuncu, çarpışma rotasında olduğunu erken görmeli. Seçenekler: (1) bordalayıp yeşilin kıçından geçmek (duck), (2) yeşilin rüzgaraltına tramola atmak (lee-bow), (3) erken tramola atıp uzaklaşmak.' },
-      { t: 3.8, title: 'Bordalama (duck)', text: 'Turuncu bordalıyor ve yeşilin kıç tarafından geçiyor. Kıça yaklaşırken bir an "lift" alırsınız; dalgaya dikkat. Bu seçenek, gitmek istediğiniz taraf sağ ise en ucuzudur: sadece 1-2 tekne boyu kaybedersiniz.' },
-      { t: 7, title: 'Kontraya geri dön', text: 'Yeşilin arkasından geçince hemen orsaya dönün. Sakın yeşilin kıçına çok yakın "sürtmeyin": Kural 14 temas etmeyi her iki tekne için de yasaklar.' },
-      { t: 10, title: 'Hatırlatma', text: 'Sancak kontralı tekne "Starboard!" diye seslenir ama hakkı seslenmesine bağlı değildir. Sancak kontra tekne de rotasını aniden değiştirip iskele teknenin kaçmasını engelleyemez (Kural 16).' }
+      { t: 0, title: 'İki tekne kesişiyor', text: 'Yeşil tekne rüzgarı sağ tarafından alıyor. Bumbası solda. Yani sancak kontra. Turuncu rüzgarı sol tarafından alıyor. Yani iskele kontra. Kural 10 der ki: iskele kontradaki tekne yol verir.' },
+      { t: 3, title: 'Karar anı', text: 'Turuncu çarpışma yolunda olduğunu erken görmeli. Üç seçeneği var. Birincisi, bordalayıp yeşilin arkasından geçmek. İkincisi, yeşilin altına tramola atmak. Üçüncüsü, erkenden tramola atıp uzaklaşmak.' },
+      { t: 3.8, title: 'Bordalama', text: 'Turuncu bordalıyor ve yeşilin arkasından geçiyor. Gitmek istediğin taraf sağsa bu en ucuz yoldur. Sadece bir iki boy kaybedersin.' },
+      { t: 7, title: 'Tekrar orsaya dön', text: 'Yeşilin arkasından geçince hemen orsaya dön. Ama yeşilin kıçına çok yaklaşma. Kural 14 der ki: iki tekne de çarpışmamaya çalışmalı.' },
+      { t: 10, title: 'Unutma', text: 'Sancak kontradaki tekne sancak diye bağırır. Ama bağırmasa da hak onundur. Sancak kontradaki tekne de rotasını aniden değiştirip öbürünün kaçmasını engelleyemez. Bu Kural 16.' }
     ],
     addBoat: { pin: { x: 130, y: 600 }, middle: { x: 430, y: 660 }, committee: { x: 880, y: 600 } }
   });
@@ -805,13 +805,13 @@
       return [T, K, ...fleetCopies(T, [{ dx: 75, dy: -30 }, { dx: 150, dy: 5 }], 1), ...fleetCopies(K, [{ dx: 45, dy: -65 }, { dx: 35, dy: 42 }, { dx: 105, dy: -110 }], 3)];
     })(),
     steps: [
-      { t: 0, title: 'Rüzgar tam kuzeyden', text: 'İki tekne de sancak kontra orsa gidiyor (gri filo da: kimi yeşil gibi header\'da tramola atacak, kimi turuncu gibi devam edecek; merdiven çizgisinde kimin kazandığına bakın). Sağ üstteki ok rüzgarın GELDİĞİ yönü gösterir. Pusulada orsa rotanızı not edin: örn. sancak kontra 315°.' },
-      { t: 7, title: 'Rüzgar sola dönüyor: HEADER', text: 'Rüzgar sola (−15°) dönünce sancak kontradaki tekne daha aşağı rota tutmak zorunda kalır: burnu şamandıradan uzaklaşır. Buna kapatma/header denir. Pusula 315 → 300.' },
-      { t: 10, title: 'Yeşil tramola atıyor', text: 'Kural: "Header\'da tramola." Yeşil iskele kontraya geçince yeni rotası 30°: rüzgar onu şamandıraya doğru "açıyor" (lift). Turuncu ise kapalı kontrada devam ediyor.' },
-      { t: 14, title: 'Merdiven basamağı', text: 'Kesikli çizgi (rüzgara dik) kimin gerçekten önde olduğunu gösterir. Yeşil, turuncunun önüne geçti. Rüzgar hangi yöndeyse "üst" o yöndür; ekranın üstü değil!' },
-      { t: 20, title: 'Rüzgar sağa dönüyor', text: 'Rüzgar +15°\'ye geçince bu kez iskele kontradaki yeşil kapanır (rotası 30 → 60). Turuncu ise sancak kontrada açılır (300 → 330).' },
-      { t: 22, title: 'Yeşil yine tramola', text: 'Yeşil kapanınca tekrar tramola atıp sancak kontraya, yani açılan kontraya geçiyor. Her iki tekne de şimdi aynı kontrada; fark korunuyor ve büyüyor.' },
-      { t: 32, title: 'Sonuç', text: 'Yeşil, her dönüşte açılan kontrada kaldığı için rüzgara doğru daha kısa yol yaptı. Pratik: pusula ortalama rotayı bilin; ortalamanın altına düşerseniz (kapandıysanız) tramola; üstündeyseniz devam. Her küçük dalgalanmada değil, dönüş "yerleşince" tramola atın.' }
+      { t: 0, title: 'Rüzgar tam kuzeyden', text: 'İki tekne de sancak kontrada orsa gidiyor. Gri filonun bazısı yeşil gibi, bazısı turuncu gibi davranacak. Sağ üstteki ok rüzgarın geldiği yönü gösterir. Pusulada orsa rotanı aklında tut.' },
+      { t: 7, title: 'Rüzgar sola döndü: kapatma', text: 'Rüzgar sola dönünce sancak kontradaki tekne daha aşağı gitmek zorunda kalır. Burnu şamandıradan uzaklaşır. Buna kapatma denir. İngilizcesi header. Pusuladaki rakam düşer.' },
+      { t: 10, title: 'Yeşil tramola atıyor', text: 'Kural basit: kapatmada tramola at. Yeşil iskele kontraya geçti. Şimdi rüzgar onu şamandıraya doğru götürüyor. Buna açma denir. Turuncu ise kapalı kontrada devam ediyor.' },
+      { t: 14, title: 'Merdiven basamağı', text: 'Kesikli çizgi kimin gerçekten önde olduğunu gösterir. Yeşil, turuncunun önüne geçti. Unutma, yukarı demek rüzgarın geldiği yön demektir, ekranın üstü değil.' },
+      { t: 20, title: 'Rüzgar sağa döndü', text: 'Şimdi rüzgar sağa döndü. Bu kez iskele kontradaki yeşil kapanıyor. Turuncu ise sancak kontrada açılıyor.' },
+      { t: 22, title: 'Yeşil yine tramola atıyor', text: 'Yeşil kapanınca yine tramola atıp açılan kontraya geçiyor. İki tekne de şimdi aynı kontrada. Aradaki fark büyüyor.' },
+      { t: 32, title: 'Sonuç', text: 'Yeşil hep açılan kontrada kaldı. Bu yüzden şamandıraya daha kısa yoldan gitti. Ortalama rotanı bil. Rotan ortalamanın altına düşerse tramola at. Üstündeysen devam et. Her küçük dalgalanmada değil, dönüş yerleşince tramola at.' }
     ],
     addBoat: { pin: { x: 440, y: 650 }, middle: { x: 620, y: 650 }, committee: { x: 760, y: 650 } }
   });
@@ -847,11 +847,11 @@
       return [I, O, ...fleetTrain(I, [-3.4, -1.8, 1.5, 3, 4.5], 1, 40, 1), ...fleetTrain(O, [1.5, 3], 1, 40, 6)];
     })(),
     steps: [
-      { t: 0, title: 'İki tekne layline\'da', text: 'İki tekne de sancak kontra, bindirmeli (overlap) şekilde orsa şamandırasına geliyor. Yeşil tekne rüzgaraltında ve şamandıraya daha yakın: "içteki" tekne. Kesikli daire 3 tekne boyu "zone". Gri filo da aynı layline\'da: Optimist yarışında şamandıraya tek tek değil, yarım-bir boy arayla dizi halinde gelinir; önde dönenler, arkada bekleyen sıra ve dıştan gelenler var.' },
-      { t: 7.6, title: 'Zone\'a giriş', text: 'İlk tekne zone\'a girdiği anda bindirme var mı diye bakılır. Var: yeşil içte. Bu andan itibaren turuncu, yeşile şamandırayı dönmesi için YER vermek zorunda (Kural 18.2). Bindirme daha sonra bozulsa bile hak devam eder.' },
-      { t: 9.6, title: 'Dönüş', text: 'Yeşil şamandırayı yakından dönüyor; turuncu dışarıdan, daha geniş dönüyor. Turuncu "ben de buradayım" diye sıkıştıramaz; sıkıştırırsa ceza alır.' },
-      { t: 12.5, title: 'Şamandıra sonrası', text: 'Dönüş tamamlanınca Kural 18 biter; normal kurallar (10, 11, 12) geçerli olur. Pupa seyrine geçildi; şimdi rüzgaraltı/rüzgarüstü ilişkisine bakılır.' },
-      { t: 14.5, title: '2025-2028 kuralı notu', text: 'Yeni kurallarda ilk tekne zone\'a girdiği an hak sahibi netleşir. Zone içinde tramola atan tekne şamandıra yeri isteyemez (18.3). Zone\'a bindirmesiz, arkadan giren tekne de yer alamaz: içe burun sokmayın!' }
+      { t: 0, title: 'İki tekne layline\'da', text: 'İki tekne de sancak kontrada, yan yana şamandıraya geliyor. Yeşil aşağıda ve şamandıraya daha yakın. Yani içteki tekne o. Kesikli daire 3 tekne boyu büyüklüğünde. Buna bölge denir. Gri filo da sıra halinde şamandıraya geliyor.' },
+      { t: 7.6, title: 'Bölgeye giriş', text: 'İlk tekne bölgeye girdiği an bakılır: yan yanalar mı? Evet, yeşil içte. Artık turuncu, yeşile şamandırayı dönmesi için yer vermek zorunda. Bu Kural 18. Sonra yan yanalık bozulsa bile bu hak devam eder.' },
+      { t: 9.6, title: 'Dönüş', text: 'Yeşil şamandırayı yakından dönüyor. Turuncu dışarıdan, daha geniş dönüyor. Turuncu yeşili sıkıştıramaz. Sıkıştırırsa ceza alır.' },
+      { t: 12.5, title: 'Şamandıradan sonra', text: 'Dönüş bitince Kural 18 de biter. Artık normal kurallar geçerli. Pupaya geçildi. Şimdi kim yukarıda, kim aşağıda, ona bakılır.' },
+      { t: 14.5, title: 'Yeni kurallardan not', text: 'İlk tekne bölgeye girdiği an hak sahibi belli olur. Bölgenin içinde tramola atan tekne şamandıra yeri isteyemez. Bölgeye arkadan giren tekne de yer isteyemez. İçeriye burnunu sokma!' }
     ],
     addBoat: { pin: { x: 760, y: 530 }, middle: { x: 900, y: 530 }, committee: { x: 940, y: 400 } },
     addBoatLabels: { pin: 'Önde (iç)', middle: 'Arkada', committee: 'Dışta' }
@@ -898,16 +898,16 @@
       { slot: 0.17, row: 1, back: 10 }, { slot: 0.39, row: 1, back: 6 }, { slot: 0.54, row: 1 }, { slot: 0.66, row: 1, back: 10 }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: hakem botu ucu avantajlı', text: 'Rüzgar 5° sağa dönmüş: hakem botu ucu biraz avantajlı. Herkes hakem botunun yanından çıkmak ister ama orada tek bir yer var: turuncu bayrağın hemen yanı. O yer erken ve doğru yönden gelenindir.' },
-      { t: 1.5, title: 'Erken gel, layline\'dan gel', text: 'Yeşil H, 2 dk kala hakem botunun sancak layline\'ından, rüzgaraltından geliyor. Rüzgaraltından gelen tekne hak sahibidir (Kural 11); kimse onun rüzgarüstüne sokulamaz. Rüzgarüstünden gelmek (barging) hak vermez.' },
-      { t: 5, title: 'Bayrağın dibinde dur', text: 'H hakem botunun turuncu bayrağının hemen yanında, hattın yaklaşık yarım boy altında, filoyla aynı hizada rüzgara baş verip duruyor. Hakem botuyla arasında bir tekne sığmaz: rüzgarüstündeki kapı kapalı. Ama hakem botuna değmiyor: değerse Kural 31, ceza turu.' },
-      { t: 9, title: 'Yer tutma: hiç sürüklenme', text: 'Yelken boş, tekne neredeyse duruyor. Burnu rüzgarda tut; düşerse yelken dolar ve hatta sürünürsün, fazla geri giderse rüzgarüstünde boşluk açılır. Gerekirse yelkeni bir an doldurup burnu tekrar rüzgara ver: yer tutmak sürekli küçük düzeltmedir.' },
-      { t: 12, title: 'Rüzgaraltında boşluğu koru', text: 'H\'nin rüzgaraltında, filonun en yakın teknesine kadar 2 boyluk açık su var. Sinyalde oraya bordalayıp hızlanacak. Bu boşluk H\'nin hızlanma yolu: biri gelip sokulursa H yavaş kalır. Rüzgaraltındaki boşluk, rüzgarüstü kapı kadar önemlidir.' },
-      { t: 14, title: 'B geç geliyor: barging', text: 'Turuncu B son dakikada hakem botunun sağından, rüzgarüstünden, apaz hızla H ile hakem botu arasına girmek istiyor. Burada yer yok: H hakem botunun dibinde. B rüzgarüstü tekne olduğu için H\'ye yol vermek zorunda (Kural 11) ve hakem botu bir engel; ona çarparsa Kural 31.' },
-      { t: 17, title: 'B bordalayıp arkadan dolaşıyor', text: 'B\'nin tek çaresi: sert bordalayıp H\'nin kıçından geçmek. Hız ve yer kaybediyor, ikinci sıraya düşüyor.' },
-      { t: 27.4, title: '10 sn kala doldur', text: 'H burnunu rüzgaraltındaki boşluğa düşürüp yelkeni dolduruyor; hızlanırken hakem botundan uzaklaşıyor, kimseye çarpmıyor.' },
-      { t: 30, title: 'START: avantajlı uçta, temiz hava', text: 'H hakem botunun hemen yanından, tam hızla ve temiz havada çıkıyor. B hem geride hem H\'nin pis rüzgarında (mor gölge).' },
-      { t: 34, title: 'Özet', text: 'Hakem botu ucunda: erken gel, layline\'dan rüzgaraltından gel, bayrağın dibinde dur (rüzgarüstünde boşluk bırakma), rüzgaraltındaki boşluğu koru, 2-3 sn kala doldur. Geç kalırsan rüzgarüstünden sokulma: kapı kapalıdır, 3-4 boy aşağıda temiz bir yer seç.' }
+      { t: 0, title: 'Start\'a 2 dakika: hakem botu ucu avantajlı', text: 'Rüzgar biraz sağa dönmüş. Hakem botu ucu biraz avantajlı. Herkes oradan çıkmak ister. Ama orada tek kişilik yer var: turuncu bayrağın hemen yanı. O yer erken ve doğru yerden gelenindir.' },
+      { t: 1.5, title: 'Erken gel, aşağıdan gel', text: 'Yeşil H, 2 dakika kala layline\'dan, aşağıdan geliyor. Aşağıdan gelen teknenin hakkı vardır. Kimse onun üstüne sokulamaz. Bu Kural 11. Yukarıdan araya sokulmak hak vermez.' },
+      { t: 5, title: 'Bayrağın dibinde dur', text: 'H turuncu bayrağın hemen yanında, hattın yarım boy gerisinde duruyor. Rüzgara baş vermiş. Hakem botuyla arasına tekne sığmaz. Yani yukarıdaki kapı kapalı. Ama hakem botuna değmiyor. Değerse ceza turu atar.' },
+      { t: 9, title: 'Yerini tut, kayma', text: 'Yelken boş, tekne neredeyse duruyor. Burnunu rüzgarda tut. Burun düşerse yelken dolar, hatta doğru gidersin. Çok geri kayarsan yukarıda boşluk açılır. Gerekirse yelkeni bir an doldur, sonra burnu yine rüzgara ver. Yer tutmak, sürekli küçük düzeltmedir.' },
+      { t: 12, title: 'Altındaki boşluğu koru', text: 'H\'nin altında, en yakın tekneye kadar 2 boy boş su var. Start\'ta oraya doğru hızlanacak. Biri gelip buraya sokulursa H yavaş kalır. Altındaki boşluk, yukarıdaki kapı kadar önemlidir.' },
+      { t: 14, title: 'B geç geliyor ve sokulmak istiyor', text: 'Turuncu B son dakikada yukarıdan, hızla geliyor. H ile hakem botu arasına girmek istiyor. Ama orada yer yok. B yukarıda olduğu için H\'ye yol vermek zorunda. Hakem botuna çarparsa da ceza alır.' },
+      { t: 17, title: 'B arkadan dolaşıyor', text: 'B\'nin tek çaresi sert bordalayıp H\'nin arkasından geçmek. Hız ve yer kaybediyor, ikinci sıraya düşüyor.' },
+      { t: 27.4, title: '10 saniye kala doldur', text: 'H burnunu altındaki boşluğa düşürüyor ve yelkeni dolduruyor. Hızlanırken hakem botundan uzaklaşıyor. Kimseye çarpmıyor.' },
+      { t: 30, title: 'START: avantajlı uçta, temiz', text: 'H hakem botunun hemen yanından, tam hızla ve temiz havada çıkıyor. B hem geride hem de H\'nin pis havasında.' },
+      { t: 34, title: 'Özet', text: 'Hakem botu ucunda erken gel. Layline\'dan, aşağıdan gel. Bayrağın dibinde dur, yukarıda boşluk bırakma. Altındaki boşluğu koru. 2 3 saniye kala doldur. Geç kaldıysan yukarıdan sokulma. 3 4 boy aşağıda temiz bir yer seç.' }
     ],
     addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 580 }, committee: { x: 720, y: 580 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
@@ -956,15 +956,15 @@
       { slot: 0.82, row: 2, wait: { x: 990, y: 525, h: 355, until: 16, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: hakem botu ucu kalabalık', text: 'Rüzgar 5° sağa dönmüş, hakem botu ucu avantajlı. Filonun yarısı hakem botu tarafına yığılmış. En değerli yer turuncu bayrağın hemen yanı ve orada tek kişilik yer var: önce gelen alır.' },
-      { t: 1.5, title: 'D erken geliyor', text: 'Yeşil D, 2 dk kala hakem botunun sancak layline\'ından, rüzgaraltından gelip kalabalığın içine giriyor. Rüzgaraltından gelen tekne hak sahibidir (Kural 11): bekleyen tekneler ona yer açar, kimse onun rüzgarüstüne sokulamaz.' },
-      { t: 5.5, title: 'Bayrağın dibinde yerini al', text: 'D turuncu bayrağın hemen yanında, hattın yarım boy altında, filoyla aynı hizada rüzgara baş verip duruyor. Hakem botuyla arasında tekne sığmaz; rüzgaraltındaki tekneye kadar yaklaşık 1 boy hızlanma yeri var. Yer artık D\'nin: 1,5 dakika boyunca burnunu rüzgarda tutup orada bekleyecek.' },
-      { t: 9, title: 'Y dışarıda bekliyor', text: 'Turuncu Y kalabalığa girmemiş; hakem botunun sağında, açıkta rahat rahat bekliyor: "Son dakika gelir, araya girerim." Açıkta beklemek kolaydır ama yer tutmaz. Kalabalık uçta yer, bekleyerek değil, erken girip orada durarak alınır.' },
-      { t: 14, title: '1 dk kala: Y geç geliyor', text: 'Y şimdi hakem botuna doğru geliyor. Ama ön sıra dolu: bayrağın dibinde D, onun rüzgaraltında filo, aralarda tekne sığacak boşluk yok. Rüzgarüstünden, D ile hakem botu arasına girmek ise barging olur: hak vermez (Kural 11) ve hakem botuna değerse Kural 31.' },
-      { t: 20.5, title: 'Yer yok: Y, D\'nin altında kaldı', text: 'Y giremedi; D\'nin hemen altında, arkasında ikinci sırada duruyor. Arkadan gelen tekne öndekine yol verir (Kural 12): D\'nin yerini isteyemez. Önünde D, rüzgaraltında filo teknesi var: sinyalde düşüp hızlanacağı yer de yok. Y yalnız değil: dışarıda bekleyen iki tekne daha aynı planla geldi, onlar da ikinci-üçüncü sırada, pis rüzgarda kaldı. Hakem botu kalabalığında "son anda girerim" diyen hep birden fazladır.' },
-      { t: 27.4, title: '10 sn kala doldur', text: 'D burnunu rüzgaraltındaki küçük boşluğa düşürüp yelkeni dolduruyor ve hızlanıyor. Y ancak D gittikten sonra hareket edebiliyor ve D\'nin pis rüzgarında (mor gölge) hızlanıyor.' },
-      { t: 30, title: 'START: erken giren ön sırada', text: 'D avantajlı uçtan, hakem botunun hemen yanından, temiz havada ve tam hızda çıkıyor. Y ikinci sırada, D\'nin arkasında; havası kirli, hızı düşük ve her saniye biraz daha geride.' },
-      { t: 34, title: 'Özet', text: 'Hakem botu ucu kalabalıksa: erken gel, layline\'dan rüzgaraltından gir, bayrağın dibinde yerini al ve start\'a kadar orada tut. Dışarıda bekleyip son dakika girmeyi planlarsan ön sıra dolar ve birinin altında, arkasında kalırsın. Geç kaldıysan inat etme: 3-4 boy aşağıda boş bir yer seç.' }
+      { t: 0, title: 'Start\'a 2 dakika: hakem botu kalabalık', text: 'Hakem botu ucu avantajlı. Filonun yarısı oraya toplanmış. En değerli yer turuncu bayrağın hemen yanı. Orada tek kişilik yer var. Önce gelen alır.' },
+      { t: 1.5, title: 'D erken geliyor', text: 'Yeşil D, 2 dakika kala layline\'dan, aşağıdan gelip kalabalığa giriyor. Aşağıdan gelen teknenin hakkı vardır. Bekleyenler ona yer açar. Kimse onun üstüne sokulamaz. Bu Kural 11.' },
+      { t: 5.5, title: 'Bayrağın dibinde yerini al', text: 'D bayrağın hemen yanında, hattın yarım boy gerisinde duruyor. Hakem botuyla arasına tekne sığmaz. Altında bir boy hızlanma yeri var. Bu yer artık D\'nin. Bir buçuk dakika burnunu rüzgarda tutup orada bekleyecek.' },
+      { t: 9, title: 'Y dışarıda bekliyor', text: 'Turuncu Y kalabalığa girmemiş. Hakem botunun sağında, açıkta rahatça bekliyor. Son dakika gelir, araya girerim diye düşünüyor. Açıkta beklemek kolaydır ama yer tutmaz. Kalabalık uçta yer, erken girip orada durarak alınır.' },
+      { t: 14, title: '1 dakika kala: Y geç geliyor', text: 'Y şimdi hakem botuna geliyor. Ama ön sıra dolu. Bayrağın dibinde D var, altında filo var. Aralarda boşluk yok. Yukarıdan D ile hakem botu arasına girmek kurala aykırı. Hakem botuna değerse de ceza alır.' },
+      { t: 20.5, title: 'Yer yok: Y arkada kaldı', text: 'Y giremedi. D\'nin arkasında, ikinci sırada duruyor. Arkadaki tekne öndekine yol verir. Bu Kural 12. Y\'nin önünde D, altında başka tekne var. Hızlanacak yeri yok. Dışarıda bekleyen iki tekne daha aynı planla geldi. Onlar da arkada, pis havada kaldı.' },
+      { t: 27.4, title: '10 saniye kala doldur', text: 'D burnunu altındaki boşluğa düşürüp yelkeni dolduruyor ve hızlanıyor. Y ancak D gittikten sonra hareket edebiliyor. Üstelik D\'nin pis havasında hızlanıyor.' },
+      { t: 30, title: 'START: erken giren önde', text: 'D avantajlı uçtan, hakem botunun yanından, temiz havada ve tam hızda çıkıyor. Y ikinci sırada, D\'nin arkasında. Havası pis, yavaş ve her saniye biraz daha geride.' },
+      { t: 34, title: 'Özet', text: 'Hakem botu ucu kalabalıksa erken gel. Layline\'dan, aşağıdan gir. Bayrağın dibinde yerini al ve start\'a kadar orada kal. Son dakika girmeyi planlarsan ön sıra dolar, arkada kalırsın. Geç kaldıysan inat etme. 3 4 boy aşağıda boş bir yer seç.' }
     ],
     addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 580 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
@@ -1017,17 +1017,17 @@
     ],
     spots: [{ x: 772, y: 482, r: 27, from: 23.5, to: 30, label: 'Boşluk', dx: -48, dy: 4 }],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: kuvvetli rüzgar, hakem botu ucu kalabalık', text: 'Rüzgar 18 knot, kuvvetli (sol üstteki gösterge) ve 5° sağa dönmüş: hakem botu ucu avantajlı, filo oraya yığılıyor, herkes botun yanını kapatmak istiyor. Ama kuvvetli rüzgarda yelkeni boş bir Optimist yerinde durmakta zorlanır.' },
-      { t: 1.5, title: 'Y erken gelip bayrağın dibine park ediyor', text: 'Turuncu Y, İA5\'teki gibi erken ve layline\'dan gelip turuncu bayrağın hemen yanına yerleşiyor. Orta ve hafif havada bu doğru plandır. Kuvvetli rüzgarda ise orada 2 dakika beklemek gerekiyor ve bu çok zor.' },
-      { t: 6, title: 'D dışarıda, hat hizasında bekliyor', text: 'Yeşil D kalabalığa girmiyor. Hakem botunun sancak tarafında (dışında), start hattının uzantısında, hatla aynı hizada bekliyor. Buradan botun dibini ve kalabalığı görüyor, kimse onu sıkıştıramıyor ve hattan geride de değil.' },
-      { t: 11, title: 'Kuvvetli rüzgarda durmak zor', text: 'Yelken boşken rüzgar teknenin gövdesini ve direğini iter; tekne yana ve geriye, rüzgaraltına doğru kayar. Y sık sık yelkeni bir an doldurup burnunu rüzgara veriyor ama her düzeltmede biraz daha aşağı iniyor. Filo da aynı sorunu yaşıyor.' },
-      { t: 18, title: 'Son 1 dakika: tekneler aşağı kayıyor', text: 'Beklemek uzadıkça kayma artıyor. Y ve yanındaki tekneler hem aşağı hem rüzgaraltına, pin tarafına doğru kayıyor. Hakem botunun dibi yavaş yavaş boşalıyor. Kuvvetli rüzgarda bu hemen her start\'ta olur: son 30-40 saniyede hakem botunun yanında boşluk açılır.' },
-      { t: 21.6, title: 'D boşluğu önceden görüp yavaşça geliyor', text: 'D boşluğun açılacağını biliyor, açılmasını beklemeden yola çıkıyor: yelkeni yarım doldurup yavaşça hakem botunun kıçına doğru düşüyor. Hızlı gelirse erken varıp beklemek zorunda kalır; yavaş gelirse boşluk açıldığı anda oradadır. Hakem botuna değmek Kural 31: ceza turu.' },
-      { t: 24.5, title: 'Boşluk açıldı: D botun kıçından dolaşıp giriyor', text: 'Y ve filo 1-1,5 boy aşağı kaydı; hakem botunun dibinde bir tekne sığacak boşluk var (sarı halka). D botun kıçından dolaşıp oraya giriyor. Rüzgarüstü olduğu için Y\'den uzak durur (Kural 11); boşluk yoksa zorlamak barging olur. Dışarıda bekleyen tek D değil: alttan gelen bir tekne de boşluğa D\'nin rüzgaraltından giriyor, geç kalan üçüncüsü ise ikinci sırada kalıyor. Boşluğu ilk gören ve hızı olan alır.' },
-      { t: 28.5, title: 'Hızı var, yeri var', text: 'D boşluğa yavaşça ama hareket halinde girdi. Bekleyen tekneler sıfır hızdan hızlanacak; D\'nin ise zaten biraz hızı var. Kayan Y, kendi yerinden 1,5 boy geride ve filonun arasında sıkışık.' },
-      { t: 30.2, title: '7 sn kala doldur', text: 'D yelkeni dolduruyor ve orsa rotasına dönüyor. Kuvvetli rüzgarda Optimist hızlı hızlanır; geç doldurmak hızlanma yolu boyunca geride kalmak demektir. Y de dolduruyor ama hattın çok gerisinden başlıyor.' },
-      { t: 32, title: 'START: hakem botu ucundan, temiz havada', text: 'D filonun en sağından, hakem botunun yanından, avantajlı uçtan, temiz havada ve hızla çıkıyor. Bayrağın dibine erken park eden Y ise kaydığı için hattın yaklaşık 1,5 boy gerisinde, D\'nin rüzgaraltında-arkasında.' },
-      { t: 36, title: 'Özet', text: 'Kuvvetli rüzgarda hakem botu ucu: bayrağın dibine erken park etme, orada duramaz, kayarsın. Hakem botunun sancak tarafında, hat hizasında bekle. Son 30-40 saniyede açılan boşluğu öngör, botun kıçından yavaş yavaş gel ve boşluğa hızı olan tekne olarak gir. Boşluk açılmazsa zorlama: 2-3 boy aşağıda temiz bir yer seç.' }
+      { t: 0, title: 'Start\'a 2 dakika: sert rüzgar', text: 'Rüzgar sert, 18 knot. Sol üstte görüyorsun. Hakem botu ucu avantajlı. Filo oraya toplanıyor. Ama sert rüzgarda yelkeni boş bir Optimist yerinde duramaz.' },
+      { t: 1.5, title: 'Y bayrağın dibine park ediyor', text: 'Turuncu Y erken gelip bayrağın hemen yanına yerleşiyor. Orta ve hafif havada bu doğru plan. Ama sert rüzgarda orada 2 dakika beklemek çok zor.' },
+      { t: 6, title: 'D dışarıda bekliyor', text: 'Yeşil D kalabalığa girmiyor. Hakem botunun dışında, hattın uzantısında, hatla aynı hizada bekliyor. Buradan kalabalığı görüyor. Kimse onu sıkıştıramıyor ve hattan da geride değil.' },
+      { t: 11, title: 'Sert rüzgarda durmak zor', text: 'Yelken boşken rüzgar teknenin gövdesini ve direğini iter. Tekne yana ve geriye kayar. Y sık sık yelkeni doldurup burnunu rüzgara veriyor. Ama her seferinde biraz daha aşağı iniyor. Filo da aynı sorunu yaşıyor.' },
+      { t: 18, title: 'Son dakika: tekneler kayıyor', text: 'Bekleme uzadıkça kayma artıyor. Y ve yanındakiler aşağıya, pin tarafına kayıyor. Hakem botunun dibi yavaş yavaş boşalıyor. Sert rüzgarda bu hemen her start\'ta olur.' },
+      { t: 21.6, title: 'D yavaşça geliyor', text: 'D boşluğun açılacağını biliyor. Açılmasını beklemeden yola çıkıyor. Yelkeni yarım doldurup yavaşça hakem botunun arkasına geliyor. Hızlı gelirse erken varır, beklemek zorunda kalır. Yavaş gelirse boşluk açılınca tam oradadır. Hakem botuna değmemeli.' },
+      { t: 24.5, title: 'Boşluk açıldı: D giriyor', text: 'Y ve filo bir buçuk boy aşağı kaydı. Hakem botunun dibinde bir tekne sığacak boşluk var. Sarı halka onu gösteriyor. D botun arkasından dolaşıp oraya giriyor. Yukarıda olduğu için Y\'den uzak durur. Boşluğu ilk gören ve hızı olan alır.' },
+      { t: 28.5, title: 'Hızı var, yeri var', text: 'D boşluğa yavaşça ama hareket halinde girdi. Bekleyen tekneler sıfırdan hızlanacak. D\'nin ise zaten biraz hızı var. Kayan Y kendi yerinden bir buçuk boy geride ve sıkışık.' },
+      { t: 30.2, title: '7 saniye kala doldur', text: 'D yelkeni dolduruyor ve orsaya dönüyor. Sert rüzgarda Optimist çabuk hızlanır. Geç doldurursan geride kalırsın. Y de dolduruyor ama hattın çok gerisinden başlıyor.' },
+      { t: 32, title: 'START: hakem botu ucundan', text: 'D hakem botunun yanından, avantajlı uçtan, temiz havada ve hızla çıkıyor. Erken park eden Y ise kaydığı için hattın bir buçuk boy gerisinde.' },
+      { t: 36, title: 'Özet', text: 'Sert rüzgarda bayrağın dibine erken park etme. Orada duramazsın, kayarsın. Hakem botunun dışında, hat hizasında bekle. Son 30 40 saniyede açılan boşluğu önceden gör. Yavaşça gel ve boşluğa hızlı tekne olarak gir. Boşluk açılmazsa zorlama. 2 3 boy aşağıda temiz bir yer seç.' }
     ],
     addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 580 }, committee: { x: 720, y: 610 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
@@ -1085,18 +1085,18 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: iki grubun arasında', text: 'Rüzgar 12 knot, akıntı da rüzgaraltına doğru. Yeşil S iki grup teknenin arasında bekliyor. Yeri belli: sağdaki (rüzgarüstü) grubun en alttaki teknesi W\'nin hemen rüzgaraltı. Orada W\'nin altındaki boşluk S\'nin hızlanma yolu olur.' },
-      { t: 2.5, title: 'Beklerken kayıyorsun', text: 'Yelken boşken tekneyi rüzgar ve akıntı aşağıya ve rüzgaraltına (pin tarafına) iter. S yavaş yavaş soldaki gruba yaklaşıyor ve hattan uzaklaşıyor. Hiçbir şey yapmazsan 2 dakikada 2-3 boy kaybedersin.' },
-      { t: 5.5, title: '1) İskotayı çek: bir an doldur', text: 'En küçük düzeltme: burnu biraz açıp iskotayı bir an çek. Tekne bir iki metre ileri ve yukarı gider; hemen orsalayıp yelkeni boşalt. Yükseklik geri geldi ama tekne hızlanmadı. Çok çekersen hızlanır ve hattın dibine fırlarsın.' },
-      { t: 8, title: 'Ama yine kayıyor', text: 'Bu düzeltme yer değiştirmez, yalnızca yükseltir. S hâlâ soldaki gruba yakın; istediği yer sağda, W\'nin altında. Yana gitmek için tramola gerekir.' },
-      { t: 12, title: '2) İkili tramola: tramola + tramola + dur', text: 'S tramola atıp iskele kontrada yukarı ve rüzgarüstüne, W\'ye doğru gidiyor; hemen ikinci tramolayı atıp sancağa dönüyor ve yelkeni boşaltıp duruyor. Hem yükseldi hem W\'ye yaklaştı. İskele kontradayken herkese yol verir (Kural 10, 13): bu yüzden hamle kısa ve kimsenin önünden geçmeden yapılır.' },
-      { t: 12.6, title: 'H: aynı hamle, fazla hız', text: 'Turuncu H de ikili tramola atıyor ama yelkeni tam dolduruyor. Tekne hızlanıyor, ikinci tramoladan sonra duramıyor ve kendini öne atıyor: burnu hattın üstünde. Son dakikada bu fodepar riski (I, U, siyah bayrak) ve öndeki tekne rüzgarüstüne kapı bırakır.' },
-      { t: 15.5, title: 'W\'nin altında yer', text: 'S artık W\'nin hemen rüzgaraltında, ona yakın. Altında soldaki gruba kadar açık su var. Ama rüzgar ve akıntı kaydırmaya devam ediyor; yerini tutmak sürekli küçük düzeltme ister.' },
-      { t: 20, title: '3) Durduğun yerde tramola', text: 'Neredeyse duran tekne de tramola atabilir: dümeni basıp burnu rüzgardan geçir, yelken öbür tarafa geçince tekrar başla. Burun rüzgara girerken tekne biraz yukarı çıkar. Önemli olan hız: hareket çabuk bitsin ama tekne öne atılmasın. Ne çok hızlı (fırlarsın) ne çok yavaş (burun rüzgarda takılır, geri kayarsın).' },
-      { t: 25.2, title: '4) Burnu aç, doldur, orsala', text: 'Son düzeltme: burnu biraz açıp yelkeni doldur, tekne bir boy kadar hız alsın; sonra orsalayıp burnu rüzgara ver. Hız tekneyi yukarı taşır ve tekne W\'nin hizasında yeniden durur. Kaydıysan ya da iki tekne arasında sıkıştıysan en çabuk yükselme budur.' },
-      { t: 29.9, title: '8 sn kala doldur', text: 'S, W\'nin hemen rüzgaraltında, hat hizasında. Altındaki boşluğa biraz düşüp dolduruyor ve hızlanıyor.' },
-      { t: 32, title: 'START', text: 'S W ile yan yana, temiz havada ve tam hızda çıkıyor. H öne fırladığı için uzun süre korumasız bekledi; komşuları onun rüzgarüstünde ve hızlanma yolu kısa.' },
-      { t: 36, title: 'Özet', text: 'Beklerken kayarsın: iskotayı bir an çek (yüksel), ikili tramola at (yüksel ve rüzgarüstüne git), durduğun yerde tramola at, ya da burnu açıp doldur ve orsala. Her birinde hareket çabuk biter, tekne öne atılmaz. Yerin: rüzgarüstündeki teknenin hemen altı.' }
+      { t: 0, title: 'Start\'a 2 dakika: iki grubun arasında', text: 'Rüzgar 12 knot. Akıntı da tekneleri aşağı itiyor. Yeşil S iki grubun arasında bekliyor. Gitmek istediği yer belli: sağdaki grubun en alttaki teknesi W\'nin hemen altı. Orada W\'nin altındaki boşluk S\'nin hızlanma yolu olur.' },
+      { t: 2.5, title: 'Beklerken kayıyorsun', text: 'Yelken boşken rüzgar ve akıntı tekneyi aşağı ve pin tarafına iter. S yavaş yavaş soldaki gruba yaklaşıyor ve hattan uzaklaşıyor. Hiçbir şey yapmazsan 2 dakikada 2 3 boy kaybedersin.' },
+      { t: 5.5, title: 'Birinci yol: iskotayı bir an çek', text: 'En küçük düzeltme şu: burnu biraz aç, iskotayı bir an çek. Tekne biraz ileri ve yukarı gider. Hemen orsala, yelkeni boşalt. Yükseldin ama hızlanmadın. Çok çekersen hızlanır ve hatta fırlarsın.' },
+      { t: 8, title: 'Ama yine kayıyor', text: 'Bu düzeltme seni sadece yukarı taşır, yana taşımaz. S hâlâ soldaki gruba yakın. İstediği yer sağda, W\'nin altında. Yana gitmek için tramola gerekir.' },
+      { t: 12, title: 'İkinci yol: iki tramola ve dur', text: 'S tramola atıp yukarı ve W\'ye doğru gidiyor. Hemen ikinci tramolayı atıp sancağa dönüyor, yelkeni boşaltıp duruyor. Hem yükseldi hem W\'ye yaklaştı. İskele kontradayken herkese yol verir. Bu yüzden hamle kısa olmalı ve kimsenin önünü kesmemeli.' },
+      { t: 12.6, title: 'H: aynı hamle, fazla hız', text: 'Turuncu H de iki tramola atıyor ama yelkeni tam dolduruyor. Tekne hızlanıyor, duramıyor ve öne fırlıyor. Burnu hattın önüne çıkıyor. Son dakikada bu erken start riski demek.' },
+      { t: 15.5, title: 'W\'nin altında yer', text: 'S artık W\'nin hemen altında, ona yakın. Altında soldaki gruba kadar boş su var. Ama rüzgar ve akıntı kaydırmaya devam ediyor. Yerini tutmak sürekli küçük düzeltme ister.' },
+      { t: 20, title: 'Üçüncü yol: durduğun yerde tramola', text: 'Neredeyse duran tekne de tramola atabilir. Dümeni bas, burnu rüzgardan geçir. Yelken öbür tarafa geçince yine dur. Burun rüzgara girerken tekne biraz yukarı çıkar. Hareket çabuk bitsin ama tekne öne fırlamasın.' },
+      { t: 25.2, title: 'Dördüncü yol: aç, doldur, orsala', text: 'Burnu biraz aç ve yelkeni doldur. Tekne biraz hız alsın. Sonra orsala ve burnu rüzgara ver. Hız tekneyi yukarı taşır ve tekne W\'nin hizasında yeniden durur. Kaydıysan ya da sıkıştıysan en çabuk yükselme yolu bu.' },
+      { t: 29.9, title: '8 saniye kala doldur', text: 'S, W\'nin hemen altında, hat hizasında. Altındaki boşluğa biraz düşüp dolduruyor ve hızlanıyor.' },
+      { t: 32, title: 'START', text: 'S, W ile yan yana, temiz havada ve tam hızda çıkıyor. H öne fırladığı için uzun süre korumasız kaldı. Komşuları onun yukarısında, hızlanma yolu kısa.' },
+      { t: 36, title: 'Özet', text: 'Beklerken kayarsın. Dört çaren var. İskotayı bir an çek. İki tramola at. Durduğun yerde tramola at. Ya da burnu açıp doldur ve orsala. Her birinde hareket çabuk bitsin, tekne öne fırlamasın. Senin yerin yukarıdaki teknenin hemen altı.' }
     ],
     expectFaults: [],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
@@ -1154,18 +1154,18 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: pin çok avantajlı', text: 'Rüzgar 15° sola dönmüş: pin ucu hattın neredeyse 3 boy önünde. Herkes pin\'den çıkmak istiyor; filonun yarısı pin\'e yığılıyor. Mavi kesikli çizgi pin layline\'ı: sancak orsa ile pin\'e varabileceğin son rota.' },
-      { t: 2, title: 'P erken ve layline\'ın üstünden geliyor', text: 'Yeşil P 2 dk kala sancak kontrada, layline\'ın üstünden pin\'e geliyor. Rüzgaraltından gelen tekne hak sahibidir (Kural 11): bekleyenler ona yer açar.' },
-      { t: 6, title: 'Pin\'in yarım boy içinde dur', text: 'P pin\'e değmeden, pin\'in yarım boy içinde ve layline\'ın üstünde rüzgara baş verip duruyor. Pin\'e değmek Kural 31: bir tur ceza. Pin\'in dışında beklemek de olur ama sinyalde içeri girmek zorundasın.' },
-      { t: 10, title: 'L kalabalıkta aşağı itildi', text: 'Turuncu L, P\'nin hemen arkasında bekliyor. Önünde P, rüzgarüstünde filo var; yer açılmadıkça kayıyor. Şimdi layline\'ın ALTINDA.' },
-      { t: 13, title: 'Y geç geliyor', text: 'Mor Y "pin\'e son dakika girerim" diye dışarıda bekledi. Şimdi geliyor ama ön sıra dolu.' },
-      { t: 16, title: 'Layline\'ın altındaysan', text: 'Layline\'ın altındaki tekne sancak orsa ile pin\'e varamaz: burnu pin\'in soluna düşer. Ya erken tramola atıp çıkar ya da sinyalde herkesin arkasından dolaşır. Pin\'i "son anda orsalayıp" dönmeye çalışmak Kural 31 (pin\'e değme) ve fodepar riski.' },
-      { t: 21, title: 'Y ikinci sırada', text: 'Y, ön sıradakilerin hemen arkasında kaldı. Önündeki teknelerin pis rüzgarında (mor gölge) ve hızlanacak yeri yok. Arkadaki tekne öndekine yol verir (Kural 12).' },
-      { t: 26, title: 'L doldurdu ama yetişemeyecek', text: 'L yelkeni doldurup pin\'e gidiyor; ama layline\'ın altında: sancak orsa ile pin\'in soluna düşecek. Pin\'in dışından geçmek start sayılmaz.' },
-      { t: 27.8, title: 'L tramola: herkese yol ver', text: 'L tramola atıyor. Tramola sırasında herkese yol verir (Kural 13), iskele kontrada da tüm sancak teknelere (Kural 10). Burnunu düşürüp herkesin arkasından dolaşacak: 30-40 saniye kayıp.' },
-      { t: 28.6, title: '6 sn kala doldur', text: 'P burnunu düşürüp dolduruyor; layline\'ın üstünde olduğu için pin\'i rahat geçecek.' },
-      { t: 30, title: 'START: P pin\'den', text: 'P pin\'in hemen yanından, avantajlı uçtan, temiz havada çıkıyor. Y ikinci sırada, kirli havada; L herkesin arkasında.' },
-      { t: 35, title: 'Özet', text: 'Pin avantajlıysa: erken gel, layline\'ın üstünde kal, pin\'in yarım boy içinde dur, pin\'e değme. Layline\'ın altına düştüysen erken çık, inat etme. Geç kalırsan ön sıra dolar.' }
+      { t: 0, title: 'Start\'a 2 dakika: pin çok avantajlı', text: 'Rüzgar sola dönmüş. Pin ucu neredeyse 3 boy önde. Herkes pin\'den çıkmak istiyor. Filonun yarısı pin\'e toplanıyor. Mavi kesikli çizgi pin\'in layline\'ı. Bu çizginin üstündeysen pin\'e yetişirsin.' },
+      { t: 2, title: 'P erken ve layline\'ın üstünden geliyor', text: 'Yeşil P 2 dakika kala sancak kontrada, layline\'ın üstünden pin\'e geliyor. Aşağıdan gelen teknenin hakkı vardır. Bekleyenler ona yer açar. Bu Kural 11.' },
+      { t: 6, title: 'Pin\'e yakın dur ama değme', text: 'P pin\'e değmeden, pin\'in yarım boy içinde ve layline\'ın üstünde duruyor. Pin\'e değersen bir tur ceza atarsın. Pin\'in dışında da bekleyebilirsin ama start\'ta içeri girmek zorundasın.' },
+      { t: 10, title: 'L kalabalıkta aşağı itildi', text: 'Turuncu L, P\'nin hemen arkasında bekliyor. Önünde P, yukarısında filo var. Yer açılmadıkça kayıyor. Şimdi layline\'ın altında kaldı.' },
+      { t: 13, title: 'Y geç geliyor', text: 'Mor Y son dakika girerim diye dışarıda bekledi. Şimdi geliyor ama ön sıra dolu.' },
+      { t: 16, title: 'Layline\'ın altındaysan', text: 'Layline\'ın altındaki tekne orsa gitse de pin\'e yetişemez. Burnu pin\'in soluna düşer. Ya erken tramola atıp çıkar ya da start\'ta herkesin arkasından dolaşır. Son anda orsalayıp pin\'i dönmeye çalışırsan pin\'e çarpabilirsin.' },
+      { t: 21, title: 'Y ikinci sırada', text: 'Y ön sıradakilerin hemen arkasında kaldı. Pis havada ve hızlanacak yeri yok. Arkadaki tekne öndekine yol verir. Bu Kural 12.' },
+      { t: 26, title: 'L yetişemeyecek', text: 'L yelkenini doldurup pin\'e gidiyor. Ama layline\'ın altında, pin\'in soluna düşecek. Pin\'in dışından geçmek start sayılmaz.' },
+      { t: 27.8, title: 'L tramola atıyor', text: 'L tramola atıyor. Tramola atarken ve iskele kontradayken herkese yol verir. Herkesin arkasından dolaşacak. 30 40 saniye kaybedecek.' },
+      { t: 28.6, title: '6 saniye kala doldur', text: 'P burnunu düşürüp yelkeni dolduruyor. Layline\'ın üstünde olduğu için pin\'i rahat geçecek.' },
+      { t: 30, title: 'START: P pin\'den çıkıyor', text: 'P pin\'in hemen yanından, avantajlı uçtan, temiz havada çıkıyor. Y ikinci sırada, pis havada. L herkesin arkasında.' },
+      { t: 35, title: 'Özet', text: 'Pin avantajlıysa erken gel. Layline\'ın üstünde kal. Pin\'in yarım boy içinde dur, pin\'e değme. Layline\'ın altına düştüysen erken çık, inat etme. Geç kalırsan ön sıra dolar.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1220,16 +1220,16 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: boşluğa hızla geliyorsun', text: 'Yeşil B hattın ortasındaki boşluğu seçmiş ve tam hızla geliyor. Hat yakın: bu hızla hiçbir şey yapmazsa hattın üstüne çıkar. Turuncu E de aynı durumda, solundaki boşluğa geliyor.' },
-      { t: 5.6, title: '1) Orsala: hızını kes', text: 'B burnunu rüzgara veriyor; yelken boşalıyor, tekne yavaşlıyor. Ama Optimist hafif bir tekne değil: bir süre daha süzülür. Orsalamak tek başına çoğu zaman yetmez.' },
-      { t: 7.6, title: '2) Yelkeni ters bas: geri git', text: 'B bumbayı rüzgara doğru itip yelkeni ters basıyor (backing). Yelken öbür yüzünden dolar ve tekneyi geri iter. Geri giderken dümen ters çalışır: burnu rüzgarda tutmak için dümeni ileri gidiyormuş gibi değil, ters yöne bas. B bir boy geri gidiyor.' },
-      { t: 8.5, title: 'Kural 22.3: geri giden yol verir', text: 'Yelkenini ters basıp geri giden tekne, ileri giden ya da duran herkese yol verir. B geri gitmeden önce arkasına bakıyor: arkası boş, yer var. Arkada biri varsa kısa bas, az git; ona çarparsan suçlu sensin.' },
-      { t: 9.2, title: 'E: yalnızca orsaladı', text: 'Turuncu E de orsaladı ama ters basmadı. Tekne süzülmeye devam ediyor ve burnu hattın üstüne çıkıyor. Henüz son dakika değil, ceza yok; ama geri dönmek için dolaşmak zorunda.' },
-      { t: 9.5, title: '3) Yelken boş, burun rüzgarda', text: 'B duruyor: yelken boş, burun rüzgarda, hat yarım boy önde. Gerekirse yelkeni bir an ters basıp kayan tekneyi yerinde tutuyor. İskotayı bir an çekmek yükseltir (İA7), ters basmak geri götürür: ikisiyle tekneyi istediğin yerde tutarsın.' },
-      { t: 11.2, title: 'E dolaşırken yerini kaybediyor', text: 'Hattın üstündeki tekne geri dönmek için bordalayıp kavança atar, hattın altına iner ve yeniden gelir. Bu 20-25 saniye sürer: E boşluğuna döndüğünde hattın 1 boydan fazla gerisinde, komşularından geride kalıyor.' },
-      { t: 28.8, title: '13 sn kala doldur', text: 'B burnunu düşürüp yelkeni dolduruyor. Hat yarım boy önde ve altı boş: hızlanırken hafif düşüp hattı tam hızla geçer.' },
-      { t: 32, title: 'START', text: 'B boşluğundan, hızla ve temiz havada çıkıyor. E komşularının gerisinden, onların pis rüzgarında çıkıyor.' },
-      { t: 36, title: 'Özet', text: 'Fren: orsala (hızı kes), yelkeni ters bas (geri git), yelken boş bekle. Geri giderken arkana bak: geri giden tekne yol verir (K22.3). Yalnızca orsalamak yetmez: tekne süzülür ve hattın üstüne çıkarsın.' }
+      { t: 0, title: 'Start\'a 2 dakika: hızlı geliyorsun', text: 'Yeşil B hattın ortasındaki boşluğu seçmiş, tam hızla geliyor. Hat çok yakın. Bir şey yapmazsa hattın önüne çıkar. Turuncu E de aynı durumda.' },
+      { t: 5.6, title: 'Birinci adım: orsala', text: 'B burnunu rüzgara veriyor. Yelken boşalıyor, tekne yavaşlıyor. Ama Optimist hemen durmaz, bir süre daha kayar. Sadece orsalamak çoğu zaman yetmez.' },
+      { t: 7.6, title: 'İkinci adım: yelkeni ters bas', text: 'B bumbayı rüzgara doğru itiyor. Yelken ters taraftan dolar ve tekneyi geri iter. Geri giderken dümen ters çalışır. B bir boy geri gidiyor.' },
+      { t: 8.5, title: 'Geri giden tekne yol verir', text: 'Yelkenini ters basıp geri giden tekne herkese yol verir. Bu Kural 22. B geri gitmeden önce arkasına bakıyor. Arkası boş. Arkanda biri varsa az git. Ona çarparsan suç senin.' },
+      { t: 9.2, title: 'E sadece orsaladı', text: 'Turuncu E de orsaladı ama yelkeni ters basmadı. Tekne kaymaya devam ediyor ve burnu hattın önüne çıkıyor. Henüz son dakika değil, ceza yok. Ama geri dönmek için dolaşması gerekiyor.' },
+      { t: 9.5, title: 'Üçüncü adım: yelken boş bekle', text: 'B duruyor. Yelken boş, burun rüzgarda, hat yarım boy önde. Gerekirse yelkeni bir an ters basıp yerinde kalıyor. İskotayı çekmek yükseltir, ters basmak geri götürür. İkisiyle tekneyi istediğin yerde tutarsın.' },
+      { t: 11.2, title: 'E dolaşırken yerini kaybediyor', text: 'Hattın önündeki tekne geri dönmek için dolaşmak zorunda. Bu 20 25 saniye sürer. E yerine döndüğünde komşularından geride kalıyor.' },
+      { t: 28.8, title: '13 saniye kala doldur', text: 'B burnunu düşürüp yelkeni dolduruyor. Hat yarım boy önde ve altı boş. Hızlanıp hattı tam hızla geçecek.' },
+      { t: 32, title: 'START', text: 'B boşluğundan hızla ve temiz havada çıkıyor. E komşularının gerisinden, onların pis havasında çıkıyor.' },
+      { t: 36, title: 'Özet', text: 'Fren yapmak için orsala, yelkeni ters bas, sonra yelken boş bekle. Geri giderken arkana bak. Geri giden tekne yol verir. Sadece orsalamak yetmez. Tekne kayar ve hattın önüne çıkarsın.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1293,15 +1293,15 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.835, back: 6, wait: { x: 858, y: 512, h: 345, until: 20, speed: 0.45 } }, { slot: 0.80, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: yer tuttun, şimdi koru', text: 'Yeşil S erken geldi ve rüzgarüstü komşusu W\'nin hemen altına yerleşti (İA4\'teki gibi). Rüzgaraltında bir tekne sığacak açık su var: S\'nin hızlanma yolu. Turuncu H de yerini almış ama boşluğunun tam ortasında duruyor.' },
-      { t: 6, title: 'Boşluk herkesin gözünde', text: 'Son dakikaya doğru geç kalan tekneler bir boşluk arar. Rüzgaraltında açık su gören, oraya sokulur. Sokulan tekne rüzgaraltında olduğu için hak sahibi olur (Kural 11); ancak hakkı yeni kazanıyorsa sana kaçınma yeri vermek zorunda (Kural 15). Yani boşluğu kaptırırsan geri alamazsın.' },
-      { t: 14, title: 'G ve K geliyor', text: 'İki geç kalan tekne, mor G ve gri K, arkadan sancak kontrada geliyor. G, S\'nin rüzgaraltındaki boşluğa; K, H\'nin rüzgaraltındaki boşluğa bakıyor. Arkadan gelen tekne, bindirme (overlap) kurana kadar öndekine yol verir (Kural 12).' },
-      { t: 17, title: 'S boşluğu kapatıyor', text: 'S burnunu hafif düşürüp yelkeni boş bırakıyor ve tekne yanlamasına, rüzgaraltına kayıyor. Hız almıyor, öne gitmiyor: yalnızca boşluğu kapatıyor. Artık S ile soldaki tekne arasında G\'ye yer yok.' },
-      { t: 20.2, title: 'G yer bulamadı', text: 'G boşluğa geldiğinde yer yok. Zorlarsa S\'ye ya da soldaki tekneye çarpar: arkadan gelen olarak yol vermek onun işi (Kural 12). G bordalayıp arkadan dolaşıyor, ikinci sırada kalacak.' },
-      { t: 21, title: 'K, H\'nin altına sokuldu', text: 'H boşluğunun ortasında, iki yanında da yarım boydan fazla boşluk vardı. K rüzgaraltındaki yarıya sokuldu. H şimdi iki teknenin arasında: altında K, üstünde komşusu. Sinyalde düşüp hızlanacak yeri yok.' },
-      { t: 29.6, title: '10 sn kala doldur', text: 'S W\'den biraz uzaklaşmış ama altındaki boşluğu korudu: oraya düşüp dolduruyor ve hızlanıyor.' },
-      { t: 32, title: 'START', text: 'S temiz havada, tam hızda. H, K\'nin rüzgarüstünde ve yarım hızda: K hızlanınca H\'nin önü ve altı kapanıyor. G ikinci sırada.' },
-      { t: 36, title: 'Özet', text: 'Yerini aldıktan sonra rüzgaraltındaki boşluğu sahiplen: geç kalan biri bakıyorsa burnu hafif düşür, yelken boş yanlamasına kay, boşluğu daralt. Boşluğun ortasında beklersen yarısını kaptırırsın. Rüzgarüstündeki boşluğu kapatmak için de komşuna yakın dur.' }
+      { t: 0, title: 'Start\'a 2 dakika: yerini koru', text: 'Yeşil S erken geldi ve yukarıdaki komşusu W\'nin hemen altına yerleşti. Altında bir tekne sığacak boş su var. Bu S\'nin hızlanma yolu. Turuncu H de yerini almış ama boşluğunun tam ortasında duruyor.' },
+      { t: 6, title: 'Boşluğu herkes görüyor', text: 'Son dakikaya doğru geç kalan tekneler boşluk arar. Altında boş su gören oraya sokulur. Sokulan tekne aşağıda olduğu için hakkı olur. Yani boşluğu kaptırırsan geri alamazsın.' },
+      { t: 14, title: 'G ve K geliyor', text: 'Geç kalan iki tekne geliyor: mor G ve gri K. G, S\'nin altındaki boşluğa bakıyor. K ise H\'nin altındaki boşluğa. Arkadan gelen tekne, yan yana gelene kadar öndekine yol verir. Bu Kural 12.' },
+      { t: 17, title: 'S boşluğu kapatıyor', text: 'S burnunu biraz düşürüyor, yelkeni boş bırakıyor. Tekne yana doğru, aşağı kayıyor. Hızlanmıyor, öne gitmiyor. Sadece boşluğu kapatıyor. Artık G\'ye yer yok.' },
+      { t: 20.2, title: 'G yer bulamadı', text: 'G boşluğa geldiğinde yer yok. Zorlarsa birine çarpar. Arkadan gelen olarak yol vermek onun işi. G bordalayıp arkadan dolaşıyor. İkinci sırada kalacak.' },
+      { t: 21, title: 'K, H\'nin altına girdi', text: 'H boşluğun ortasındaydı. İki yanında da boş yer vardı. K alttaki yere girdi. Şimdi H iki teknenin arasında sıkıştı. Start\'ta hızlanacak yeri yok.' },
+      { t: 29.6, title: '10 saniye kala doldur', text: 'S altındaki boşluğu korudu. Şimdi oraya düşüp dolduruyor ve hızlanıyor.' },
+      { t: 32, title: 'START', text: 'S temiz havada, tam hızda. H, K\'nin üstünde ve yavaş. K hızlanınca H\'nin önü kapanıyor. G ikinci sırada.' },
+      { t: 36, title: 'Özet', text: 'Yerini aldıktan sonra altındaki boşluğa sahip çık. Biri bakıyorsa burnunu biraz düşür, yelken boş yana kay, boşluğu daralt. Boşluğun ortasında beklersen yarısını kaptırırsın. Üstündeki boşluğu kapatmak için de yukarıdaki komşuna yakın dur.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1365,15 +1365,15 @@
       { slot: 0.16, row: 1, drift: 0.3 }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 0, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: iki boşluk seç', text: 'Rüzgar 5° sağda: hakem botu ucu biraz avantajlı. S hattın uzantısından bakıyor ve iki boşluk seçiyor: avantajlı taraftaki geniş boşluk (A planı, yeşil) ve yolda kalan orta boşluk (B planı, sarı).' },
-      { t: 4, title: 'Filonun altından A planına', text: 'S hattın altına inip apaz ile filonun altından A planına gidiyor. Yolda B boşluğunun altından geçecek: gözü hem A\'da hem B\'de.' },
-      { t: 9, title: 'F geliyor', text: 'Gri F hakem botu tarafından, sancak kontrada A boşluğuna doğru geliyor. A boşluğu hakem botuna daha yakın: F oraya S\'den önce varacak.' },
-      { t: 14.5, title: 'A doldu: B planı', text: 'S, F\'nin A boşluğuna girdiğini görüyor. Tam B boşluğunun altında: hemen orsalayıp B\'ye giriyor ve rüzgarüstü komşusunun altına yerleşiyor (İA4). Kararı hızlı vermek önemli: bir boy daha giderse B\'nin de gerisinde kalır.' },
-      { t: 17.5, title: 'D\'nin B planı yok', text: 'Turuncu D de A planına gidiyordu ama yedek planı yok. A\'nın dolduğunu görse de oraya gitmeye devam ediyor.' },
-      { t: 22, title: 'D ikinci sırada', text: 'D A boşluğuna geldiğinde F yerleşmiş. Araya girecek yer yok; F\'nin hemen arkasında, ikinci sırada kalıyor. Arkadaki tekne öndekine yol verir (Kural 12).' },
-      { t: 29.8, title: '9 sn kala doldur', text: 'S, B boşluğunda: altındaki açık suya biraz düşüp dolduruyor ve hızlanıyor.' },
-      { t: 32, title: 'START', text: 'S hat ortasından, temiz havada ve tam hızda. A ucu biraz avantajlıydı ama temiz bir start, kirli havada ikinci sıradan çok daha değerli. D, F\'nin pis rüzgarında.' },
-      { t: 36, title: 'Özet', text: 'Her zaman iki boşluk seç: A (en iyi) ve yolda kalan B. A dolarsa ya da rüzgar dönerse hemen B\'ye geç. Yedek planı olmayan, dolan boşluğa inatla gider ve ikinci sırada kalır.' }
+      { t: 0, title: 'Start\'a 2 dakika: iki boşluk seç', text: 'Hakem botu ucu biraz avantajlı. S hattın uzantısından bakıyor ve iki boşluk seçiyor. Biri avantajlı taraftaki geniş boşluk. Bu A planı, yeşil. Öbürü yolda kalan orta boşluk. Bu B planı, sarı.' },
+      { t: 4, title: 'Filonun altından A planına', text: 'S hattın altına inip apaz ile A planına gidiyor. Yolda B boşluğunun altından geçecek. Gözü hem A\'da hem B\'de.' },
+      { t: 9, title: 'F geliyor', text: 'Gri F hakem botu tarafından A boşluğuna doğru geliyor. A boşluğu ona daha yakın. F oraya S\'den önce varacak.' },
+      { t: 14.5, title: 'A doldu: B planı', text: 'S, F\'nin A boşluğuna girdiğini görüyor. Tam B\'nin altında. Hemen orsalayıp B\'ye giriyor ve yukarıdaki komşusunun altına yerleşiyor. Hızlı karar vermek önemli. Biraz daha gitseydi B\'yi de kaçırırdı.' },
+      { t: 17.5, title: 'D\'nin B planı yok', text: 'Turuncu D de A planına gidiyordu. Ama yedek planı yok. A\'nın dolduğunu görse de oraya gitmeye devam ediyor.' },
+      { t: 22, title: 'D ikinci sırada', text: 'D A boşluğuna vardığında F yerleşmiş. Girecek yer yok. F\'nin hemen arkasında, ikinci sırada kalıyor. Arkadaki tekne öndekine yol verir. Bu Kural 12.' },
+      { t: 29.8, title: '9 saniye kala doldur', text: 'S, B boşluğunda. Altındaki boş suya biraz düşüp dolduruyor ve hızlanıyor.' },
+      { t: 32, title: 'START', text: 'S hattın ortasından, temiz havada ve tam hızda çıkıyor. A ucu biraz avantajlıydı. Ama temiz bir start, ikinci sırada pis havada olmaktan çok daha iyidir. D, F\'nin pis havasında.' },
+      { t: 36, title: 'Özet', text: 'Her zaman iki boşluk seç. En iyisi A, yolda kalanı B. A dolarsa ya da rüzgar dönerse hemen B\'ye geç. Yedek planı olmayan, dolu boşluğa inatla gider ve arkada kalır.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1435,16 +1435,16 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Start\'a 2 dk: filo hattın dibinde', text: 'Filo hattın dibinde, rüzgara baş vermiş bekliyor. İki boşluk var: ortada geniş bir boşluk (yeşil) ve hakem botu tarafında dar bir boşluk (kırmızı). Yeşil X ve turuncu P kalabalığın dışında, pin tarafında, iskele kontrada bekliyor.' },
-      { t: 6, title: 'Neden iskele kontradan gelinir?', text: 'İskele kontrada filonun altından gelen tekne bütün boşlukları önden görür ve en iyisini seçer. Tramolayı boşluğun altında atar ve hemen hızlanır: beklemekle yer kaybetmez. Ama iskele kontrada herkese yol verir (Kural 10) ve tramola atarken de herkese yol verir (Kural 13).' },
-      { t: 14.6, title: 'Son 70 sn: X geliyor', text: 'X filonun altından apaz ile geliyor. Hedefi geniş boşluk: komşularıyla arasında 2 boydan fazla açık su var.' },
-      { t: 23.1, title: 'Boşluk yeterli mi?', text: 'Kural: boşluk en az 3 boy olmalı. 1 boy tramola için, 1 boy rüzgarüstündeki komşudan uzak durmak için (Kural 15: yeni hak kazanan, karşısındakine kaçınma yeri verir), 1 boy da altında hızlanmak için.' },
-      { t: 25.2, title: 'P dar boşluğa', text: 'Turuncu P daha geç geldi ve dar boşluğa yöneldi. Boşluk bir tekne genişliğinden biraz fazla.' },
-      { t: 25.4, title: 'X tramola atıyor', text: 'X boşluğun ortasında, komşularından 1,5 boy uzakta tramola atıyor ve sancağa geçiyor. Kimse kaçmak zorunda kalmıyor. Yelken boş bir an bekliyor, sonra doldurup hızlanacak.' },
-      { t: 28.5, title: 'P sancak teknenin dibine tramola atıyor', text: 'P tramolayı rüzgarüstündeki sancak teknenin hemen altında atıyor. Tramola sırasında herkese yol vermeliydi (Kural 13); sancağa geçince de karşı tarafa kaçınma yeri vermeliydi (Kural 15). 7 ve 8 numara doldurup hızlanamıyor: P\'ye çarpmamak için beklemek zorunda kalıyorlar. Bu bir ihlal.' },
-      { t: 29.9, title: 'Protesto ve iki tur ceza', text: 'Sancak tekne "Protesto!" diye bağırıyor. P ya iki tur ceza döner (Kural 44.2: iki tramola + iki kavança) ya da protesto heyetinde diskalifiye riskini alır. P ceza turunu atıyor: start\'ta herkesin arkasında kalacak.' },
-      { t: 32, title: 'START', text: 'X geniş boşluktan, hızla ve temiz havada çıkıyor. P ceza turlarını dönüyor.' },
-      { t: 38, title: 'Özet', text: 'Son saniyede iskele kontradan gelip tramola atacaksan: boşluk en az 3 boy olsun, tramolayı komşularından 1-1,5 boy uzakta bitir, hiçbir sancak tekneyi kaçmaya zorlama. Dar boşluğa, birinin dibine atılan tramola ceza turuyla biter.' }
+      { t: 0, title: 'Start\'a 2 dakika: filo hattın dibinde', text: 'Filo hattın dibinde bekliyor. İki boşluk var. Ortada geniş bir boşluk, yeşil. Hakem botu tarafında dar bir boşluk, kırmızı. Yeşil X ve turuncu P kalabalığın dışında, iskele kontrada bekliyor.' },
+      { t: 6, title: 'Neden iskele kontradan gelinir?', text: 'İskele kontrada filonun altından gelen tekne bütün boşlukları görür ve en iyisini seçer. Boşluğun altında tramola atar ve hemen hızlanır. Ama iskele kontrada herkese yol verir. Tramola atarken de herkese yol verir.' },
+      { t: 14.6, title: 'Son 70 saniye: X geliyor', text: 'X filonun altından apaz ile geliyor. Hedefi geniş boşluk. Komşularıyla arasında 2 boydan fazla boş su var.' },
+      { t: 23.1, title: 'Boşluk yeterli mi?', text: 'Kural şu: boşluk en az 3 boy olmalı. Bir boy tramola için. Bir boy yukarıdaki komşudan uzak durmak için. Bir boy da altında hızlanmak için.' },
+      { t: 25.2, title: 'P dar boşluğa gidiyor', text: 'Turuncu P daha geç geldi ve dar boşluğa yöneldi. Boşluk bir tekneden biraz geniş.' },
+      { t: 25.4, title: 'X tramola atıyor', text: 'X boşluğun ortasında, komşularından uzakta tramola atıyor ve sancağa geçiyor. Kimse kaçmak zorunda kalmıyor. Bir an bekleyip sonra hızlanacak.' },
+      { t: 28.5, title: 'P çok yakına tramola atıyor', text: 'P tramolayı yukarıdaki teknenin hemen altında atıyor. Tramola atarken herkese yol vermeliydi. Sancağa geçince de karşısındakine kaçacak yer bırakmalıydı. Yanındaki tekneler hızlanamıyor. P\'ye çarpmamak için beklemek zorunda kalıyorlar. Bu kural ihlali.' },
+      { t: 29.9, title: 'Protesto ve iki tur ceza', text: 'Sancak tekne protesto diye bağırıyor. P iki tur ceza atmalı. Yani iki tramola ve iki kavança. P ceza turunu atıyor. Start\'ta herkesin arkasında kalacak.' },
+      { t: 32, title: 'START', text: 'X geniş boşluktan, hızla ve temiz havada çıkıyor. P ceza turlarını atıyor.' },
+      { t: 38, title: 'Özet', text: 'Son saniyede iskele kontradan gelip tramola atacaksan boşluk en az 3 boy olsun. Tramolayı komşularından uzakta bitir. Kimseyi kaçmaya zorlama. Dar boşluğa, birinin dibine atılan tramola ceza turuyla biter.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1508,18 +1508,18 @@
       { slot: 0.905, wait: { x: 878, y: 462, h: 0, until: 21, speed: 0.45 } }, { slot: 0.86, row: 1, wait: { x: 912, y: 505, h: 355, until: 22, speed: 0.5 } }
     ],
     steps: [
-      { t: 0, title: 'Az önce: genel geri çağırma', text: 'İlk start\'ta filonun çoğu hattın üstündeydi ve hakem kimin erken çıktığını tek tek ayıramadı. Genel geri çağırma yaptı: Birinci Tekrar bayrağı (üç köşeli, sarı-mavi) ve iki ses. Herkes geri döndü; start sırası yeniden başlıyor. Bu kez hazırlık bayrağı SİYAH.' },
-      { t: 3, title: 'Siyah bayrak ne demek?', text: 'Son 1 dakikada gövdenin, ekipmanın ya da mürettebatın bir parçası hat üçgenindeyse (hat ile iki ucu ve ilk şamandıra arasında) diskalifiye olursun: BFD. Yelken numaran hakem botunda gösterilir. Start yine geri çağrılırsa bir sonraki start\'a da giremezsin. Geri dönmek kurtarmaz.' },
-      { t: 6, title: 'Filo temkinli: yay oluşuyor', text: 'Siyah bayrakta herkes hattan uzak durur; ortadaki tekneler uçları göremediği için daha da geride bekler. Ortada 1-1,5 boyluk bir yay oluşur (İA2). Hattın yerini bilen için büyük fırsat.' },
-      { t: 7.5, title: 'C hattın üstünde ama…', text: 'Mor C sürünüp hattın üstüne çıktı. Henüz son dakika değil: bayrak hâlâ yukarıda. Siyah bayrak kuralı son 1 dakikada başlar. C yelkenini ters basıp geri çekiliyor: ceza yok.' },
-      { t: 12, title: 'S hattı biliyor', text: 'Yeşil S transitle (pin ile hakem botunu bir hizaya getirerek) hattın yerini biliyor ve hattın yarım boy altında bekliyor. Komşuları 1 boy geride. Siyah bayrakta bile yarım boy güvenlidir: hat üçgenine girmez.' },
-      { t: 17, title: '1 dakika: bayrak indi', text: 'Hazırlık bayrağı indi, uzun ses. Siyah bayrak kuralı şimdi başladı: start sinyaline kadar hat üçgenine giren diskalifiye.' },
-      { t: 18, title: 'B sürünüyor', text: 'Turuncu B yelkeni yarım dolu tutup sürünüyor. Komşularından öne geçti ama hattın nerede olduğunu bilmiyor.' },
-      { t: 21.2, title: 'B\'nin burnu hatta: BFD', text: 'B\'nin burnu hat üçgeninde. Siyah bayrak altında bu kadar: hakem numarasını yazdı. B geri çekilse de, start\'ta hattın altından geçse de diskalifiye. P bayrağında geri dönüp düzeltebilirdi; siyah bayrakta düzeltme yok.' },
-      { t: 28, title: 'BFD numaraları hakem botunda', text: 'Hakem BFD olan teknelerin numaralarını hakem botunda gösterir. B yarıştan çıkıyor; hakemi dinlemezse protestoyla da diskalifiye olur.' },
-      { t: 29.4, title: '10 sn kala doldur', text: 'S yarım boy altta: dolduruyor, düşüp hızlanıyor. Komşuları 1 boy geriden, yavaş başlıyor.' },
-      { t: 32, title: 'START', text: 'S yayın ortasından, komşularından bir boy önde ve tam hızda çıkıyor. Siyah bayrakta en büyük kazanç: hattın yerini bilmek ve yarım boy altta, korkusuzca beklemek.' },
-      { t: 36, title: 'Özet', text: 'Genel geri çağırma sonrası çoğu zaman U ya da siyah bayrak gelir. Siyah bayrakta son 1 dakikada hat üçgenine girme: geri dönmek kurtarmaz. Son dakikadan önce hattın üstünde olmak ceza değildir. Filo temkinliyken transitle hattı bilen kazanır.' }
+      { t: 0, title: 'Az önce: start tekrarlandı', text: 'İlk start\'ta filonun çoğu hattın önündeydi. Hakem erken çıkanları tek tek ayıramadı ve start\'ı tekrarladı. Buna genel geri çağırma denir. Herkes geri döndü. Bu kez hazırlık bayrağı siyah.' },
+      { t: 3, title: 'Siyah bayrak ne demek?', text: 'Son dakikada teknenin bir parçası hattın önündeki alana girerse diskalifiye olursun. Yelken numaran hakem botunda yazılır. Start yine tekrarlanırsa bir sonrakine de giremezsin. Geri dönmek kurtarmaz.' },
+      { t: 6, title: 'Filo temkinli: yay oluşuyor', text: 'Siyah bayrakta herkes hattan uzak durur. Ortadaki tekneler uçları göremez, daha da geride bekler. Ortada bir yay oluşur. Hattın yerini bilen için büyük fırsat.' },
+      { t: 7.5, title: 'C hattın önünde ama', text: 'Mor C hattın önüne çıktı. Ama henüz son dakika değil, bayrak hâlâ yukarıda. Siyah bayrak kuralı son dakikada başlar. C yelkenini ters basıp geri çekiliyor. Ceza yok.' },
+      { t: 12, title: 'S hattı biliyor', text: 'Yeşil S, pin ile hakem botunu bir hizaya getirerek hattın yerini biliyor. Hattın yarım boy gerisinde bekliyor. Komşuları bir boy geride. Yarım boy siyah bayrakta bile güvenlidir.' },
+      { t: 17, title: '1 dakika: bayrak indi', text: 'Hazırlık bayrağı indi ve uzun bir ses geldi. Siyah bayrak kuralı şimdi başladı. Start\'a kadar hattın önüne geçen diskalifiye olur.' },
+      { t: 18, title: 'B kayıyor', text: 'Turuncu B yelkeni yarım dolu tutuyor ve yavaşça ilerliyor. Komşularından öne geçti ama hattın nerede olduğunu bilmiyor.' },
+      { t: 21.2, title: 'B\'nin burnu hatta', text: 'B\'nin burnu hattın önüne geçti. Siyah bayrakta bu kadar yeter. Hakem numarasını yazdı. B geri çekilse de diskalifiye. P bayrağında düzeltebilirdi. Siyah bayrakta düzeltme yok.' },
+      { t: 28, title: 'Numaralar hakem botunda', text: 'Hakem diskalifiye olan teknelerin numaralarını hakem botunda gösterir. B yarıştan çıkıyor.' },
+      { t: 29.4, title: '10 saniye kala doldur', text: 'S yarım boy geride. Yelkeni dolduruyor ve hızlanıyor. Komşuları bir boy geriden, yavaş başlıyor.' },
+      { t: 32, title: 'START', text: 'S yayın ortasından, komşularından bir boy önde ve tam hızda çıkıyor. Siyah bayrakta en büyük kazanç hattın yerini bilmek ve yarım boy geride korkmadan beklemektir.' },
+      { t: 36, title: 'Özet', text: 'Start tekrarlanınca çoğu zaman U ya da siyah bayrak gelir. Siyah bayrakta son dakikada hattın önüne geçme. Geri dönmek kurtarmaz. Son dakikadan önce hattın önünde olmak ceza değildir. Herkes temkinliyken hattı bilen kazanır.' }
     ],
     addBoat: { pin: { x: 290, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 600 } },
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.9] }
@@ -1608,16 +1608,16 @@
         ] }
     ],
     steps: [
-      { t: 0, title: 'Layline\'ın biraz üstünde, orsa', text: 'A (yeşil) 14 knot rüzgarda sancak kontra orsa gidiyor. Optimist\'te orsada bumbayı aşağıda tutan asıl iskotadır; palanga gevşek ya da az gergindir. Şamandırada iskotayı kaçıracağız: o an bumbayı tutacak tek şey palanga olacak. A layline\'ın (mavi kesikli) biraz üstünden geliyor: birazdan salmayı kaldıracak ve kayacak.' },
-      { t: 2.8, title: '1 · Salmayı biraz kaldır', text: 'Kuvvetli havada iskotayı sonuna kadar alıp öne, palangaya uzanınca tekne yatmak ister. Bunu önlemek için salmayı biraz kaldırın: yanal direnç azalır, tekne dik kalır. Bunun bedeli var: salma kalkınca tekne rüzgaraltına kayar.' },
-      { t: 4, title: '2 · İskotayı sonuna kadar al', text: 'İskotayı sonuna kadar alın (çekin). Bumba en alçak yerine iner, palanga halatı gevşer. Palanga yüklüyken elle çekilemez; bumbayı önce iskotayla indiriyoruz ki halat kolay gelsin.' },
-      { t: 5.6, title: '3 · Bumbayı aşağı bastır', text: 'İskota elinizdeyken bumbayı direğe yakın yerinden aşağı bastırın. Bumba palanganın sınırının da altına iner ve palangada boşluk açılır. North Sails Optimist kılavuzu da sert havada "bumbayı sertçe aşağı bastırıp palangayı çekin" der.' },
-      { t: 7, title: '4 · Palangayı elle al', text: 'Açılan boşluğu elle alın ve kurtağzına sıkıştırın. Orta-sert havada belirgin sıkı: panelde sarı çizgiye kadar. Halata bir işaret koyarsanız her seferinde aynı ayarı yaparsınız.' },
-      { t: 9.4, title: 'Kaymayı hesapla, hızlı yap', text: 'A salma kalkıkken layline\'a doğru kaydı ve şamandırayı tam tutturdu, çünkü kaymayı baştan hesaba katıp biraz üstten geldi. İşi hızlı yapın: salma ne kadar uzun kalkık kalırsa o kadar kayarsınız. Şamandırayı rahat tutturabiliyorsanız (tekne yatmadan palangayı alabiliyorsanız) salmayı hiç kaldırmayın.' },
-      { t: 11, title: '5 · İskotayı kaçır, kafa aç', text: 'Şamandırada iskotayı kaçırın, ağırlığı dışarıda tutup dümenle kafa açın (pupaya/apaza dönün). Bumba dışarı açılıyor ama yukarı kalkmıyor: palanga tutuyor (panelde kırmızı, gergin halat). Pupada salma zaten bir miktar kalkık gider.' },
-      { t: 14, title: 'Neden? Yelkenin tepesi', text: 'Bumba kalkmayınca yelkenin tepesi fazla açılmaz (tepe açılması, twist). Yelken gücünü tutar, tekne sağa sola yuvarlanmaz (rolling), dümen hafif kalır. Paneldeki "üstten" daire bumba ile yelken tepesi arasındaki açıyı gösterir.' },
-      { t: 16.8, title: 'B: palangayı almayan', text: 'B iskotayı kaçırınca bumbası kalktı, yelkenin tepesi rüzgaraltına açıldı (paneldeki kesikli kırmızı). Tepe güç kaybediyor, tekne sağa sola yuvarlanıyor, sporcu dümenle düzeltmeye uğraşıyor ve yavaşlıyor. Sert havada bu yuvarlanma rüzgar altına devrilmeye (death roll) kadar gidebilir.' },
-      { t: 19.5, title: 'Fazlası da zarar', text: 'Çok sıkı palanga da iyi değil: apazda sağanakta bumba ucu suya değer, tekne orsalar (round up). Böyle bir sağanakta palangayı ya da iskotayı biraz kaçırın. Doğru miktar yelkene, sporcunun kilosuna ve dalgaya göre değişir; antrenmanda deneyip halata işaret koyun.' }
+      { t: 0, title: 'Layline\'ın biraz üstünde, orsa', text: 'Yeşil A 14 knot rüzgarda orsa gidiyor. Optimist\'te orsada bumbayı aşağıda tutan şey iskotadır. Palanga gevşektir. Şamandırada iskotayı kaçıracağız. O an bumbayı tutacak tek şey palanga olacak. A layline\'ın biraz üstünden geliyor. Birazdan salmayı kaldıracak ve biraz kayacak.' },
+      { t: 2.8, title: 'Birinci adım: salmayı biraz kaldır', text: 'Sert havada iskotayı çekip öne, palangaya uzanınca tekne yatmak ister. Bunu önlemek için salmayı biraz kaldır. Tekne dik kalır. Ama salma kalkınca tekne aşağı kayar.' },
+      { t: 4, title: 'İkinci adım: iskotayı sonuna kadar çek', text: 'İskotayı sonuna kadar çek. Bumba en alçak yerine iner ve palanga halatı gevşer. Palanga yüklüyken elle çekilemez. Bu yüzden önce bumbayı iskotayla indiriyoruz.' },
+      { t: 5.6, title: 'Üçüncü adım: bumbayı aşağı bastır', text: 'İskota elindeyken bumbayı direğe yakın yerinden aşağı bastır. Bumba biraz daha iner ve palangada boşluk açılır.' },
+      { t: 7, title: 'Dördüncü adım: palangayı al', text: 'Açılan boşluğu elle al ve kurtağzına sıkıştır. Sert havada palanga belirgin sıkı olmalı. Paneldeki sarı çizgiye kadar. Halata bir işaret koyarsan her seferinde aynı ayarı yaparsın.' },
+      { t: 9.4, title: 'Kaymayı hesapla, hızlı yap', text: 'Salma kalkıkken A biraz kaydı ama şamandırayı tam tutturdu. Çünkü kaymayı baştan hesaba katıp biraz yukarıdan geldi. İşi hızlı yap. Salma ne kadar uzun kalkık kalırsa o kadar kayarsın. Tekne yatmadan palangayı alabiliyorsan salmayı hiç kaldırma.' },
+      { t: 11, title: 'Beşinci adım: iskotayı kaçır, kafa aç', text: 'Şamandırada iskotayı kaçır. Ağırlığını dışarıda tut ve dümenle kafa aç, pupaya dön. Bumba dışarı açılıyor ama yukarı kalkmıyor. Çünkü palanga tutuyor. Panelde kırmızı, gergin halat bunu gösteriyor.' },
+      { t: 14, title: 'Neden? Yelkenin tepesi', text: 'Bumba kalkmayınca yelkenin tepesi fazla açılmaz. Yelken gücünü korur. Tekne sağa sola yuvarlanmaz, dümen hafif kalır. Paneldeki üstten görünüş, bumba ile yelken tepesi arasındaki açıyı gösterir.' },
+      { t: 16.8, title: 'B palangayı almadı', text: 'B iskotayı kaçırınca bumbası kalktı. Yelkenin tepesi açıldı ve güç kaybetti. Tekne sağa sola yuvarlanıyor. Sporcu dümenle düzeltmeye uğraşıyor ve yavaşlıyor. Sert havada bu yuvarlanma devrilmeye kadar gidebilir.' },
+      { t: 19.5, title: 'Fazlası da zarar', text: 'Çok sıkı palanga da iyi değil. Apazda sert bir rüzgarda bumbanın ucu suya değer ve tekne kendi kendine orsalar. Öyle bir anda palangayı ya da iskotayı biraz kaçır. Doğru ayar senin kilona ve dalgaya göre değişir. Antrenmanda dene ve halata işaret koy.' }
     ],
     addBoat: { pin: { x: 710, y: 560 }, middle: { x: 830, y: 620 }, committee: { x: 650, y: 620 } },
     addBoatLabels: { pin: 'Arkada', middle: 'Daha arkada', committee: 'Rüzgaraltında' }
@@ -1638,13 +1638,13 @@
       ghost: { label: 'Kesikli kırmızı: palanga hiç alınmasaydı', short: 'palangasız', from: 11, keys: vangGhost(0.05) } },
     boats: [vangBoatA('Boşluğu alan')],
     steps: [
-      { t: 0, title: 'Hafif hava, orsa', text: '6 knot rüzgarda orsa gidiyoruz. Palanga tamamen gevşek: orsada bumbayı iskota tutuyor. Hafif havada da şamandıradan önce palangaya bakılır, ama amaç sıkmak değil, boşluğu almaktır.' },
-      { t: 4, title: '1 · İskotayı al', text: 'İskotayı sonuna kadar alın, bumba en alçak yerine insin. Hafif havada tekneyi yatırmadan, ağırlığı ortada tutarak yapın.' },
-      { t: 5.6, title: '2 · Bumbayı bastır', text: 'Bumbayı hafifçe aşağı bastırın. Hafif havada çok kuvvet gerekmez; amaç palanga halatının boşluğunu görmek.' },
-      { t: 7, title: '3 · Yalnız boşluğu al', text: 'Palangayı boş kalmayacak kadar alın: halat gergin ama sıkı değil (panelde sarı çizgi). Sıkarsanız arka yaka kapanır.' },
-      { t: 11, title: '4 · İskotayı kaçır, kafa aç', text: 'İskotayı kaçırıp kafa açın. Bumba biraz kalkıyor ve palangaya yaslanıyor; yelkenin tepesi bir miktar açık. Hafif havada bu istenen şey: yelken nefes alır, hava akışı kopmaz.' },
-      { t: 14, title: 'Neden boş bırakmıyoruz?', text: 'Palanga hiç alınmasaydı (kesikli kırmızı) bumba çok kalkar, yelkenin tepesi fazla açılır ve güç kaybedilir. Dalgada bumba aşağı yukarı oynar, yelken şeklini kaybeder.' },
-      { t: 17, title: 'Neden sıkmıyoruz?', text: 'Hafif havada sıkı palanga arka yakayı kapatır, yelken tepeden boğulur (stall), tekne yavaşlar. Kural: hafif havada boşluğu al, orta-sert havada belirgin sık (bkz. İT1).' }
+      { t: 0, title: 'Hafif hava, orsa', text: '6 knot rüzgarda orsa gidiyoruz. Palanga tamamen gevşek. Orsada bumbayı iskota tutuyor. Hafif havada da şamandıradan önce palangaya bakılır. Ama amaç sıkmak değil, sadece boşluğu almaktır.' },
+      { t: 4, title: 'Birinci adım: iskotayı çek', text: 'İskotayı sonuna kadar çek, bumba en alçak yerine insin. Hafif havada tekneyi yatırma, ağırlığını ortada tut.' },
+      { t: 5.6, title: 'İkinci adım: bumbayı bastır', text: 'Bumbayı hafifçe aşağı bastır. Hafif havada çok güç gerekmez. Amaç palanga halatının boşluğunu görmek.' },
+      { t: 7, title: 'Üçüncü adım: sadece boşluğu al', text: 'Palangayı boş kalmayacak kadar al. Halat gergin ama sıkı değil. Paneldeki sarı çizgi kadar. Sıkarsan yelkenin arka kenarı kapanır.' },
+      { t: 11, title: 'Dördüncü adım: iskotayı kaçır, kafa aç', text: 'İskotayı kaçır ve kafa aç. Bumba biraz kalkıyor ve palangaya yaslanıyor. Yelkenin tepesi biraz açık. Hafif havada istenen bu. Yelken nefes alır.' },
+      { t: 14, title: 'Neden boş bırakmıyoruz?', text: 'Palanga hiç alınmasaydı bumba çok kalkardı. Yelkenin tepesi fazla açılır ve güç kaybedilirdi. Dalgada bumba aşağı yukarı oynar, yelken şeklini kaybeder.' },
+      { t: 17, title: 'Neden sıkmıyoruz?', text: 'Hafif havada sıkı palanga yelkenin arka kenarını kapatır. Yelken tepeden boğulur ve tekne yavaşlar. Kural şu: hafif havada sadece boşluğu al, sert havada belirgin sık. Sert havayı İT1 dersinde gördün.' }
     ],
     addBoat: { pin: { x: 710, y: 560 }, middle: { x: 830, y: 620 }, committee: { x: 650, y: 620 } },
     addBoatLabels: { pin: 'Arkada', middle: 'Daha arkada', committee: 'Rüzgaraltında' }
