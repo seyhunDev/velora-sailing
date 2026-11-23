@@ -50,54 +50,52 @@
   <!-- ANA SAYFA (açılış): senaryolar + Simülatör / Yarışlar / Yelken ayarı; adreste senaryo (#id) yoksa görünür.
        Açık tema (Velora "açık": #f5f5f7 zemin, beyaz kart, tek vurgu mavi). js/app.js → setHome -->
   <section id="home" class="home acik" aria-label="Ana sayfa">
-    <header class="topbar home-top acik">
-      <div class="home-brand"><svg><use href="#i-logo"/></svg><span>Velora <em>Sailing</em></span></div>
-      <div class="spacer"></div>
-      <!-- sağ düğmeler (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) tek grupta; senaryo açılınca senaryo çubuğuna taşınır -->
-      <div class="tool-group" id="toolGroup">
-        <button id="btnShare" class="tool scn-only share-btn" title="Bu senaryonun bağlantısını paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
-        <button id="btnInfo" class="tool scn-only" title="Bilgi kartı (i)"><svg><use href="#i-info"/></svg><span class="lbl">Bilgi</span></button>
-        <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
+    <!-- A · Kokpit (kullanıcı 2026-11-23 kartta seçti; Velora "lacivert kokpit"): üstte lacivert alan, büyük başlık ve üç ana iş;
+         altında açık zeminde senaryolar. Bütün sayfa tek parça kayar. js/app.js → buildHome, js/lobby.js → Canlı yarış penceresi -->
+    <div class="home-page">
+      <div class="ck">
+      <header class="topbar home-top acik">
+        <div class="home-brand"><svg><use href="#i-logo"/></svg><span>Velora <em>Sailing</em></span></div>
+        <div class="spacer"></div>
+        <!-- sağ düğmeler (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) tek grupta; senaryo açılınca senaryo çubuğuna taşınır -->
+        <div class="tool-group" id="toolGroup">
+          <button id="btnShare" class="tool scn-only share-btn" title="Bu senaryonun bağlantısını paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
+          <button id="btnInfo" class="tool scn-only" title="Bilgi kartı (i)"><svg><use href="#i-info"/></svg><span class="lbl">Bilgi</span></button>
+          <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
+        </div>
+      </header>
+        <h1 class="ck-h1">Bugün ne yapalım?</h1>
+        <div class="ck-acts">
+          <a class="ck-act main" id="lnkSim" href="sim.html"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></a>
+          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></button>
+          <a class="ck-act" id="lnkTaktik" href="taktik.html"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></a>
+        </div>
       </div>
-    </header>
-    <!-- 4 sekme (kullanıcı 2026-11-23: "bunlar bölüm değil, ayrı işler; sade, anlaşılır"): çocuk ne yapmak istediğini seçer.
-         iPad/masaüstü: solda menü · yatay telefon: solda dar menü · dikey telefon: altta sekme çubuğu. js/app.js → setTab -->
-    <div class="home-body">
-      <nav class="app-nav" id="appNav" aria-label="Ana menü">
-        <button class="nav-it" data-tab="ogren"><svg><use href="#i-learn"/></svg><span>Öğren</span></button>
-        <button class="nav-it" data-tab="yaris"><svg><use href="#i-flag"/></svg><span>Yarış</span></button>
-        <button class="nav-it" data-tab="olustur"><svg><use href="#i-pen"/></svg><span>Oluştur</span></button>
-        <a class="nav-it" id="lnkTrim" href="ayar.html"><svg><use href="#i-sail"/></svg><span>Yelken ayarı</span></a>
-      </nav>
-      <div class="home-main home-pane" data-pane="ogren">
+      <div class="ck-body">
         <div class="home-head">
           <h2 class="home-h2">Senaryolar</h2>
           <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
         </div>
-        <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo kategorileri"></div>
+        <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo grupları"></div>
         <div class="home-list" id="homeList"></div>
-      </div>
-      <!-- YARIŞ: üç yol (görseller img/bolum/) -->
-      <div class="home-main home-pane" data-pane="yaris" hidden>
-        <div class="home-head"><h2 class="home-h2">Yarış</h2></div>
-        <p class="pane-lead">Tekneni kendin sür. Nasıl yarışmak istersin?</p>
-        <div class="mode-list">
-          <a class="mode-card" id="lnkSim" href="sim.html"><span class="mode-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
-            <span class="mode-t"><b>Tek başına</b><small>Filoya karşı antrenman yarışı. Start, rüzgar ve sağanağı sen seç.</small></span><span class="mode-go">Başla</span></a>
-          <a class="mode-card" id="lnkOnline" href="sim.html?online"><span class="mode-img"><img src="img/bolum/online.webp" alt="" width="640" height="400"></span>
-            <span class="mode-t"><b>Arkadaşlarınla</b><small>Şifreli bir oda aç ya da katıl, aynı anda yarışın.</small></span><span class="mode-go">Oda aç</span></a>
-          <a class="mode-card" id="lnkRaces" href="havuz.html"><span class="mode-img"><img src="img/bolum/yaris.webp" alt="" width="640" height="400"></span>
-            <span class="mode-t"><b>Antrenör yarışı</b><small>Antrenörünün kodunu gir, yarış ve sıralamayı gör. Antrenörsen yarış kur.</small></span><span class="mode-go">Kodu gir</span></a>
-        </div>
-      </div>
-      <!-- OLUŞTUR: kendi taktiklerin (Taktik oluştur sayfası) -->
-      <div class="home-main home-pane" data-pane="olustur" hidden>
-        <div class="home-head"><h2 class="home-h2">Oluştur</h2></div>
-        <p class="pane-lead">Tekneleri koy, rotalarını çiz, oynat. Taktiğini kaydet ve paylaş.</p>
-        <div class="home-list" id="mineList"></div>
       </div>
     </div>
   </section>
+
+  <!-- CANLI YARIŞ: açık odalar (oda açma yalnız site sahibinde) + antrenör yarışı kodu. js/lobby.js -->
+  <div id="liveDlg" class="set-dlg hidden" role="dialog" aria-modal="true" aria-label="Canlı yarış">
+    <div class="set-panel acik">
+      <div class="set-head"><h2>Canlı yarış</h2><button id="btnLiveClose" class="btn-round" title="Kapat (Esc)" aria-label="Kapat"><svg><use href="#i-close"/></svg></button></div>
+      <div class="set-body live-body">
+        <div class="ls-head">AÇIK ODALAR<span id="liveN"></span></div>
+        <div class="row-list live-rooms" id="liveRooms"><p class="live-empty">Bakılıyor…</p></div>
+        <a class="live-host hidden" id="liveHost" href="sim.html?online">+ Oda aç</a>
+        <div class="ls-head">ANTRENÖR YARIŞI</div>
+        <form class="live-code" id="liveCode"><input id="liveCodeIn" maxlength="6" autocomplete="off" spellcheck="false" placeholder="Yarış kodu" aria-label="Yarış kodu"><button class="live-go" type="submit">Aç</button></form>
+        <a class="live-link" href="havuz.html">Antrenör yarışları sayfası ›</a>
+      </div>
+    </div>
+  </div>
 
   <!-- AYARLAR (genel): görünüm anahtarları + sürüm -->
   <div id="settingsDlg" class="set-dlg hidden" role="dialog" aria-modal="true" aria-label="Ayarlar">
@@ -267,5 +265,6 @@
   <script src="js/rigview.js"></script>
   <script src="js/narration.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/lobby.js"></script>
 </body>
 </html>

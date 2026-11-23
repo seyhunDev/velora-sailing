@@ -152,4 +152,7 @@
   $('hvCode').addEventListener('keydown', e => { if (e.key === 'Enter') openCode(); });
   document.addEventListener('sail-access', () => { H.be = null; load(); });
   load();
+  // ana sayfadaki Canlı yarış penceresinden: havuz.html?kod=K7M2QX → kodu yaz, aç
+  const kod0 = (params.get('kod') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (kod0) { $('hvCode').value = kod0; setTimeout(openCode, 300); }
 })();

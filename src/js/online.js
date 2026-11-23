@@ -240,7 +240,9 @@
     const rooms = Object.entries(N.lobby || {}).map(([code, r]) => ({ code, ...r }))
       .filter(r => r.state === 'open' && (!r.at || be.now() - r.at < 12 * 3600e3)).sort((a, b) => (b.at || 0) - (a.at || 0));
     const nm = store.get(NAME, '') || ((acc() && acc().name) || '');
-    const tabs = `<div class="seg net-tabs"><button data-tab="join" class="${N.tab === 'join' ? 'on' : ''}">Odaya katıl</button><button data-tab="host" class="${N.tab === 'host' ? 'on' : ''}">Oda aç</button></div>`;
+    // oda açma yalnız yetkilide (site sahibi): diğerleri sekme görmez, yalnız açık odalar + kodla katıl (kullanıcı 2026-11-23)
+    if (!hostOk) N.tab = 'join';
+    const tabs = !hostOk ? '' : `<div class="seg net-tabs"><button data-tab="join" class="${N.tab === 'join' ? 'on' : ''}">Odaya katıl</button><button data-tab="host" class="${N.tab === 'host' ? 'on' : ''}">Oda aç</button></div>`;
     if (N.tab === 'join') return `${tabs}
       <div class="net-cols"><div class="net-col">
         <div class="net-h">Açık odalar</div>
