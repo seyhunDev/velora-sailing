@@ -788,8 +788,29 @@
     };
     return c;
   }
-  // Kategori sekmeleri + konu konu kart ızgarası. Seçici (senaryo içinden açılan) ve ana sayfa aynı kurucuyu kullanır.
-  function buildList(tabs, list, cat, q0, onTab) {
+  // Ana sayfa listesi: satır = küçük durağan ön izleme (üstüne gelince oynar) · kod + ad · tek satır özet · durum · ›
+  const firstSentence = t => { const m = String(t || '').match(/^.*?[.!?](\s|$)/); return (m ? m[0] : String(t || '')).trim(); };
+  function scenarioRow(x) {
+    const [code, ttl] = splitTitle(x.title);
+    const r = document.createElement('button'); r.className = 'scn-row'; r.dataset.id = x.id; r.type = 'button';
+    r.style.setProperty('--cat', CAT_COLORS[x.category] || 'var(--accent)');
+    const active = seenScn && state.scn && state.scn.id === x.id, locked = lockedScn(x);
+    r.classList.toggle('active', active); r.classList.toggle('locked', locked);
+    const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
+    th.classList.add('thumb', 'row-thumb'); r.appendChild(th);
+    const mins = Math.floor(x.duration / 60), secs = Math.round(x.duration % 60);
+    r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}</b>
+      <small>${esc(firstSentence(x.summary))}</small></span>
+      <span class="row-r">${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
+      <svg class="row-chev"><use href="#i-next"/></svg>`);
+    r.onclick = () => {
+      if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
+      location.hash = x.id; openPicker(false);
+    };
+    return r;
+  }
+  // Kategori sekmeleri + konu konu kart ızgarası (seçici) ya da satır listesi (ana sayfa, rows: true).
+  function buildList(tabs, list, cat, q0, onTab, rows) {
     tabs.innerHTML = '';
     for (const c of CATS) {
       const n = SCENARIOS.filter(x => x.category === c).length;
@@ -813,6 +834,19 @@
     // Taktiklerim: ilk kart "Yeni taktik" (Taktik oluştur sayfası)
     const mine = !q && window.SailTaktik && cat === SailTaktik.CAT;
     for (const gname of groups) {
+      const inGroup = items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname);
+      if (rows) {
+        const h = document.createElement('div'); h.className = 'ls-head';
+        h.innerHTML = `${esc(gname.toLocaleUpperCase('tr'))}<span>${inGroup.length}</span>`; list.appendChild(h);
+        const box = document.createElement('div'); box.className = 'row-list'; list.appendChild(box);
+        if (mine && gname === groups[0]) {
+          const a = document.createElement('a'); a.className = 'scn-row new-row'; a.href = 'taktik.html';
+          a.innerHTML = '<span class="thumb row-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span class="row-t"><b>Yeni taktik</b><small>Tekneleri koy, rotayı çiz, oynat</small></span><svg class="row-chev"><use href="#i-next"/></svg>';
+          box.appendChild(a);
+        }
+        for (const x of inGroup) box.appendChild(scenarioRow(x));
+        continue;
+      }
       const h = document.createElement('div'); h.className = 'picker-topic'; h.textContent = gname; list.appendChild(h);
       const grid = document.createElement('div'); grid.className = 'picker-grid'; list.appendChild(grid);
       if (mine && gname === groups[0]) {
@@ -837,8 +871,8 @@
     buildList($('homeTabs'), $('homeList'), homeCat, homeQuery, c => {
       homeCat = c; homeQuery = ''; $('homeSearch').value = '';
       try { localStorage.setItem(HOME_CAT, c); } catch (e) { /* yok */ }
-      buildHome(); $('homeList').scrollIntoView({ block: 'nearest' });
-    });
+      buildHome();
+    }, true);
   }
   function setHome(on) {
     if (on === homeOn) return;

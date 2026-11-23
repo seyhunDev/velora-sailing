@@ -61,7 +61,7 @@
     });
     th.box.appendChild(svg);
     th.drawn = true;
-    pose(th, reduce.matches ? scn.duration * 0.6 : 0);
+    pose(th, reduce.matches || th.still ? scn.duration * 0.6 : 0);
   }
 
   function pose(th, t) {
@@ -78,9 +78,10 @@
     if (next && next.box.isConnected && !next.drawn) { draw(next); live.add(next); }
     if (!reduce.matches) {
       const u = (ts / 1000) % (LOOP + HOLD) / LOOP;
-      for (const th of live) pose(th, Math.min(1, u) * th.scn.duration);
+      for (const th of live) if (!th.still || th.hot) pose(th, Math.min(1, u) * th.scn.duration);
     }
-    if (queue.length || (live.size && !reduce.matches)) raf = requestAnimationFrame(frame);
+    const moving = !reduce.matches && [...live].some(th => !th.still || th.hot);
+    if (queue.length || moving) raf = requestAnimationFrame(frame);
   }
   const kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
 
@@ -99,9 +100,15 @@
 
   window.SailThumbs = {
     // senaryonun küçük resim kutusu (boş başlar, görününce çizilir)
-    make(scn) {
+    // opts.still: durağan kare (ana sayfa listesi); üstüne gelince / basılıyken oynar (hot)
+    make(scn, opts) {
       const box = document.createElement('div'); box.className = 'thumb';
-      box._thumb = { scn, box, drawn: false, nodes: [] };
+      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), hot: false };
+      if (th.still) {
+        const on = v => () => { th.hot = v; if (!v && th.drawn) pose(th, scn.duration * 0.6); kick(); };
+        const host = () => box.closest('button, a') || box;
+        setTimeout(() => { const h = host(); h.addEventListener('pointerenter', on(true)); h.addEventListener('pointerleave', on(false)); }, 0);
+      }
       observer().observe(box);
       return box;
     },

@@ -57,7 +57,8 @@
       </div>
     </header>
     <div class="home-scroll">
-      <!-- bölümler: senaryo kartları gibi ön izlemeli kartlar (görseller img/bolum/, 640x400 webp) -->
+      <!-- bölümler: küçük ön izlemeli kutular (görseller img/bolum/, 640x400 webp); telefonda tek beyaz listede satırlar -->
+      <div class="ls-head">BÖLÜMLER</div>
       <nav class="home-go" aria-label="Bölümler">
         <a id="lnkTaktik" class="sec-card" href="taktik.html"><span class="sec-img"><img src="img/bolum/taktik.webp" alt="" width="640" height="400"><span class="sec-chip">Yeni</span></span>
           <span class="sec-t"><b>Taktik oluştur</b><small>Tekneleri koy, rotayı çiz, oynat</small></span></a>
@@ -70,11 +71,11 @@
         <a id="lnkSim" class="sec-card" href="sim.html"><span class="sec-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
           <span class="sec-t"><b>Simülatör</b><small>Tekneni sür, taktiğini dene</small></span></a>
       </nav>
+      <!-- senaryolar: kategori sekmeleri (bölümlü düğme) + arama tek satırda, altında konu konu satır listesi -->
       <div class="home-head">
-        <h2>Senaryolar</h2>
-        <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Ara" autocomplete="off"></label>
+        <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo kategorileri"></div>
+        <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
       </div>
-      <div class="home-tabs" id="homeTabs" role="tablist"></div>
       <div class="home-list" id="homeList"></div>
     </div>
   </section>
