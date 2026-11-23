@@ -816,6 +816,63 @@
     addBoat: { pin: { x: 440, y: 650 }, middle: { x: 620, y: 650 }, committee: { x: 760, y: 650 } }
   });
 
+  // ---------- C3: layline — erken tramola, tam layline, fazla gitme (overstand) ----------
+  S.push({
+    id: 'c3-layline',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C3 · Layline: tam zamanında tramola at, fazla gitme',
+    summary: 'Layline, orsa şamandırasına tek kontrada gidebileceğin çizgidir. Üç tekne aynı hizadan iskele kontrada çıkıyor. Yeşil D tam layline\'da tramola atar ve şamandıraya dümdüz gider. Turuncu F layline\'ı geçer, fazla gider. Sonra apaza bırakıp boşuna yol yapar. Mor E çok erken tramola atar, iki tramola fazla yapar ve layline\'daki filonun arkasına sıkışır.',
+    duration: 38,
+    baseSpeed: 26,
+    wind: 0,
+    rungs: { boat: 'D', from: 6 },
+    marks: [{ x: 430, y: 190, label: 'Orsa şamandırası', zone: true }],
+    boats: (() => {
+      const round = [
+        { mode: 'goto', x: 408, y: 164, dur: 4, rate: 150 },
+        { mode: 'heading', h: 195, dur: 20, turn: 1.2 }
+      ];
+      const D =
+      { id: 'D', name: 'Tam layline\'da tramola', role: 'dogru', color: '#2a9d8f', noShadow: true,
+        start: { x: 300, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'Layline\'a gelince tramola' },
+          ...round
+        ] };
+      const F =
+      { id: 'F', name: 'Fazla gidiyor', role: 'hata', color: '#e76f51',
+        start: { x: 390, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 16, turn: 0 },
+          { mode: 'closehauled', tack: 'port', dur: 5, turn: 0, note: 'Layline\'ı geçti, devam ediyor' },
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'HATA: fazla gitti, apazla dönüyor' },
+          ...round
+        ] };
+      const E =
+      { id: 'E', name: 'Çok erken tramola', role: 'hata', color: '#8e6bbf',
+        start: { x: 250, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 8, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 3, turn: 1.4, note: 'Erken tramola, şamandırayı tutmuyor' },
+          { mode: 'closehauled', tack: 'port', dur: 11, turn: 1.4, note: 'Bir tramola daha' },
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'Üçüncü tramola' },
+          ...round
+        ] };
+      return [D, F, E, ...fleetCopies(D, [{ dx: 60, dy: -100 }, { dx: 80, dy: -180 }], 1)];
+    })(),
+    steps: [
+      { t: 0, title: 'Üç tekne aynı hizada', text: 'Üçü de iskele kontrada orsa gidiyor. Kesikli çizgiye göre hepsi aynı basamakta. Şamandıraya kim önce varacak?' },
+      { t: 9, title: 'E erken tramola atıyor', text: 'Mor E çok erken tramola attı. Bu kontrada şamandırayı tutmuyor. Hemen bir tramola daha atmak zorunda kaldı.' },
+      { t: 17, title: 'Layline nedir?', text: 'Layline, şamandıraya tek kontrada gidebileceğin çizgidir. Yeşil D tam bu çizgiye geldi ve tramola atıyor. Gri filo da aynı çizgide sıra oldu.' },
+      { t: 20, title: 'F fazla gidiyor', text: 'Turuncu F layline\'ı geçti ama hâlâ iskele kontrada. Buna fazla gitmek denir. İngilizcesi overstand.' },
+      { t: 23, title: 'E pis havada', text: 'E üçüncü tramolasını attı ve layline\'a D\'nin hemen altından girdi. D\'nin pis havasında kaldı. Fazla tramola hem yavaşlattı hem de onu sıranın arkasına itti.' },
+      { t: 26, title: 'Boşa giden yol', text: 'F tramola attı ama şamandıranın çok üstünü tutuyor. Apaza bırakıp şamandıraya iniyor. Rüzgarüstüne gittiği yol boşa gitti.' },
+      { t: 30, title: 'Kim önde?', text: 'D şamandırayı ilk döndü. E fazla tramolalar yüzünden geride. F boşa yol yaptığı için en geride.' },
+      { t: 35, title: 'Özet', text: 'Layline\'a gelmeden tramola atma, geçme de. Şamandırayı yandan, omzunun biraz arkasında görünce tramola at. Kalabalıkta bir iki boy yukarıdan gir, öndekilerin pis havası seni aşağı itmesin.' }
+    ],
+    addBoat: { pin: { x: 160, y: 670 }, middle: { x: 260, y: 670 }, committee: { x: 460, y: 670 } }
+  });
+
   // ---------- D3: pupada arkadan gölgeyle saldırı ----------
   S.push({
     id: 'd3-shadow-attack',

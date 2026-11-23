@@ -63,7 +63,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 |---|------|-----------------------------|-------|
 | C1 | Header / lift (rüzgar kapatması / açması) ve "header'da tramola" | Salınımlı rüzgar; kapatmada tramola atan tekne ile atmayan teknenin farkı, merdiven basamağı ile. | ✅ |
 | C2 | Salınımlı vs kalıcı dönüş (oscillating vs persistent shift) | Kalıcı dönüşte dönüşün geldiği tarafa gitmek. | 🔜 |
-| C3 | Layline ve "overstand" | Layline'ı erken alıp fazla gitmenin maliyeti; layline'da tramola. | 🔜 |
+| C3 | Layline ve "overstand" | Layline'ı erken alıp fazla gitmenin maliyeti; layline'da tramola. | ✅ |
 | C4 | Rüzgar gölgesi, lee-bow, kapama (cover) | Önde giden teknenin tramola ile rakibi kapatması; "loose/tight cover". | ⬜ |
 | C5 | Sağ/sol tarafı seçme: sahil etkisi, akıntı, sağanak | Parkur yarısında daha fazla rüzgar olan taraf. | ⬜ |
 | C6 | Sağanak (gust) ve sakin bölgeler (lull) | Su rengine bakarak sağanağa gitme. | ⬜ |
