@@ -902,6 +902,62 @@
     addBoatLabels: { pin: 'Önde', middle: 'Ortada', committee: 'Arkada' }
   });
 
+  // ---------- D4: pupa kapısı — kalabalık ucu değil, boş ucu seç ----------
+  S.push({
+    id: 'd4-gate-choice',
+    category: 'Taktik', topic: 'Pupa',
+    title: 'D4 · Pupa kapısı: kalabalık şamandırayı değil, boş olanı seç',
+    summary: 'Pupa kapısında iki şamandıra vardır, istediğini dönersin. Filo hep aynı şamandıraya yığılırsa orada sıra olur. İçteki tekneler yer alır, dıştakiler bekler ve geniş döner. Yeşil D kavança atıp boş şamandırayı döner ve temiz havada orsaya çıkar. Turuncu Y kalabalığa gider, sıranın sonunda dışarıdan döner.',
+    duration: 34,
+    baseSpeed: 20,
+    wind: 0,
+    shadowLen: 110,
+    rungs: { boat: 'D', from: 27 },
+    marks: [{ x: 330, y: 480, label: 'Kapı · sol', zone: true }, { x: 600, y: 480, label: 'Kapı · sağ' }],
+    boats: (() => {
+      // sol şamandırayı sağa (saat yönünde) dönen sıra: doğudan gel, altından geç, batıdan orsaya çık
+      const tight = { start: { x: 560, y: 80, h: 210 }, v0: 20, segs: [
+        { mode: 'goto', x: 360, y: 460, dur: 40, rate: 60 },
+        { mode: 'goto', x: 338, y: 508, dur: 6, rate: 120 },
+        { mode: 'goto', x: 300, y: 492, dur: 6, rate: 120 },
+        { mode: 'closehauled', tack: 'starboard', dur: 14, turn: 0.8 }
+      ] };
+      const Y =
+      { id: 'Y', name: 'Kalabalığa gidiyor', role: 'hata', color: '#e76f51',
+        start: { x: 560, y: 80, h: 210 }, v0: 20,
+        segs: [
+          { mode: 'goto', x: 432, y: 370, dur: 40, rate: 60 },
+          { mode: 'goto', x: 394, y: 460, dur: 10, rate: 60, speed: 0.65, note: 'Sıra var, yavaşlıyor' },
+          { mode: 'goto', x: 352, y: 530, dur: 6, rate: 120, note: 'Sıranın sonunda, dışarıdan' },
+          { mode: 'goto', x: 300, y: 520, dur: 6, rate: 120, note: 'Geniş döndü' },
+          { mode: 'closehauled', tack: 'starboard', dur: 14, turn: 0.8, note: 'HATA: sıranın arkasında' }
+        ] };
+      const D =
+      { id: 'D', name: 'Boş şamandırayı seçti', role: 'dogru', color: '#2a9d8f',
+        start: { x: 640, y: 70, h: 210 }, v0: 20,
+        segs: [
+          { mode: 'run', tack: 'starboard', dur: 3, turn: 0 },
+          { mode: 'run', tack: 'port', dur: 5, turn: 1.4, note: 'Kavança: boş şamandıraya' },
+          { mode: 'goto', x: 578, y: 465, dur: 30, rate: 60, note: 'Sağ şamandıra boş' },
+          { mode: 'goto', x: 604, y: 508, dur: 6, rate: 120, note: 'Yakından dön' },
+          { mode: 'goto', x: 640, y: 490, dur: 6, rate: 120 },
+          { mode: 'closehauled', tack: 'port', dur: 14, turn: 0.8, note: 'Temiz havada orsa' }
+        ] };
+      return [D, Y, ...fleetTrain(tight, [-4, -3, -2, -1], 3.2, 20, 1).map(b => ({ ...b, noShadow: true }))];   // sıra bozulmasın
+    })(),
+    steps: [
+      { t: 0, title: 'Kapıya iniyorsun', text: 'Pupa kapısında iki şamandıra var. İstediğini dönebilirsin. Önündeki tekneler hep soldakine gidiyor.' },
+      { t: 4, title: 'D kavança atıyor', text: 'Yeşil D sıranın oluşacağını görüyor. Kavança atıp sağdaki boş şamandıraya yöneliyor. Turuncu Y kalabalığın peşinden gidiyor.' },
+      { t: 12, title: 'Soldaki şamandırada sıra', text: 'Soldaki şamandırada tekneler arka arkaya dönüyor. Bölgeye yan yana girersen içteki tekne yer alır. Bu Kural 18. Sonradan gelen dışarıda kalır.' },
+      { t: 22, title: 'D yakından dönüyor', text: 'D sağdaki şamandırayı tek başına, yakından dönüyor. Önü açık, temiz havada orsaya çıkıyor.' },
+      { t: 25, title: 'Y dışarıdan dönüyor', text: 'Y sıranın sonunda. Sıra beklerken yavaşladı. İçerisi dolu, geniş dönmek zorunda. Orsaya çıkınca öndeki teknelerin arkasında kalıyor.' },
+      { t: 30, title: 'Kim önde?', text: 'Kesikli çizgi kimin daha yukarıda olduğunu gösterir. D daha önde. Üstelik temiz havada ve kendi tarafında.' },
+      { t: 32, title: 'Özet', text: 'Kapıya inerken iki şamandıraya da bak. Kalabalık olanda sıra beklersin. Boş olanı seç ve yakından dön. Hangi şamandıra rüzgara daha yakınsa o da avantajlıdır.' }
+    ],
+    addBoat: { pin: { x: 520, y: 40 }, middle: { x: 660, y: 30 }, committee: { x: 840, y: 60 } },
+    addBoatLabels: { pin: 'Önde', middle: 'Ortada', committee: 'Arkada' }
+  });
+
   // ---------- B8: Kural 18 ----------
   S.push({
     id: 'b8-rule18',
