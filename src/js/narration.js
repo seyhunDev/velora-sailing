@@ -3,7 +3,7 @@
      GitHub Actions'ta: GOOGLE_TTS_KEY). Tarayıcı hazır MP3'ü çalar: anahtar istemciye hiç gelmez.
      Dosya adı = ses + metnin özeti (key), dist/ses/<ses>/<key>.mp3; liste dist/ses/index.json.
    - O adımın dosyası yoksa (anahtar yok / yeni metin) cihazın kendi Türkçe sesiyle okunur (speechSynthesis).
-   - Senaryo `narration: true` ise oynat çubuğunda hoparlör düğmesi görünür. Anlatım açıkken animasyon
+   - Tüm senaryolarda (kullanıcı 2026-11-23 "hepsine ekle"; `narration: false` kapatır) oynat çubuğunda hoparlör düğmesi görünür. Anlatım açıkken animasyon
      normal hızda oynar; bir adımın anlatımı bitmeden sonraki adıma gelinirse animasyon orada bekler (app.js).
    Node'da da yüklenir (scripts/tts.mjs): speechText + key aynı olmalı ki dosya adları tutsun. */
 (function (global) {
@@ -22,15 +22,32 @@
     let s = (title ? title.trim() + (/[.:!?]$/.test(title.trim()) ? ' ' : '. ') : '') + (text || '');
     s = s.replace(/\s*→\s*/g, ', ').replace(/\s*·\s*/g, ', ').replace(/\s\+\s/g, ' ve ')
       .replace(/(\d)\s*°/g, '$1 derece')
-      .replace(/(\d)\.(\d)/g, '$1,$2')                    // 2.5 → 2,5 (iki virgül beş)
+      // ondalık sayılar yazıyla (kullanıcı 2026-11-23: "2.5 sn" "iki buçuk saniye" okunmalı): 2.5 → iki buçuk, 1.3 → bir virgül üç
+      .replace(/\b(\d{1,3})[.,](\d)\b/g, (m, a, b) => a === '0' && b === '5' ? 'yarım' : numTr(+a) + (b === '5' ? ' buçuk' : ' virgül ' + numTr(+b)))
       .replace(/(\d)\s*-\s*(\d)/g, '$1 $2')               // 3-4 boy → üç dört boy
       .replace(/\bsn\b/g, 'saniye').replace(/\bdk\b/g, 'dakika')
       .replace(/yarım-bir/g, 'yarım ile bir')
       .replace(/\(\s*([1-4])\s*\)/g, (m, d) => ORD[d] + ',')   // (1) → birincisi,
+      // kesme işaretli kelimeler (kullanıcı 2026-11-23: "layline'ın" ayrı ayrı okunup anlaşılmıyordu):
+      // önce yabancı kelimelerin okunuşu, sonra tek harf / sayı + ek okunuşuyla birleşir, kalan kesmeler silinir
+      .replace(/\b(layline|header|zone|px)(?=['’\s.,;:!?)]|$)/gi, w => SAY[w.toLowerCase()] || w)
+      .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([A-ZÇĞİÖŞÜ])['’]([a-zçğıöşü]+)/g, (m, pre, L, ek) => pre + (LETTER[L] || L) + ek)
+      .replace(/\b(\d{1,3})['’]([a-zçğıöşü]+)/g, (m, n, ek) => numTr(+n) + ek)
+      .replace(/([\wÇĞİÖŞÜçğıöşü])['’](?=[a-zçğıöşü])/g, '$1')
       // tamamı büyük harf vurgu kelimeleri harf harf okunmasın (3+ harf, rakamsız)
       .replace(/[A-ZÇĞİÖŞÜ]{3,}/g, w => w.toLocaleLowerCase('tr'))
       .replace(/\s+([,.;:])/g, '$1').replace(/\s+/g, ' ').trim();
     return s;
+  }
+  // Okunuşlar: yabancı kelimeler ve harf adları (ekle birleşince doğru okunsun: "Z'nin" → "Zenin")
+  const SAY = { layline: 'leylayn', header: 'hedır', zone: 'zon', px: 'piksel' };
+  const LETTER = { A: 'A', B: 'Be', C: 'Ce', Ç: 'Çe', D: 'De', E: 'E', F: 'Fe', G: 'Ge', H: 'He', I: 'I', İ: 'İ', J: 'Je', K: 'Ke', L: 'Le',
+    M: 'Me', N: 'Ne', O: 'O', Ö: 'Ö', P: 'Pe', R: 'Re', S: 'Se', Ş: 'Şe', T: 'Te', U: 'U', Ü: 'Ü', V: 'Ve', W: 'Dabılyu', X: 'İks', Y: 'Ye', Z: 'Ze' };
+  function numTr(n) {
+    const B = ['', 'bir', 'iki', 'üç', 'dört', 'beş', 'altı', 'yedi', 'sekiz', 'dokuz'], O = ['', 'on', 'yirmi', 'otuz', 'kırk', 'elli', 'altmış', 'yetmiş', 'seksen', 'doksan'];
+    if (n === 0) return 'sıfır';
+    const y = Math.floor(n / 100), o = Math.floor(n / 10) % 10, b = n % 10;
+    return ((y ? (y > 1 ? B[y] : '') + 'yüz' : '') + O[o] + B[b]);
   }
   // FNV-1a, iki tohum → 16 hane (metin + ses değişince dosya adı değişir)
   function fnv(str, h) { for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }

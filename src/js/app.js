@@ -633,10 +633,10 @@
     }
   }
 
-  // ---------- Sesli anlatım (js/narration.js; senaryoda narration: true) ----------
+  // ---------- Sesli anlatım (js/narration.js; tüm senaryolarda, kapatmak için senaryoda narration: false) ----------
   // Oynarken her adımın başlığı + metni okunur. Anlatım bitmeden sonraki adıma gelinirse animasyon
   // o adımın hemen önünde bekler; anlatım bitince sürer. Zaman çubuğu / başa al / adım işareti anlatımı keser.
-  function narrActive() { return !!(window.SailNarr && state.scn && state.scn.narration && SailNarr.on); }
+  function narrActive() { return !!(window.SailNarr && state.scn && state.scn.narration !== false && SailNarr.on); }
   function narrStop() { narrIdx = -1; if (window.SailNarr) SailNarr.stop(); }
   function narrSync() {
     if (!narrActive() || !state.playing) return;
@@ -651,7 +651,7 @@
     return next && t > next.t - 0.02 ? Math.max(state.t, next.t - 0.02) : t;
   }
   function updateNarrButton() {
-    const has = !!(window.SailNarr && state.scn && state.scn.narration), b = $('btnNarr');
+    const has = !!(window.SailNarr && state.scn && state.scn.narration !== false), b = $('btnNarr');
     b.classList.toggle('hidden', !has); $('narrSettings').hidden = !has;
     const on = has && SailNarr.on;
     b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);

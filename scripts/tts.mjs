@@ -1,5 +1,5 @@
 // Sesli anlatım dosyaları: node scripts/tts.mjs  (build.mjs'ten SONRA çalışır, dist/ses/ yazar)
-// - `narration: true` olan her senaryonun her adımı (başlık + metin, SailNarr.speechText) ve ayarlardaki
+// - Her senaryonun (`narration: false` hariç) her adımı (başlık + metin, SailNarr.speechText) ve ayarlardaki
 //   örnek cümle, SailNarr.VOICES içindeki her ses için Google Cloud Text-to-Speech ile MP3'e çevrilir.
 // - Anahtar: GOOGLE_TTS_KEY ortam değişkeni (GitHub → Settings → Secrets → Actions). Sesli asistandaki
 //   (seyhunDev/sesliasistan, Netlify) anahtarın aynısı. Anahtar istemciye hiç gitmez.
@@ -17,7 +17,7 @@ const KEY = process.env.GOOGLE_TTS_KEY || '';
 const only = process.argv.includes('--cache-only');   // yerelde: yalnız önbellekte olanı kopyala
 
 const texts = new Set([N.SAMPLE]);
-for (const s of globalThis.SCENARIOS.filter(x => x.narration))
+for (const s of globalThis.SCENARIOS.filter(x => x.narration !== false))
   for (const st of s.steps) texts.add(N.speechText(st.title, st.text));
 
 async function synth(voice, text) {
@@ -37,20 +37,22 @@ async function synth(voice, text) {
 }
 
 const index = { voices: {} };
-let made = 0, cached = 0, failed = 0, chars = 0;
+let made = 0, cached = 0, failed = 0, chars = 0, stopped = false;
+// Aynı anda 6 istek (700+ dosya sırayla ~30 dk sürerdi); 401/403 gelirse durur
+async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) await fn(items[i++]); })); }
 for (const v of N.VOICES) {
   const cdir = join(CACHE, v.id), odir = join(OUT, v.id);
   mkdirSync(cdir, { recursive: true }); mkdirSync(odir, { recursive: true });
   const keys = [];
-  for (const text of texts) {
+  await pool([...texts], 6, async text => {
     const k = N.key(v.id, text), cf = join(cdir, k + '.mp3');
     if (!existsSync(cf)) {
-      if (!KEY || only) continue;
+      if (!KEY || only || stopped) return;
       try { writeFileSync(cf, await synth(v.id, text)); made++; chars += text.length; }
-      catch (e) { failed++; console.log(`  ⚠ ${v.id}: ${String(e.message).slice(0, 200)}`); if (/^(401|403)/.test(e.message)) break; continue; }
+      catch (e) { failed++; console.log(`  ⚠ ${v.id}: ${String(e.message).slice(0, 200)}`); if (/^(401|403)/.test(e.message)) stopped = true; return; }
     } else cached++;
     copyFileSync(cf, join(odir, k + '.mp3')); keys.push(k);
-  }
+  });
   if (keys.length) index.voices[v.id] = keys;
 }
 mkdirSync(OUT, { recursive: true });
