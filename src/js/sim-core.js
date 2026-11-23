@@ -277,6 +277,12 @@
   }
   // Start öncesi yaklaşma rotası: orsa rotası hattı uçların arasından kesiyorsa o; kesmiyorsa (ör. pin'in dışına
   // gidiyor) hattın uca yakın iç noktasına, orsadan dar değilse. Tutmuyorsa null (bekler, start'tan sonra döner).
+  // teknenin kendi bekleme ritmi (kimliğinden, tohumlu: tekrar oynatma birebir aynı)
+  function lifeOf(b) {
+    let hsh = 7; for (const c of String(b.id)) hsh = (hsh * 31 + c.charCodeAt(0)) % 100003;
+    const r = k => { const v = Math.sin(hsh * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+    return { ph: r(1) * 6.283, per: 3 + r(2) * 3, amp: 3 + r(3) * 5 };
+  }
   function approachHeading(b, w) {
     const h = E.tackHeading(w, b.tack), u = rayLineU(b, h);
     if (u != null && u >= 0.04 && u <= 0.96) return h;
@@ -337,21 +343,27 @@
 
   // Varsayılan kalabalık: hattın 1-1.5 boy dibinde ön sıra + arkada 2. sıra
   // ön sıradaki k. teknenin hat üstündeki yeri (0 = pin, 1 = hakem botu): ortası sık, uçlara doğru seyrek
-  function frontU(k, n) { const t = n > 1 ? -1 + (2 * k) / (n - 1) : 0; return 0.48 + 0.42 * Math.sign(t) * Math.pow(Math.abs(t), 1.2); }
-  function defaultFleet(n) {
+  // live (simülatörün varsayılan filosu): hakem botu dibi baştan boş (kullanıcı 2026-11-23, gerçekçi Optimist startı),
+  // ön sıra en fazla u≈0.75'e kadar. Testlerin ve eski yarışların filosu eski düzende kalır
+  function frontU(k, n, live) { const t = n > 1 ? -1 + (2 * k) / (n - 1) : 0; return live ? 0.42 + 0.33 * Math.sign(t) * Math.pow(Math.abs(t), 1.2) : 0.48 + 0.42 * Math.sign(t) * Math.pow(Math.abs(t), 1.2); }
+  function defaultFleet(n, live) {
     n = n || 12;
     const front = Math.min(n, Math.ceil(n * 0.7)), back = n - front;
     const boats = [];
     const P = LINE.pin, Q = LINE.boat;
     // ön sıra: ortası sık (kalabalık), uçlara doğru seyrek (kullanıcı 2026-11-14: hat uzadı, orta yine kalabalık kalsın)
     for (let k = 0; k < front; k++) {
-      const u = frontU(k, front);
+      const u = frontU(k, front, live);
       boats.push({ x: P.x + (Q.x - P.x) * u + 58, y: P.y + 58 });   // sancak orsa rotası hattı u civarında keser
     }
-    for (let k = 0; k < back; k++) {
-      const u = 0.18 + (0.64 * k) / Math.max(1, back - 1 || 1);
+    // 2. sıra; kalabalık filoda (en az 3 arka tekne, 12+ tekne) son ikisi hakem botunun sancağında, dışarıda bekler:
+    // son dakikalarda filo pin'e kaydıkça boşalan botun dibine süzülürler
+    const outN = live && back >= 3 ? 2 : 0;
+    for (let k = 0; k < back - outN; k++) {
+      const u = 0.18 + ((live ? 0.6 : 0.64) * k) / Math.max(1, back - outN - 1 || 1);
       boats.push({ x: P.x + (Q.x - P.x) * u + 70, y: P.y + 120 });
     }
+    if (outN) boats.push({ x: Q.x + 70, y: Q.y + 28 }, { x: Q.x + 105, y: Q.y + 82 });
     const mineIdx = Math.floor(front / 2);
     return boats.map((p, i) => makeBoat(i, p, i === mineIdx ? { mine: true, id: 'SEN', name: 'Senin teknen', persona: 'orta' } : null))
       .map((b, i) => { if (!b.mine) { b.id = String(i < mineIdx ? i + 1 : i); b.name = `Tekne ${b.id}`; } return b; });
@@ -368,7 +380,9 @@
     const sea = { ...SEA_DEFAULT, ...(opts.sea || {}) };
     const boat = { ...BOAT_DEFAULT, ...(opts.boat || {}) }; setBoat(boat);
     const plan = normPlan(opts.plan);
-    return { t: 0, wind: w, gusts: (opts.gusts || []).map(g => ({ ...g })), boats, events: [], finished: 0, pairLog: {}, startAt: START_AT, course, sea, boat,
+    // life: canlı bekleme (sallanma, yerinde kıpırdama; kullanıcı 2026-11-23). Kurulumda yazılıysa açılır: eski kayıtlar ve
+    // antrenör yarışları birebir aynı oynar
+    return { t: 0, wind: w, gusts: (opts.gusts || []).map(g => ({ ...g })), boats, events: [], finished: 0, pairLog: {}, startAt: START_AT, course, sea, boat, ...(opts.life ? { life: true } : {}),
       ...(plan.length ? { plan, planOff: 0, planN: 0 } : {}) };
   }
 
@@ -862,6 +876,7 @@
           target = hA;                                    // yelken yarı boş, hızlanma noktasına sokul; varınca rotada bekle
           creepV = clamp((d0 - dGo) / Math.max(0.15, remain - tGo), 0, BASE * 0.3) + dr;   // akıntıyı tam karşıla (uzun geri sayımda geriye kaymasın)
         } else { target = w + (b.tack === 'starboard' ? -25 : 25); holding = true; }
+        if (s.life && holding) target += lifeOf(b).amp * Math.sin(t * CLOCK_SCALE * 6.283 / lifeOf(b).per + lifeOf(b).ph);   // yelken çırpar, burun oynar
         if (remain <= 0) startPhase(b, s);
       }
       if (b.phase === 'race') {
@@ -1063,6 +1078,8 @@
           else { target = st.h; avoiding = st.o.isMark ? 320 : 160; }
         }
       }
+      // takılma kaçışı: rüzgarda kalıp art arda tramola atan (akıntı şamandıraya bastırıyor) tekne birkaç sn pupaya düşüp açılır
+      if (b.escUntil > t && b.phase === 'race') target = w + 180;
       // dönüş
       let diff = E.norm180(target - b.h);
       if (turnDir < 0 && diff > 0) diff -= 360;          // yalnızca sola dön
@@ -1072,7 +1089,11 @@
       if (b.phase === 'penalty' && !b.penWait) b.penTurn += Math.abs(dh);
       // rüzgarın içinde kaldı (şamandıranın altında, akıntı itiyor): tramola atıp çık
       if (b.phase === 'race' && b.started && !b.manual && Math.abs(E.norm180(b.h - w)) < 30 && b.v < 15 && t - b.lastTack > 4) {
-        if (!b.stallAt) b.stallAt = t; else if (t - b.stallAt > 1.5) { doTack(b, s, 'Rüzgarda kaldı, tramola'); b.stallAt = 0; }
+        if (!b.stallAt) b.stallAt = t; else if (t - b.stallAt > 1.5) {
+          doTack(b, s, 'Rüzgarda kaldı, tramola'); b.stallAt = 0;
+          b.stallN = t - (b.stallT || -99) < 15 ? (b.stallN || 0) + 1 : 1; b.stallT = t;
+          if (b.stallN >= 3) { b.escUntil = t + 3; b.stallN = 0; note(b, s, 'Takıldı: pupaya düşüp açılıyor', '', 2); }
+        }
       } else b.stallAt = 0;
       // hız
       const twa = Math.abs(E.norm180(b.h - w));
@@ -1108,6 +1129,11 @@
       const f = E.fwd(b.h), k = b.phase === 'done' || b.phase === 'wait' ? 0 :   // start'tan önce akıntıyı tekne kendisi karşılar (uzun geri sayımda alan dışına sürüklenmesin)
         (b.phase === 'round' ? 0.3 : 1), dv = k ? driftVec(s, b, w) : { x: 0, y: 0 };   // dönüşte kısa süre: az kayar
       b.x += (f.x * b.v + dv.x * k) * DT; b.y += (f.y * b.v + dv.y * k) * DT;
+      if (s.life && b.phase === 'wait' && !b.go && !b.manual) {   // beklerken yerinde kıpırdar: kısa kayma + toparlanma (ortalaması sıfır)
+        const L = lifeOf(b), a = L.ph + s.t * CLOCK_SCALE * 6.283 / (L.per * 1.6), side = E.fwd(s.wind + 180 + (b.tack === 'starboard' ? 75 : -75));
+        const m = 2.2 * Math.cos(a) / CLOCK_SCALE;       // px / sim sn (gerçek saniyede ~2 px)
+        b.x += side.x * m * DT; b.y += side.y * m * DT;
+      }
     }
     // temas: gövde biçimiyle (kapsül: baş-kıç doğrusu ±HULLC.half, yarıçap HULLC.r). Eskiden merkezler 26 px'e
     // itiliyordu: 50 px'lik teknelerde arkadaki teknenin başı öndekinin kıçının altına giriyordu (kullanıcı 2026-11-16).

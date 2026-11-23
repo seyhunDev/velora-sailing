@@ -17,7 +17,7 @@
 
   const st = {
     mode: 'setup',            // setup | run | pause | end
-    fleet: S.defaultFleet(12),
+    fleet: S.defaultFleet(12, true),
     wind: 0, gusts: [],
     sim: null, frames: [], rec: null, speed: 1, lastTs: 0, acc: 0,
     show: { speed: true, shadow: true, startLay: false, zone: true },   // pis rüzgar konileri varsayılan açık; hat layline'ları ayarlardan
@@ -690,7 +690,7 @@
     if (st.mode !== 'setup' || st.drive) backToSetup(true);
     try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem('ps.sim.fastPre'); } catch (er) { /* yok say */ }
     st.course = { ...S.COURSE_DEFAULT }; S.setCourse(st.course);
-    st.wind = 0; st.sea = { ...S.SEA_DEFAULT }; setBoatCfg({ ...BOAT_DEF }); st.gusts = []; st.gsel = null; st.sel = null; st.fleet = S.defaultFleet(12);
+    st.wind = 0; st.sea = { ...S.SEA_DEFAULT }; setBoatCfg({ ...BOAT_DEF }); st.gusts = []; st.gsel = null; st.sel = null; st.fleet = S.defaultFleet(12, true);
     st.fastPre = true; setSpeed(1);
     st.cam.z = 1; st.cam.follow = false; st.cam.panAt = null; st.cam.x = st.cam.y = null;
     openCat(null); fitViewBox(); applyCam(); updatePanel(true);
@@ -827,7 +827,8 @@
     const setup = { fleet: jcopy(st.fleet), wind: st.wind, gusts: jcopy(st.gusts), course: { ...st.course }, sea: { ...st.sea }, boat: { ...st.boat } };
     const plan = st.task && st.task.setup.plan;          // görevin yarış akışı (rüzgar dönüşleri, inen sağanaklar)
     if (plan && plan.length) setup.plan = jcopy(plan);
-    st.frames = S.runToEnd(S.newRace(st.fleet, { wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, plan: setup.plan }));
+    if (!st.task) setup.life = true;                     // canlı bekleme (antrenör yarışları eski haliyle: herkes aynı oynasın)
+    st.frames = S.runToEnd(S.newRace(st.fleet, { wind: st.wind, gusts: st.gusts, course: st.course, sea: st.sea, boat: st.boat, plan: setup.plan, life: setup.life }));
     st.playT = 0; st.sim = viewAt(0); st.mode = 'run'; st.sel = null; st.ended = false;
     st.rec = Rec.begin(setup);
     // yatay telefonda parkurun tamamı sığınca tekneler okunmuyor: yarış başlayınca kamera teknene yakından geçer (kaydırınca bırakır)
@@ -930,7 +931,7 @@
     const frontRow = b => Math.abs(b.y - (P.y + 58)) < 4;
     if (frontRow(m)) {
       const fr = others.filter(frontRow).sort((a, b) => a.x - b.x);
-      fr.forEach((b, k) => { const u = S.frontU(k, fr.length); b.x = P.x + (Q.x - P.x) * u + 58; b.y = P.y + (Q.y - P.y) * u + 58; });
+      fr.forEach((b, k) => { const u = S.frontU(k, fr.length, true); b.x = P.x + (Q.x - P.x) * u + 58; b.y = P.y + (Q.y - P.y) * u + 58; });
     }
     let best = null;
     const hr = (st.wind - 45) * Math.PI / 180, hx = Math.sin(hr), hy = -Math.cos(hr);
@@ -1382,7 +1383,7 @@
   function setFleetSize(n) {
     n = Math.max(2, Math.min(16, n));
     const mineAt = st.fleet.find(b => b.mine);
-    const fresh = S.defaultFleet(n);
+    const fresh = S.defaultFleet(n, true);
     // senin teknenin yerini koru
     if (mineAt) { const m = fresh.find(b => b.mine); m.x = mineAt.x; m.y = mineAt.y; m.tack = mineAt.tack; m.persona = mineAt.persona; m.ignoresRules = mineAt.ignoresRules; m.route = mineAt.route; m.speedK = mineAt.speedK; }
     // diğer teknelerin isim ve ayarları sırasıyla korunur

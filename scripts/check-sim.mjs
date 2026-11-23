@@ -350,11 +350,17 @@ for (const cls of ['optimist', 'ilca7']) {
 // finişi uçların arasından geçer. Elle sürülen tekne (basit otomatik pilotla) dönüşlerden sonra yine sürer ve bitirir.
 {
   S.setCourse(S.COURSE_DEFAULT);
-  const bad = [], s = S.newRace(S.defaultFleet(12), { wind: 0 }), seq = new Map(), gate = { '3S': 0, '3P': 0 };
+  const bad = [], s = S.newRace(S.defaultFleet(12), { wind: 0 }), seq = new Map(), gate = { '3S': 0, '3P': 0 }, lastLeg = new Map();
   if (S.CRS.type !== 'trapez') bad.push('varsayılan parkur trapez değil');
   while (s.t < s.startAt + 420 && s.boats.some(b => !b.finish)) {
     S.step(s);
     for (const b of s.boats) if (b.phase === 'round' && b.rMk && (seq.get(b.id) || []).slice(-1)[0] !== b.rMk) { seq.set(b.id, [...(seq.get(b.id) || []), b.rMk]); if (b.rMk[0] === '3') gate[b.rMk]++; }
+    // dönüş evresine girmeden (ceza turu sonrası şamandıranın dibinden) dönen tekne: ayak arttıysa o ayağın şamandırası sayılır
+    for (const b of s.boats) {
+      const pl = lastLeg.get(b.id) || 0; lastLeg.set(b.id, b.leg || 0);
+      const lg = S.CRS.legs[pl], no = lg && lg.k === 'mark' && lg.m.no;
+      if ((b.leg || 0) > pl && no && (seq.get(b.id) || []).slice(-1)[0] !== no) seq.set(b.id, [...(seq.get(b.id) || []), no]);
+    }
   }
   for (const b of s.boats) {
     const q = (seq.get(b.id) || []).join('-');
@@ -525,6 +531,34 @@ for (const cls of ['optimist', 'ilca7']) {
   }
   console.log(`• Gövde teması ve K12: ${bad.length ? 'SORUN' : 'iç içe geçme yok, arkadan çarpan K12 cezası alıyor, şamandıraya takılma yok'}`);
   if (bad.length) { problems++; console.log('  ⚠ Temas:', bad.join(', ')); }
+}
+// Canlı start öncesi (simülatörün varsayılan filosu, life): hakem botu dibi baştan boş, tekneler beklerken kıpırdar,
+// herkes yarışı bitirir, kimse takılmaz, erken geçen yok; tekrar oynatma birebir aynı
+{
+  const bad = []; let wig = 0, cnt = 0;
+  for (const n of [8, 12, 14, 16]) for (const wind of [-20, 0, 15]) {
+    S.setCourse(S.COURSE_DEFAULT);
+    const mk = () => S.runToEnd(S.newRace(S.defaultFleet(n, true), { wind, life: true })), fr = mk(), Q = S.LINE.boat, tag = `${n} tekne rüzgar ${wind}`;
+    const f0 = fr[0], near = f0.boats.filter(b => Math.hypot(b.x - Q.x, b.y - Q.y) < 70 && b.y < Q.y + 70);
+    if (near.length) bad.push(`${tag}: hakem botu dibi baştan dolu (${near.map(b => b.id).join(',')})`);
+    const last = fr[fr.length - 1];
+    if (last.boats.some(b => !b.finish)) bad.push(`${tag}: bitiremeyen ${last.boats.filter(b => !b.finish).map(b => b.id).join(',')}`);
+    const prog = {};
+    for (const f of fr) for (const b of f.boats) {
+      if (f.t < f.startAt && b.phase === 'ocs') bad.push(`${tag}: ${b.id} erken geçti`);
+      if (b.phase !== 'race' || !b.started) { delete prog[b.id]; continue; }
+      const P = prog[b.id] = prog[b.id] || []; P.push({ t: f.t, x: b.x, y: b.y }); while (P[0].t < f.t - 8) P.shift();
+      if (f.t - P[0].t > 7.5 && Math.hypot(b.x - P[0].x, b.y - P[0].y) < 25 && !prog[b.id].hit) { prog[b.id].hit = 1; bad.push(`${tag}: ${b.id} takıldı (${b.x.toFixed(0)},${b.y.toFixed(0)})`); }
+    }
+    // beklerken burun oynar (sallanma)
+    const k1 = fr.findIndex(f => f.t >= 8), k2 = fr.findIndex(f => f.t >= 11);
+    for (const b of fr[k1].boats) { const o = fr[k2].boats.find(x => x.id === b.id); if (b.phase === 'wait' && o.phase === 'wait') { cnt++; if (Math.abs(EN.norm180(o.h - b.h)) > 1) wig++; } }
+    const again = mk(), a = again[again.length - 1];
+    if (a.boats.some((b, i) => Math.abs(b.x - last.boats[i].x) > 0.01 || b.finishT !== last.boats[i].finishT)) bad.push(`${tag}: tekrar oynatma farklı`);
+  }
+  if (cnt && wig < cnt * 0.4) bad.push(`beklerken kıpırdayan az (${wig}/${cnt})`);
+  console.log(`• Canlı start öncesi: 12 yarış, beklerken burnu oynayan ${wig}/${cnt}${bad.length ? '' : ', hakem botu dibi boş, herkes bitirdi'}`);
+  if (bad.length) { problems++; console.log('  ⚠ Canlı start:', bad.slice(0, 8).join(' · ')); }
 }
 console.log(problems ? `\n${problems} uyarı` : '\nSimülatör temiz ✔');
 process.exit(problems ? 1 : 0);
