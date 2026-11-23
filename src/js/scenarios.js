@@ -9,6 +9,11 @@
      arkasına (k > 0) ya da önüne (k < 0) aynı yoldan giden tekneler üretir. İlk segment (orsa) k·gap sn uzar/kısalır,
      başlangıç noktası o kadar geriye/ileriye taşınır. Kurallara göre değil, ders teknesi gibi rotalı; listede tek satır. */
   const DEG = Math.PI / 180;
+  // Gri filo: ders teknesinin rotasını yana/öne kaydırılmış başlangıçtan aynen giden kopyalar (offs: [{dx, dy}])
+  function fleetCopies(base, offs, from) {
+    return offs.map((o, i) => ({ id: String(from + i), name: 'Filo', crowd: true, color: '#b8c7d6', v0: base.v0,
+      start: { ...base.start, x: base.start.x + o.dx, y: base.start.y + o.dy }, segs: base.segs.map(sg => ({ ...sg, note: undefined })) }));
+  }
   function fleetTrain(base, ks, gap, speed, from) {
     return ks.map((k, i) => {
       const d = k * gap * speed, s0 = base.start;
@@ -672,20 +677,24 @@
     ],
     rungs: { boat: 'T', from: 12 },
     showWindTrace: true,
-    boats: [
+    // filo: bir kısmı yeşil gibi header'da tramola atar, bir kısmı turuncu gibi kontrada devam eder
+    boats: (() => {
+      const T =
       { id: 'T', name: 'Kapatmada tramola atan', role: 'dogru', color: '#2a9d8f',
-        start: { x: 680, y: 650, h: 315 }, v0: 20,
-        segs: [
-          { mode: 'closehauled', tack: 'starboard', dur: 10, turn: 0 },
-          { mode: 'closehauled', tack: 'port', dur: 12, turn: 1.5 },
-          { mode: 'closehauled', tack: 'starboard', dur: 16, turn: 1.5 }
-        ] },
+          start: { x: 680, y: 650, h: 315 }, v0: 20,
+          segs: [
+            { mode: 'closehauled', tack: 'starboard', dur: 10, turn: 0 },
+            { mode: 'closehauled', tack: 'port', dur: 12, turn: 1.5 },
+            { mode: 'closehauled', tack: 'starboard', dur: 16, turn: 1.5 }
+          ] };
+      const K =
       { id: 'K', name: 'Kontrada devam eden', color: '#e76f51',
-        start: { x: 560, y: 650, h: 315 }, v0: 20,
-        segs: [{ mode: 'closehauled', tack: 'starboard', dur: 38, turn: 0 }] }
-    ],
+          start: { x: 560, y: 650, h: 315 }, v0: 20,
+          segs: [{ mode: 'closehauled', tack: 'starboard', dur: 38, turn: 0 }] };
+      return [T, K, ...fleetCopies(T, [{ dx: 75, dy: -30 }, { dx: 150, dy: 5 }], 1), ...fleetCopies(K, [{ dx: 45, dy: -65 }, { dx: 35, dy: 42 }, { dx: 105, dy: -110 }], 3)];
+    })(),
     steps: [
-      { t: 0, title: 'Rüzgar tam kuzeyden', text: 'İki tekne de sancak kontra orsa gidiyor. Sağ üstteki ok rüzgarın GELDİĞİ yönü gösterir. Pusulada orsa rotanızı not edin: örn. sancak kontra 315°.' },
+      { t: 0, title: 'Rüzgar tam kuzeyden', text: 'İki tekne de sancak kontra orsa gidiyor (gri filo da: kimi yeşil gibi header\'da tramola atacak, kimi turuncu gibi devam edecek; merdiven çizgisinde kimin kazandığına bakın). Sağ üstteki ok rüzgarın GELDİĞİ yönü gösterir. Pusulada orsa rotanızı not edin: örn. sancak kontra 315°.' },
       { t: 7, title: 'Rüzgar sola dönüyor: HEADER', text: 'Rüzgar sola (−15°) dönünce sancak kontradaki tekne daha aşağı rota tutmak zorunda kalır: burnu şamandıradan uzaklaşır. Buna kapatma/header denir. Pusula 315 → 300.' },
       { t: 10, title: 'Yeşil tramola atıyor', text: 'Kural: "Header\'da tramola." Yeşil iskele kontraya geçince yeni rotası 30°: rüzgar onu şamandıraya doğru "açıyor" (lift). Turuncu ise kapalı kontrada devam ediyor.' },
       { t: 14, title: 'Merdiven basamağı', text: 'Kesikli çizgi (rüzgara dik) kimin gerçekten önde olduğunu gösterir. Yeşil, turuncunun önüne geçti. Rüzgar hangi yöndeyse "üst" o yöndür; ekranın üstü değil!' },

@@ -399,7 +399,7 @@
       el('line', { x1: s.x - p.x * 1500, y1: s.y - p.y * 1500, x2: s.x + p.x * 1500, y2: s.y + p.y * 1500,
         stroke: b.color, 'stroke-width': 1.5, 'stroke-dasharray': '8 6', opacity: .8 }, g);
       for (const o of state.boats) {
-        if (o === b) continue;
+        if (o === b || o.crowd) continue;      // gri filoya rozet yok (kalabalık)
         const so = E.sampleTrack(o.track, state.t);
         const up = E.fwd(w);
         const gain = ((so.x - s.x) * up.x + (so.y - s.y) * up.y) / HULL;

@@ -220,7 +220,7 @@
 | İA2c | `ia2c-pick-gap` | ✅ | İA2b'nin alt senaryosu (2026-11-12): rüzgar 5° (hakem botu ucu avantajlı), 7 tekne, üç boşluk: pin yanında DAR (2-3), ortada GENİŞ (4-5), hakem botu tarafında GENİŞ avantajlı (6-7); `gaps` katmanı. S 2 dk kala bakar (`clockScale: 4`), filonun altından avantajlı boşluğa gider, 7'nin hemen rüzgaraltına sokulur (~45 px). D 1 dk kala bakar, dar boşluğa sıkışır; startta komşuları K11/K14 ile yer açar. Sonraki varyant fikirleri: "İA2b ailesi fikir listesi". | İA2b, A1, A5 |
 | B1 | `b1-rule10` | ✅ | Tek tekne bordalama. Fikir: lee-bow varyantı. | B2 |
 | B8 | `b8-rule18` | ✅ | Zone + bindirme. 2026-11-22: gri filo dizisi (`fleetTrain`): I'nın önünde 2, arkasında 3, O'nun arkasında 2 tekne aynı layline'dan. Fikir: 18.3 zone içinde tramola varyantı. | B9 |
-| C1 | `c1-header-tack` | ✅ | Salınımlı rüzgar. Fikir: pusula okuması katmanı. | C2, C3 |
+| C1 | `c1-header-tack` | ✅ | Salınımlı rüzgar. 2026-11-23: gri filo, 2 tekne T gibi tramola atar, 3 tekne K gibi devam eder. Fikir: pusula okuması katmanı. | C2, C3 |
 
 ### İA2b ailesi: sonraki varyant fikirleri (kullanıcı isteği 2026-11-12, sırayla eklenecek)
 > Ortak ders: yay yokken avantaj boşluk seçiminden, zamanlamadan ve rüzgaraltı açık sudan gelir. Hepsinde anahtar hareket: rüzgarüstü komşunun hemen rüzgaraltına sokulmak.
@@ -271,7 +271,7 @@
 ### 2026-11-22 · İleri Taktik gerçekçi kalabalık: İA1
 - Kullanıcı: İleri Taktik senaryolarını İA1'den başlayarak gerçekçi yap (aralıklar, kalabalık, animasyon; hakem botu dibi baştan boş, filo kayar, birden çok bekleyen).
 - Yapılan: motorda canlı filo + dışarıda bekleyen tekneler (Güncel durum), İA1 filo ve adım metinleri. check temiz. Görüntüler: proje dosyaları `gercekci-start/ia1/`.
-- Aynı gün devamı: kullanıcı onayladı, İA2-İA13 de yapıldı (Güncel durum). Görüntüler `gercekci-start/hepsi/`. Sonra A2/A3/A4/A12 de yapıldı (v1.181). Ardından şamandıra kalabalığı: B8 (v1.182).
+- Aynı gün devamı: kullanıcı onayladı, İA2-İA13 de yapıldı (Güncel durum). Görüntüler `gercekci-start/hepsi/`. Sonra A2/A3/A4/A12 de yapıldı (v1.181). Ardından şamandıra kalabalığı: B8 (v1.182), orsa filosu: C1 (v1.183, `fleetCopies`; merdiven rozetleri gri filoda gösterilmez).
 
 ### 2026-11-22 · Açılış ekranı v2 (Velora içinde boşluk, minimal düğmeler)
 - Kullanıcı (Velora iOS içinde ekran görüntüsü): üstte boş şerit var, düğmeler daha minimal olsun. Çerçevede (`html.is-embedded`) güvenli alan payları sıfır (Velora zaten veriyor). Üst düğmeler zeminsiz simge, "‹ Velora" en solda; üç bölüm tek beyaz kartta satır satır (telefon dikeyde alt alta, genişte yan yana, ince çizgili).
