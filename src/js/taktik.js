@@ -174,7 +174,7 @@
       if (on) el('circle', { cx: b.x, cy: b.y, r: 34, fill: 'rgba(255,255,255,.08)', stroke: '#fff', 'stroke-width': 2, 'stroke-dasharray': '5 4' }, bg);
       const tg = el('g', { transform: `translate(${b.x},${b.y}) rotate(${h.toFixed(1)})` }, bg);
       const pose = E.sailPose(h, doc.wind, { v: sb.v0, base: 50, t: 0, seed: E.seedOf(b.id) });
-      BoatDraw.draw(tg, 'optimist', { color: b.color, pose, t: 0, seed: E.seedOf(b.id), heading: h, speed: sb.v0 / 50 });
+      BoatDraw.draw(tg, BoatDraw.pref(), { color: b.color, pose, t: 0, seed: E.seedOf(b.id), heading: h, speed: sb.v0 / 50 });
       const lbl = b.name || b.id, lw = Math.max(22, lbl.length * 7.4 + 12);
       el('rect', { x: b.x - lw / 2, y: b.y + 30, width: lw, height: 19, rx: 9.5, fill: 'rgba(2,21,38,.78)', stroke: b.color, 'stroke-width': 1.5 }, bg);
       el('text', { x: b.x, y: b.y + 43.5, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 700, fill: '#fff' }, bg).textContent = lbl;

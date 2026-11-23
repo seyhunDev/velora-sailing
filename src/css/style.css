@@ -897,6 +897,10 @@ html.is-embedded .ver-badge { bottom: 1px; }
 @keyframes narr-wave { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 .narr-row { display: flex; gap: 8px; align-items: center; margin: 4px 0 6px; }
 .narr-row select { flex: 1 1 auto; min-width: 0; }
+.cls-seg { display: flex; gap: 4px; padding: 3px; background: #e5e5ea; border-radius: 12px; margin: 2px 0 6px; }
+.cls-seg button { flex: 1 1 0; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--text, #1d1d1f);
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.cls-seg button[aria-checked="true"] { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 .narr-note { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
 
 /* ---------- Ana sayfa bölüm kartları v3 (kullanıcı 2026-11-23: "diğer bölümler de senaryolar gibi ön gösterimli") ----------

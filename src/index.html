@@ -162,6 +162,12 @@
 
     <!-- SENARYO GÖRÜNÜMÜ: Ayarlar penceresine taşınır (js/app.js → #settingsBody) -->
     <div id="viewSettings" class="page-settings view-settings" hidden>
+      <div class="pop-title">Tekne sınıfı</div>
+      <div class="cls-seg" id="clsSeg" role="radiogroup" aria-label="Tekne sınıfı">
+        <button type="button" role="radio" data-c="optimist">Optimist</button>
+        <button type="button" role="radio" data-c="ilca">ILCA</button>
+      </div>
+      <div class="narr-note">Bütün senaryolarda tekneler bu sınıfla çizilir.</div>
       <div class="pop-title">Görünüm</div>
       <label class="switch row-sw" title="Sahneyi teknelere yakın sığdırır, gerekirse olayı izler (telefonda varsayılan açık)"><span class="sw-lbl">Yakın görünüm</span><input type="checkbox" id="chkZoom"><span class="track"><span class="knob"></span></span></label>
       <div id="narrSettings" hidden>

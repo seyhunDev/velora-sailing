@@ -56,7 +56,7 @@
     for (const m of scn.marks || []) el('circle', { cx: m.x, cy: m.y, r: 4 * k, fill: '#ff8c42', stroke: '#fff', 'stroke-width': k }, svg);
     th.nodes = p.boats.map(bt => {
       const g = el('g', {}, svg);
-      el('path', { d: BoatDraw.hullPath(scn.boatClass), transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
+      el('path', { d: BoatDraw.hullPath(BoatDraw.pref()), transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
       return { g, track: bt.track };
     });
     th.box.appendChild(svg);

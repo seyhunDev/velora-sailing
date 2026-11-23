@@ -161,5 +161,16 @@
     return { tip: sh && sh.tip, mast: { x: 0, y: my } };
   }
 
-  global.BoatDraw = { draw, hullPath, geo };
+  // Senaryolarda çizilecek tekne sınıfı (Ayarlar › Tekne sınıfı; bu cihazda kalıcı). Yalnız görünüş:
+  // senaryo zamanlaması ve kural mesafeleri değişmez (her sınıf 50 px = 1 tekne boyu).
+  const PREF_KEY = 'ps.boatClass', PREFS = ['optimist', 'ilca'];
+  function pref() {
+    try { const c = localStorage.getItem(PREF_KEY); return PREFS.includes(c) ? c : 'optimist'; } catch (e) { return 'optimist'; }
+  }
+  function setPref(c) {
+    if (!PREFS.includes(c)) return;
+    try { localStorage.setItem(PREF_KEY, c); } catch (e) { /* yok */ }
+  }
+
+  global.BoatDraw = { draw, hullPath, geo, pref, setPref };
 })(typeof window !== 'undefined' ? window : globalThis);
