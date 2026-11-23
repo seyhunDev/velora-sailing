@@ -1016,3 +1016,49 @@ html.is-embedded .ver-badge { bottom: 1px; }
   .home-head { margin-top: 16px; }
 }
 .home-scroll > .ls-head { margin-left: auto; margin-right: auto; padding: 0 4px; }
+
+/* ==========================================================================
+   ORTAK ÜST ÇUBUK v5 (kullanıcı 2026-11-23: "üst kısımlar hepsi farklı oldu")
+   Bütün sayfalarda aynı düzen (Velora açık tema): açık zemin, altta ince çizgi
+   [ (‹) yuvarlak geri ] [ Başlık 18px ] ......... [ eylemler: simge + yazı, zeminsiz ] [ Ana eylem: dolu mavi ] [ ⛶ ] [ hesap ]
+   Simge düğmeleri (tam ekran, ayarlar, kayıtlar) yalnız simge, yuvarlak. Deniz sahnesi lacivert kalır.
+   ========================================================================== */
+.topbar.acik { background: var(--bg); color: var(--text); border-bottom: 1px solid var(--border); gap: 6px; min-height: 60px;
+  padding: calc(8px + var(--sat)) calc(16px + var(--sar)) 8px calc(16px + var(--sal)); }
+.topbar.acik :is(.back-btn, .home-back) { display: inline-grid; place-items: center; width: 40px; height: 40px; min-width: 0; padding: 0; margin-right: 6px;
+  border: 0; border-radius: 50%; background: var(--raised); color: var(--text); flex: 0 0 auto; }
+.topbar.acik :is(.back-btn, .home-back):hover { background: var(--raised2); }
+.topbar.acik :is(.back-btn, .home-back) .lbl { display: none; }
+.topbar.acik :is(.back-btn, .home-back) svg { width: 20px; height: 20px; }
+.topbar.acik :is(h1.sim-h1, h1.hv-h1, h1.trim-h1, h1.vis-h1) { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.topbar.acik .tool { height: 40px; border: 0; border-radius: 12px; background: transparent; color: var(--text2); font-weight: 600; }
+.topbar.acik .tool:hover { background: var(--hover); color: var(--text); }
+.topbar.acik .tool.on { background: var(--accent-soft); color: var(--accent); }
+.topbar.acik :is(.fs-btn, .set-btn, #btnRecs) { width: 40px; min-width: 0; padding: 0; border-radius: 50%; }
+.topbar.acik :is(.fs-btn, .set-btn, #btnRecs) .lbl { display: none; }
+.topbar.acik .fs-btn.fs-exit { background: transparent; border: 0; }
+.topbar.acik :is(.primary-tool, .tk-play) { background: var(--accent); color: #fff; padding: 0 16px 0 12px; font-weight: 700; }
+.topbar.acik :is(.primary-tool, .tk-play):hover:not(:disabled) { background: #1d4ed8; color: #fff; }
+.topbar.acik .acc-chip { width: 34px; height: 34px; margin-left: 4px; font-size: 14px; background: var(--raised); border-width: 0; color: var(--text); }
+.topbar.acik .acc-chip[data-role="kayitli"] { background: var(--accent-soft); color: var(--accent); }
+.topbar.acik .acc-chip[data-role="sahip"] { background: #e1efe7; color: #2f8a57; }
+.topbar.acik .acc-chip:hover, .topbar.acik .acc-chip.on { box-shadow: none; filter: brightness(.96); }
+.topbar.acik .report-btn { color: #c2410c; }
+.topbar.acik .velora-back { background: var(--raised); color: var(--text); border: 0; }
+.topbar.acik a.tool { text-decoration: none; }
+.topbar.acik a.sim-link { border: 0; background: transparent; color: var(--text2); }
+.topbar.acik .draft { background: #fff4dc; color: #a16207; border: 0; }
+/* geniş ekranda (iPad yatay, masaüstü) liste sayfalarında çubuk içerikle aynı hizada */
+@media (min-width: 900px) {
+  body[data-shell="page"] .topbar.acik { padding-left: max(calc(16px + var(--sal)), calc((100% - 1180px) / 2 + 16px));
+    padding-right: max(calc(16px + var(--sar)), calc((100% - 1180px) / 2 + 16px)); }
+}
+@media (max-width: 640px), (max-height: 460px) {
+  .topbar.acik { min-height: 52px; padding-top: calc(6px + var(--sat)); padding-bottom: 6px; padding-left: calc(10px + var(--sal)); padding-right: calc(10px + var(--sar)); }
+  .topbar.acik :is(h1.sim-h1, h1.hv-h1, h1.trim-h1, h1.vis-h1) { font-size: 16px; }
+}
+.topbar.acik a.sim-link svg { color: currentColor; }
+.topbar.acik :is(.back-btn, .home-back) { background: var(--raised2); }
+.topbar.acik :is(.back-btn, .home-back):hover { background: var(--border-strong); }
+html:has(> body.acik) { background: #f5f5f7; }

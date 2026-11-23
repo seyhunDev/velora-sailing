@@ -331,3 +331,5 @@ body[data-view="ders"] .trim-panel > :not(.lesson-card) { display: none; }
 .rake-more summary { cursor: pointer; font-size: 12.5px; font-weight: 700; color: var(--accent); padding: 4px 0; list-style: none; }
 .rake-more summary::before { content: '▸ '; }
 .rake-more[open] summary::before { content: '▾ '; }
+/* ortak üst çubuk v5: sahnenin üstündeki görünüm düğmeleri açık şeritte (üst çubukla aynı ailede) */
+.trim.acik .stage-bar { background: var(--panel-solid); }
