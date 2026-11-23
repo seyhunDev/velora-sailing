@@ -248,7 +248,7 @@
   }
 
   // ---------- Rota üretici ----------
-  // segs: [{mode:'closehauled'|'run'|'heading'|'hold', tack, h, dur, turn, speed, angle}]
+  // segs: [{mode:'closehauled'|'run'|'heading'|'hold'|'back'|'goto', tack, h, dur, turn, speed, angle, x, y, r, rate}]
   // Örnekleme adımı DT ile konum/heading entegre edilir; sonuç: [{t,x,y,h}]
   const DT = 0.05;
   function buildTrack(scn, start, segs, opts) {
@@ -269,18 +269,33 @@
       const turn = seg.turn == null ? 1.2 : seg.turn;
       const hStart = h;
       const tStart = t;
-      const tEnd = t + seg.dur;
+      // goto: (x, y) noktasına git (Taktik oluştur rotaları). Nokta rüzgara 45°'den yakınsa orsada kalır;
+      // dönüş hızı sınırlı (rate °/sn), noktaya varınca (ya da yanından geçip uzaklaşınca) segment biter, dur yalnız üst sınır.
+      const go = seg.mode === 'goto';
+      const tEnd = t + (go ? (seg.dur || 120) : seg.dur);
+      let best = Infinity;
       while (t < tEnd - 1e-9) {
         const w = windAt(scn.wind, t);
         for (const o of obstacles) if (o.hull) orientObstacle(o, w);   // hakem botu rüzgarla döner
         let target;
-        if (seg.mode === 'closehauled') target = tackHeading(w, seg.tack, seg.angle);
+        if (go) {
+          const dx = seg.x - x, dy = seg.y - y, d = Math.hypot(dx, dy);
+          if (d < (seg.r || 10) || (best < 40 && d > best + 0.5)) break;
+          best = Math.min(best, d);
+          target = Math.atan2(dx, -dy) / DEG;
+          const off = norm180(target - w), lim = seg.angle || 42;
+          if (Math.abs(off) < lim) target = w + (off < 0 ? -lim : lim);
+          const dh = norm180(target - h), mx = (seg.rate || 120) * DT;
+          h += Math.max(-mx, Math.min(mx, dh));
+          target = h;
+        }
+        else if (seg.mode === 'closehauled') target = tackHeading(w, seg.tack, seg.angle);
         else if (seg.mode === 'run') target = runHeading(w, seg.tack, seg.angle);
         else if (seg.mode === 'hold') target = seg.h != null ? seg.h : w; // rüzgara karşı dur
         else if (seg.mode === 'back') target = seg.h != null ? seg.h : hStart;   // yelken ters: rota aynı, tekne geri gider
         else target = seg.h;
-        const k = turn > 0 ? Math.min(1, (t - tStart) / turn) : 1;
-        h = lerpAngle(hStart, target, k);
+        const k = go ? 1 : turn > 0 ? Math.min(1, (t - tStart) / turn) : 1;
+        h = go ? target : lerpAngle(hStart, target, k);
         // dönüş bitince hedefi takip et (rüzgar değişirse rota değişir)
         if (k >= 1) h = target;
         const twa = Math.abs(norm180(h - w));

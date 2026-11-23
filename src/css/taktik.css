@@ -1,0 +1,136 @@
+/* Taktik oluştur (taktik.html): açık Velora çubukları, ortada koyu deniz sahnesi, üstüne beyaz yüzen kartlar */
+body.taktik { background: var(--bg); }
+.taktik .hidden { display: none !important; }
+.tk-top { background: var(--bg); border: 0; gap: 10px; padding: calc(8px + var(--sat)) calc(14px + var(--sar)) 8px calc(14px + var(--sal)); }
+.tk-top a.tool { text-decoration: none; }
+.tk-top .back-btn { background: var(--raised); color: var(--text); border: 0; padding: 0 14px 0 10px; font-weight: 600; }
+.tk-top .tool { color: var(--text2); border-radius: 12px; }
+.tk-top .tool:hover { background: var(--hover); color: var(--text); }
+.tk-top .tool:disabled { opacity: .4; cursor: default; }
+.tk-top .tool-group { display: flex; align-items: center; gap: 4px; }
+.tk-top .tk-play { width: auto; background: var(--accent); color: #fff; font-weight: 700; padding: 0 16px 0 12px; }
+.tk-top .tk-play:hover:not(:disabled) { background: #1d4ed8; color: #fff; }
+.tk-top .acc-chip { background: var(--raised); border-width: 0; color: var(--text); }
+.tk-title { flex: 0 1 280px; min-width: 90px; height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid transparent; background: var(--raised);
+  color: var(--text); font-size: 15px; font-weight: 700; outline: none; }
+.tk-title:focus { border-color: var(--accent); background: #fff; }
+.tk-title::placeholder { color: var(--muted); font-weight: 600; }
+.tk-saved { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+.tk-stage { border-radius: 18px 18px 0 0; overflow: hidden; margin: 0 calc(8px + var(--sar)) 0 calc(8px + var(--sal)); }
+#tkSvg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+#tkSvg .tk-drag { cursor: grab; }
+#tkSvg text { pointer-events: none; font-family: inherit; }
+.taktik .brand-corner { color: #fff; bottom: calc(14px + var(--sab)); }
+
+/* yüzen beyaz kartlar */
+.tk-wind, .tk-sel, .tk-dock, .tk-hint, .tk-toast { position: absolute; z-index: 4; background: #fff; color: var(--text); border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.tk-wind { top: 12px; right: 12px; display: flex; align-items: center; gap: 2px; padding: 4px; }
+.tk-wind-mid { display: flex; align-items: center; gap: 6px; padding: 0 4px; }
+.tk-wind-arrow { width: 30px; height: 30px; color: var(--accent); }
+.tk-wind-mid span { display: flex; flex-direction: column; line-height: 1.05; min-width: 44px; }
+.tk-wind-mid b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.tk-wind-mid small { font-size: 11px; color: var(--muted); font-weight: 600; }
+.tk-ic { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: var(--raised); color: var(--text); }
+.tk-ic:hover { background: var(--raised2); }
+.tk-ic svg { width: 20px; height: 20px; }
+.tk-ic.sm { width: 32px; height: 32px; border-radius: 10px; background: transparent; color: var(--muted); }
+.tk-ic.sm svg { width: 16px; height: 16px; }
+
+.tk-dock { left: 50%; bottom: calc(12px + var(--sab)); transform: translateX(-50%); display: flex; gap: 4px; padding: 5px; }
+.tk-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 76px; height: 54px; padding: 0 10px;
+  border: 0; border-radius: 12px; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; }
+.tk-btn svg { width: 22px; height: 22px; }
+.tk-btn:hover:not(:disabled) { background: var(--hover); }
+.tk-btn:disabled { opacity: .35; cursor: default; }
+.tk-btn.on { background: var(--accent-soft); color: var(--accent); }
+.tk-btn + .tk-btn#tkNew { box-shadow: -1px 0 0 var(--border); border-radius: 0 12px 12px 0; }
+
+.tk-hint { left: 50%; top: 12px; transform: translateX(-50%); max-width: min(520px, calc(100% - 260px)); padding: 10px 14px; font-size: 13.5px; line-height: 1.4; text-align: center; }
+.tk-hint b { color: var(--accent); }
+.tk-toast { left: 50%; bottom: calc(80px + var(--sab)); transform: translateX(-50%); padding: 10px 16px; font-size: 14px; font-weight: 600; z-index: 6; white-space: nowrap; }
+
+.tk-sel { top: 12px; left: 12px; width: 270px; padding: 10px 12px 12px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.tk-sel-h { display: flex; align-items: center; gap: 8px; }
+.tk-sel-t { flex: 1; font-size: 15px; }
+.tk-dot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--border-strong); }
+.tk-name { flex: 1; min-width: 0; width: 100%; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); font-size: 15px; font-weight: 700; outline: none; }
+.tk-name:focus { border-color: var(--accent); background: #fff; }
+.tk-colors { display: flex; gap: 6px; }
+.tk-col { width: 28px; height: 28px; border-radius: 50%; border: 0; box-shadow: inset 0 0 0 2px rgba(255,255,255,.6); }
+.tk-col.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--text); }
+.tk-sel-p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--text2); }
+.tk-sel-a { display: flex; gap: 6px; flex-wrap: wrap; }
+.taktik .tb { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 34px; padding: 0 11px; border-radius: 10px; border: 0;
+  background: var(--raised); color: var(--text); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.taktik .tb svg { width: 16px; height: 16px; }
+.taktik .tb:hover:not(:disabled) { background: var(--raised2); }
+.taktik .tb:disabled { opacity: .4; cursor: default; }
+.taktik .tb.danger { color: #c0262d; }
+.taktik .tb.primary { background: var(--accent); color: #fff; height: 40px; padding: 0 18px; }
+.tk-sw { display: flex; align-items: center; gap: 8px; font-size: 13.5px; }
+.tk-sw input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+/* pencereler */
+.tk-p { margin: 4px 4px 10px; font-size: 14px; color: var(--text2); line-height: 1.45; }
+.tk-p.small { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+.tk-ta { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff; font: inherit; font-size: 15px; resize: vertical; outline: none; }
+.tk-ta:focus { border-color: var(--accent); }
+.tk-dlg-a { display: flex; justify-content: flex-end; margin-top: 10px; }
+.tk-rows { display: grid; gap: 0; background: #fff; border-radius: 12px; overflow: hidden; }
+.tk-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.tk-row + .tk-row { box-shadow: inset 0 1px 0 var(--border); }
+.tk-row.cur { background: var(--accent-soft); }
+.tk-row-dots { display: flex; gap: 2px; width: 44px; flex-wrap: wrap; }
+.tk-row-dots i { width: 9px; height: 9px; border-radius: 50%; }
+.tk-row-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tk-row-t b { font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-row-t small { font-size: 12px; color: var(--muted); }
+
+/* dar ekran ve yatay telefon */
+@media (max-width: 900px) {
+  .tk-top .tool .lbl { display: none; }
+  .tk-top .tk-play .lbl { display: inline; }
+  .tk-top .back-btn .lbl { display: none; }
+  .tk-top .back-btn { padding: 0 10px; }
+  .tk-hint { max-width: calc(100% - 210px); font-size: 12.5px; }
+}
+@media (max-width: 640px), (max-height: 460px) {
+  .tk-top { padding-top: calc(4px + var(--sat)); padding-bottom: 4px; gap: 6px; }
+  .tk-top .tool { height: 36px; min-width: 36px; padding: 0 8px; }
+  .tk-title { height: 36px; font-size: 14px; }
+  .tk-saved { display: none; }
+  .tk-stage { margin: 0; border-radius: 0; }
+  .tk-wind { top: 8px; right: calc(8px + var(--sar)); padding: 3px; }
+  .tk-ic { width: 34px; height: 34px; }
+  .tk-wind-arrow { width: 24px; height: 24px; }
+  .tk-wind-mid span { min-width: 36px; }
+  .tk-wind-mid small { display: none; }
+  .tk-dock { bottom: calc(6px + var(--sab)); padding: 3px; gap: 2px; border-radius: 14px; }
+  .tk-btn { min-width: 62px; height: 44px; font-size: 11px; }
+  .tk-btn svg { width: 19px; height: 19px; }
+  .tk-sel { top: 8px; left: calc(8px + var(--sal)); width: 236px; padding: 8px 10px 10px; gap: 6px; }
+  .tk-sel-p { font-size: 12px; }
+  .tk-colors { gap: 5px; } .tk-col { width: 24px; height: 24px; }
+  .taktik .tb { height: 30px; padding: 0 9px; font-size: 12px; }
+  .tk-hint { top: auto; bottom: calc(60px + var(--sab)); max-width: calc(100% - 24px); padding: 7px 12px; font-size: 12px; }
+  .tk-toast { bottom: calc(60px + var(--sab)); }
+  .taktik .brand-corner { display: none; }
+}
+/* dikey telefon: üst çubuk dar → ad alanı küçülür */
+@media (max-width: 480px) {
+  .tk-title { flex-basis: 120px; }
+  .tk-sel { width: calc(100% - 16px); top: auto; bottom: calc(58px + var(--sab)); }
+  .tk-sel:not(.hidden) ~ .tk-hint { display: none; }
+}
+@media (max-width: 480px) {
+  .tk-top { gap: 4px; padding-left: calc(8px + var(--sal)); padding-right: calc(8px + var(--sar)); }
+  .tk-top .tool-group { gap: 0; }
+  .tk-top .tk-play .lbl { display: none; }
+  .tk-top .tk-play { padding: 0 10px; }
+  .tk-title { flex: 1 1 80px; min-width: 60px; }
+}
+.tk-top .tool-group > * { flex-shrink: 0; }
+.tk-top .tk-title { flex-shrink: 1; }
+@media (max-width: 640px), (max-height: 460px) { .tk-top .tk-play { width: auto; padding: 0 12px 0 10px; } }
+@media (max-width: 480px) { .tk-top .tool { width: 36px; min-width: 36px; padding: 0; } .tk-top .tk-play { width: 44px; padding: 0; } .tk-top .acc-chip { width: 34px; height: 34px; } }

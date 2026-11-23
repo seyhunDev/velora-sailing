@@ -901,7 +901,7 @@ html.is-embedded .ver-badge { bottom: 1px; }
 
 /* ---------- Ana sayfa bölüm kartları v3 (kullanıcı 2026-11-23: "diğer bölümler de senaryolar gibi ön gösterimli") ----------
    Kart = ön izleme görseli (16:10, köşesi yuvarlak, gölgesiz) + altında ad ve tek satır ne işe yaradığı. Senaryo kartıyla aynı dil. */
-.home-go { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+.home-go { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px 14px; }
 .sec-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: var(--text); text-decoration: none; }
 .sec-img { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; background: #0b2a46;
   box-shadow: 0 0 0 1px rgba(0,0,0,.06); transition: transform .12s; }
@@ -915,9 +915,22 @@ html.is-embedded .ver-badge { bottom: 1px; }
 .sec-t b { font-size: 15px; font-weight: 600; }
 .sec-t small { font-size: 13px; color: var(--muted); line-height: 1.35; }
 
+/* beş kart: dar ekranda yana kayan tek sıra (ikişerli ızgarada beşinci kart tek kalıyordu) */
+@media (max-width: 760px) {
+  .home-go { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(150px, 42%); overflow-x: auto; scroll-snap-type: x mandatory;
+    margin: 0 -14px; padding: 0 14px 4px; scroll-padding: 0 14px; scrollbar-width: none; }
+  .home-go::-webkit-scrollbar { display: none; }
+  .home-go .sec-card { scroll-snap-align: start; }
+}
 @media (max-width: 640px) {
-  .home-go { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .home-go { gap: 14px 10px; }
   .sec-t b { font-size: 14px; }
   .sec-t small { font-size: 12px; }
 }
 @media (max-height: 500px) { .sec-t small { display: none; } .home-go { gap: 12px 10px; } }
+/* Taktiklerim: oynatıcıda Düzenle düğmesi, ana sayfada "Yeni taktik" kartı */
+.scn-top .edit-btn { text-decoration: none; height: 38px; border-radius: 12px; background: var(--raised); color: var(--text); font-weight: 600; flex: 0 0 auto; }
+.card.new-card .thumb { display: flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); }
+.card.new-card { text-decoration: none; }
+.card.new-card .thumb svg { position: static; width: 38px; height: 38px; }
+:root { --c-mine: #0ea5a4; } .acik { --c-mine: #0f8f8e; }

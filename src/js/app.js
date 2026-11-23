@@ -14,7 +14,7 @@
   const HULL = 50;                 // tekne boyu (px)
   const COURSE = { w: 1000, h: 680 };   // senaryo koordinat alanı
   const EXTRA_COLORS = ['#ffd166', '#c77dff', '#90be6d', '#f9844a', '#48cae4', '#f94144', '#b5e48c'];
-  const CAT_COLORS = { 'Taktik': 'var(--c-taktik)', 'İleri Taktik': 'var(--c-ileri)', 'Kurallar': 'var(--c-kural)', 'Teknik': 'var(--c-teknik)', 'İleri Teknik': 'var(--c-ileri-teknik)' };
+  const CAT_COLORS = { 'Taktik': 'var(--c-taktik)', 'İleri Taktik': 'var(--c-ileri)', 'Kurallar': 'var(--c-kural)', 'Teknik': 'var(--c-teknik)', 'İleri Teknik': 'var(--c-ileri-teknik)', 'Taktiklerim': 'var(--c-mine)' };
   // tekne rolleri: sahnede etiket kenarı + simge, kartta rozet
   const ROLES = {
     hak:   { label: 'Hak sahibi', glyph: '✓', color: '#34d399' },
@@ -161,6 +161,12 @@
     $('btnScenarios').title = `${scn.category}${scn.topic ? ' · ' + scn.topic : ''} · senaryo seç`;
     $('btnScenarios').style.setProperty('--cat', CAT_COLORS[scn.category] || 'var(--accent)');
     document.title = `${scn.title} · Velora Sailing`;
+    // kendi taktiğin: Düzenle → Taktik oluştur (paylaşılan: kendi kopyan olarak açılır)
+    const ed = $('btnEdit');
+    if (ed) {
+      ed.classList.toggle('hidden', !scn.user);
+      if (scn.user && window.SailTaktik) ed.href = scn.id.startsWith('s-') ? 'taktik.html?t=' + SailTaktik.encode(scn.doc) : 'taktik.html?id=' + encodeURIComponent(scn.doc.id);
+    }
     document.querySelectorAll('.card').forEach(c => c.classList.toggle('active', c.dataset.id === scn.id));
     updateScnNav();
     setFollow(true);
@@ -744,7 +750,9 @@
 
   // ---------- Senaryo seçici (kategori sekmeleri + kartlar) ----------
   let seenScn = false;               // kullanıcı bu oturumda bir senaryo açtı mı (ana sayfada "Açık" rozeti için)
+  // Taktiklerim (Taktik oluştur ile kurulan, bu cihazda kayıtlı ya da paylaşılan): yalnız varsa sekme olur
   const CATS = ['Taktik', 'İleri Taktik', 'Kurallar', 'Teknik', 'İleri Teknik'];
+  if (window.SailTaktik && SCENARIOS.some(x => x.category === SailTaktik.CAT)) CATS.push(SailTaktik.CAT);
   let pickerCat = 'Taktik';
   let query = '';
   function openPicker(open) {
@@ -802,9 +810,16 @@
     }
     const groups = [];
     for (const x of items) { const k = q ? x.category : (x.topic || 'Genel'); if (!groups.includes(k)) groups.push(k); }
+    // Taktiklerim: ilk kart "Yeni taktik" (Taktik oluştur sayfası)
+    const mine = !q && window.SailTaktik && cat === SailTaktik.CAT;
     for (const gname of groups) {
       const h = document.createElement('div'); h.className = 'picker-topic'; h.textContent = gname; list.appendChild(h);
       const grid = document.createElement('div'); grid.className = 'picker-grid'; list.appendChild(grid);
+      if (mine && gname === groups[0]) {
+        const a = document.createElement('a'); a.className = 'card new-card'; a.href = 'taktik.html'; a.style.setProperty('--cat', CAT_COLORS[cat]);
+        a.innerHTML = '<div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></div><div class="ttl">Yeni taktik</div>';
+        grid.appendChild(a);
+      }
       for (const x of items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname)) grid.appendChild(scenarioCard(x));
     }
   }
