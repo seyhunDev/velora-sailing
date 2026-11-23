@@ -284,7 +284,9 @@
           best = Math.min(best, d);
           target = Math.atan2(dx, -dy) / DEG;
           const off = norm180(target - w), lim = seg.angle || 42;
-          if (Math.abs(off) < lim) target = w + (off < 0 ? -lim : lim);
+          // nokta rüzgarın içinde (ör. rüzgar döndü): bulunduğu kontrada orsada kal, nokta öbür kontranın
+          // layline'ına gelince oraya döner (tramola). Kontra belirsizse noktanın olduğu yana.
+          if (Math.abs(off) < lim) { const cur = norm180(h - w), side = Math.abs(cur) > 5 ? Math.sign(cur) : (off < 0 ? -1 : 1); target = w + side * lim; }
           const dh = norm180(target - h), mx = (seg.rate || 120) * DT;
           h += Math.max(-mx, Math.min(mx, dh));
           target = h;
@@ -299,7 +301,7 @@
         // dönüş bitince hedefi takip et (rüzgar değişirse rota değişir)
         if (k >= 1) h = target;
         const twa = Math.abs(norm180(h - w));
-        let vt = speedFor(twa, base) * (seg.speed == null ? 1 : seg.speed);
+        let vt = speedFor(twa, base) * (seg.speed == null ? 1 : seg.speed) * gustK(scn, x, y, t);
         if (seg.mode === 'hold') vt = base * (seg.speed == null ? 0.1 : seg.speed);
         if (seg.mode === 'back') vt = -base * (seg.speed == null ? 0.2 : seg.speed);   // K22.3: geri giden tekne
         v += (vt - v) * Math.min(1, DT / TAU);
@@ -327,6 +329,40 @@
       }
     }
     return samples;
+  }
+
+  // ---------- Sağanak (Taktik oluştur): rüzgarla birlikte rüzgaraltına kayan daha sert rüzgar alanı ----------
+  // scn.gusts: [{x, y, r, from, to, k}] (x,y: t=0 anındaki merkez; drift px/sn; k hız çarpanı, varsayılan 1.25)
+  const GUST = { drift: 8, k: 1.25 };
+  function gustAt(scn, g, t) {
+    const d = fwd(windAt(scn.wind, t) + 180), m = (g.drift != null ? g.drift : GUST.drift) * t;
+    return { x: g.x + d.x * m, y: g.y + d.y * m, r: g.r || 90 };
+  }
+  function gustK(scn, x, y, t) {
+    if (!scn.gusts || !scn.gusts.length) return 1;
+    let k = 1;
+    for (const g of scn.gusts) {
+      if ((g.from != null && t < g.from) || (g.to != null && t > g.to)) continue;
+      const c = gustAt(scn, g, t), d = Math.hypot(x - c.x, y - c.y);
+      if (d < c.r) k = Math.max(k, 1 + ((g.k || GUST.k) - 1) * Math.min(1, (c.r - d) / 25));   // kenarda yumuşak geçiş
+    }
+    return k;
+  }
+
+  // sağanak çizimi (oynatıcı ve kurucu ortak): koyu su lekesi + rüzgar yönünde kısa kıvrımlar
+  function drawGust(el, parent, c, w, t, label) {
+    const g = el('g', { 'pointer-events': 'none' }, parent);
+    el('circle', { cx: c.x, cy: c.y, r: c.r, fill: 'rgba(2,12,28,.32)', stroke: 'rgba(147,197,253,.55)', 'stroke-width': 1.5, 'stroke-dasharray': '3 7' }, g);
+    const d = fwd(w + 180), p = fwd(w + 90);
+    for (let i = 0; i < 7; i++) {
+      const a = i * 2.4, rr = c.r * (0.25 + 0.55 * ((i * 37) % 10) / 10);
+      const sh = ((t || 0) * 12 + i * 13) % 30 - 15;
+      const x = c.x + Math.cos(a) * rr + d.x * sh, y = c.y + Math.sin(a) * rr + d.y * sh;
+      el('path', { d: `M${(x - p.x * 9).toFixed(1)},${(y - p.y * 9).toFixed(1)} q${(d.x * 4 + p.x * 9).toFixed(1)},${(d.y * 4 + p.y * 9).toFixed(1)} ${(p.x * 18).toFixed(1)},${(p.y * 18).toFixed(1)}`,
+        fill: 'none', stroke: 'rgba(191,219,254,.45)', 'stroke-width': 1.6, 'stroke-linecap': 'round' }, g);
+    }
+    if (label !== false) el('text', { x: c.x, y: c.y - c.r - 6, 'text-anchor': 'middle', fill: '#bfdbfe', 'font-size': 12, 'font-weight': 700, 'paint-order': 'stroke', stroke: 'rgba(0,0,0,.5)', 'stroke-width': 3 }, g).textContent = label || 'Sağanak';
+    return g;
   }
 
   function sampleTrack(track, t) {
@@ -528,6 +564,6 @@
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
     windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,
     CLOSE_HAULED, RUN, BOAT_CLASSES, upwindKn, accelTau, scenarioTau, RACE_TAU,
-    BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf, boatOutline, CB_HULL
+    GUST, gustAt, gustK, drawGust, BOAT_LEN_PX, BOAT_MODELS, boatModel, hullOf, boatOutline, CB_HULL
   };
 })(typeof window !== 'undefined' ? window : globalThis);

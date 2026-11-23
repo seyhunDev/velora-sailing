@@ -77,9 +77,22 @@
     }
     $('tkWindArrow').setAttribute('transform', `rotate(${w})`);
     $('tkWindDeg').textContent = `${Math.round(E.norm360(w))}°`;
+    const sh = doc.shift;
+    $('tkShift').innerHTML = sh ? `<b>${sh.d > 0 ? '↻' : '↺'} ${Math.abs(sh.d)}°</b><small>${sh.t}. sn</small>` : '<b>Dönüş</b><small>yok</small>';
+    $('tkShift').classList.toggle('on', !!sh);
   }
   function drawCourse() {
     const g = $('tkCourse'); g.innerHTML = '';
+    (doc.gusts || []).forEach((gu, i) => {
+      const on = sel && sel.kind === 'gust' && sel.i === i;
+      const gg = el('g', { 'data-k': 'gust', 'data-i': i, class: 'tk-drag' + (on ? ' on' : '') }, g);
+      el('circle', { cx: gu.x, cy: gu.y, r: gu.r, fill: 'transparent' }, gg);
+      E.drawGust(el, gg, { x: gu.x, y: gu.y, r: gu.r }, doc.wind, 0);
+      if (on) el('circle', { cx: gu.x, cy: gu.y, r: gu.r + 4, fill: 'none', stroke: '#fff', 'stroke-width': 2, 'stroke-dasharray': '5 4' }, gg);
+      // rüzgaraltına kayma yönü
+      const d = E.fwd(doc.wind + 180), a = { x: gu.x + d.x * (gu.r + 6), y: gu.y + d.y * (gu.r + 6) }, b = { x: a.x + d.x * 34, y: a.y + d.y * 34 };
+      el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: 'rgba(191,219,254,.6)', 'stroke-width': 2, 'stroke-dasharray': '4 4', 'pointer-events': 'none' }, gg);
+    });
     if (doc.line) {
       const { pin, boat } = doc.line;
       el('line', { x1: pin.x, y1: pin.y, x2: boat.x, y2: boat.y, stroke: '#ffd166', 'stroke-width': 2, 'stroke-dasharray': '10 8', opacity: .9 }, g);
@@ -174,6 +187,7 @@
     $('tkLine').setAttribute('aria-pressed', !!doc.line); $('tkLine').classList.toggle('on', !!doc.line);
     $('tkAddBoat').disabled = doc.boats.length >= T.MAX_BOATS;
     $('tkAddMark').disabled = doc.marks.length >= T.MAX_MARKS;
+    $('tkAddGust').disabled = (doc.gusts || []).length >= T.MAX_GUSTS;
     $('tkUndo').disabled = !undo.length;
     drawRef();
     $('tkPlay').disabled = !doc.boats.some(b => b.route.length);
@@ -183,7 +197,7 @@
   // ---------- Seçili nesne kartı ----------
   function drawSel() {
     const c = $('tkSel');
-    if (!sel || (sel.kind !== 'boat' && sel.kind !== 'mark')) { c.classList.add('hidden'); c.innerHTML = ''; return; }
+    if (!sel || (sel.kind !== 'boat' && sel.kind !== 'mark' && sel.kind !== 'gust')) { c.classList.add('hidden'); c.innerHTML = ''; return; }
     c.classList.remove('hidden');
     if (sel.kind === 'boat') {
       const b = doc.boats[sel.i]; if (!b) { sel = null; return drawSel(); }
@@ -203,6 +217,14 @@
           <button class="tb danger" data-a="del"><svg><use href="#i-trash"/></svg>Tekne</button>
         </div>`;
       $('tkBoatName').oninput = e => { b.name = e.target.value; changed(); };
+    } else if (sel.kind === 'gust') {
+      const gu = (doc.gusts || [])[sel.i]; if (!gu) { sel = null; return drawSel(); }
+      c.innerHTML = `<div class="tk-sel-h"><span class="tk-dot" style="background:#1e3a5f"></span><b class="tk-sel-t">Sağanak</b>
+          <button class="tk-ic sm" data-a="close" title="Bitti" aria-label="Bitti"><svg><use href="#i-close"/></svg></button></div>
+        <p class="tk-sel-p">Rüzgar burada daha sert. İçine giren tekne hızlanır. Sağanak rüzgarla birlikte yavaşça aşağı kayar.</p>
+        <div class="tk-lbl">Büyüklük</div>
+        <div class="tk-seg" role="group" aria-label="Büyüklük">${[[70, 'Küçük'], [100, 'Orta'], [140, 'Büyük']].map(([r, l]) => `<button data-gr="${r}" class="${Math.abs(gu.r - r) < 15 ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <div class="tk-sel-a"><button class="tb danger" data-a="del"><svg><use href="#i-trash"/></svg>Sağanağı sil</button></div>`;
     } else {
       const m = doc.marks[sel.i]; if (!m) { sel = null; return drawSel(); }
       c.innerHTML = `<div class="tk-sel-h"><span class="tk-dot" style="background:#ff8c42"></span><b class="tk-sel-t">Şamandıra</b>
@@ -215,6 +237,8 @@
   $('tkSel').addEventListener('click', e => {
     const sb = e.target.closest('[data-sail]');
     if (sb) { sail = sb.dataset.sail; try { localStorage.setItem(SAIL_KEY, sail); } catch (er) { /* yok */ } drawSel(); render(); return; }
+    const gr = e.target.closest('[data-gr]');
+    if (gr && sel && sel.kind === 'gust') { doc.gusts[sel.i].r = +gr.dataset.gr; changed(); return; }
     const rb = e.target.closest('[data-role]');
     if (rb && sel && sel.kind === 'boat') { doc.boats[sel.i].role = rb.dataset.role; changed(); return; }
     const col = e.target.closest('[data-col]');
@@ -227,7 +251,8 @@
       if (act === 'undo') b.route.pop();
       else if (act === 'clear') b.route = [];
       else if (act === 'del') { doc.boats.splice(sel.i, 1); sel = null; }
-    } else if (act === 'del') { doc.marks.splice(sel.i, 1); sel = null; }
+    } else if (act === 'del' && sel.kind === 'gust') { doc.gusts.splice(sel.i, 1); sel = null; }
+    else if (act === 'del') { doc.marks.splice(sel.i, 1); sel = null; }
     changed();
   });
 
@@ -276,6 +301,15 @@
     sel = { kind: 'boat', i: doc.boats.length - 1 };
     changed();
   };
+  $('tkAddGust').onclick = () => {
+    doc.gusts = doc.gusts || [];
+    if (doc.gusts.length >= T.MAX_GUSTS) return;
+    // rüzgarüstünde, sahnenin bir yanında
+    const x = doc.gusts.length % 2 ? 260 : 740, y = 300;
+    doc.gusts.push({ x, y, r: 100 });
+    sel = { kind: 'gust', i: doc.gusts.length - 1 };
+    changed();
+  };
   $('tkAddMark').onclick = () => {
     if (doc.marks.length >= T.MAX_MARKS) return;
     const p = freeSpot(doc.marks.length ? 300 : 150);
@@ -298,17 +332,32 @@
   $('tkUndo').onclick = () => {
     if (!undo.length) return;
     const d = JSON.parse(undo.pop()); last = JSON.stringify(d);
-    doc = d; if (sel && ((sel.kind === 'boat' && !doc.boats[sel.i]) || (sel.kind === 'mark' && !doc.marks[sel.i]))) sel = null;
+    doc = d; if (sel && ((sel.kind === 'boat' && !doc.boats[sel.i]) || (sel.kind === 'mark' && !doc.marks[sel.i]) || (sel.kind === 'gust' && !(doc.gusts || [])[sel.i]))) sel = null;
     changed({ noUndo: true });
   };
-  $('tkNew').onclick = () => {
-    if (doc.boats.length && !confirmNew()) return;
-    persist(); setDoc(T.blank()); history.replaceState(null, '', location.pathname); changed();
-  };
-  function confirmNew() { return true; }   // taslak zaten kayıtlı: yeni sahne açmak bir şey kaybettirmez
+  // Yeni: hazır başlangıç sahnesi seç (şimdiki taslak zaten kayıtlı, bir şey kaybolmaz)
+  $('tkNew').onclick = () => openDlg('Yeni taktik', `<p class="tk-p">Nasıl başlayalım? Sonra her şeyi değiştirebilirsin.</p>
+      <div class="tk-tpl">${T.TEMPLATES.map(t => `<button class="tk-tpl-b" data-tpl="${t.id}"><b>${esc(t.label)}</b><small>${esc(t.desc)}</small></button>`).join('')}</div>`, b => {
+    b.onclick = e => {
+      const tb = e.target.closest('[data-tpl]'); if (!tb) return;
+      persist(); setDoc(T.fromTemplate(tb.dataset.tpl)); history.replaceState(null, '', location.pathname); closeDlg(); changed({ now: true });
+    };
+  });
 
   const rotWind = d => { doc.wind = E.norm360(doc.wind + d); doc.boats.forEach(b => T.resnap(b, doc.wind)); changed(); };
   $('tkWindL').onclick = () => rotWind(-10);
+  $('tkShift').onclick = () => {
+    const sh = doc.shift || { t: 5, d: 0 }, dur = (prev && prev.scn.duration) || 10;
+    let d = sh.d;
+    const opts = [[-20, '20° sola'], [-10, '10° sola'], [0, 'Dönmesin'], [10, '10° sağa'], [20, '20° sağa']];
+    openDlg('Rüzgar dönüşü', `<p class="tk-p">Rüzgar oynatırken dönsün mü? Sağa dönüş sancak kontraya açma, iskele kontraya kapatma olur. Sola dönüş tersi.</p>
+      <div class="tk-seg tk-seg-big" id="tkShD">${opts.map(([v, l]) => `<button data-d="${v}" class="${v === d ? 'on' : ''}">${l}</button>`).join('')}</div>
+      <label class="tk-sw tk-sw2"><span>Kaçıncı saniyede?</span><span class="tk-sec"><input type="number" id="tkShT" min="0" max="60" step="1" value="${sh.t}"><span>sn</span></span><small class="tk-muted">Taktik ${dur} sn</small></label>
+      <div class="tk-dlg-a"><button class="tb primary" id="tkShOk">Tamam</button></div>`, b => {
+      b.querySelector('#tkShD').onclick = e => { const x = e.target.closest('[data-d]'); if (!x) return; d = +x.dataset.d; b.querySelectorAll('#tkShD button').forEach(y => y.classList.toggle('on', y === x)); };
+      b.querySelector('#tkShOk').onclick = () => { doc.shift = d ? { t: Math.max(0, +b.querySelector('#tkShT').value || 0), d } : null; closeDlg(); changed(); };
+    });
+  };
   $('tkWindR').onclick = () => rotWind(10);
 
   // ---------- Sürükle / dokun ----------
@@ -319,6 +368,7 @@
     drag = { g, k: g ? g.dataset.k : 'water', i: g ? +g.dataset.i : -1, j: g ? +g.dataset.j : -1, x0: e.clientX, y0: e.clientY, p0: p, moved: false, id: e.pointerId };
     if (drag.k === 'boat') drag.o = { x: doc.boats[drag.i].x, y: doc.boats[drag.i].y };
     else if (drag.k === 'mark') drag.o = { ...doc.marks[drag.i] };
+    else if (drag.k === 'gust') drag.o = { ...doc.gusts[drag.i] };
     else if (drag.k === 'pt') drag.o = { ...doc.boats[drag.i].route[drag.j] };
     else if (drag.k === 'pin') drag.o = { ...doc.line.pin };
     else if (drag.k === 'cb') drag.o = { ...doc.line.boat };
@@ -333,6 +383,7 @@
     const p = toSvg(e), x = clampX(drag.o.x + p.x - drag.p0.x), y = clampY(drag.o.y + p.y - drag.p0.y);
     if (drag.k === 'boat') { const b = doc.boats[drag.i]; b.x = x; b.y = y; T.resnap(b, doc.wind); if (!sel || sel.i !== drag.i || sel.kind !== 'boat') sel = { kind: 'boat', i: drag.i }; }
     else if (drag.k === 'mark') { doc.marks[drag.i].x = x; doc.marks[drag.i].y = y; }
+    else if (drag.k === 'gust') { doc.gusts[drag.i].x = x; doc.gusts[drag.i].y = y; }
     else if (drag.k === 'pt') { const b = doc.boats[drag.i], q = b.route[drag.j]; q.x = x; q.y = y; delete q.m; delete q.s; T.resnap(b, doc.wind); }
     else if (drag.k === 'pin') doc.line.pin = { x, y };
     else if (drag.k === 'cb') doc.line.boat = { x, y };
@@ -345,6 +396,7 @@
     // dokunma
     if (d.k === 'boat') sel = sel && sel.kind === 'boat' && sel.i === d.i ? null : { kind: 'boat', i: d.i };
     else if (d.k === 'mark') sel = { kind: 'mark', i: d.i };
+    else if (d.k === 'gust') { if (sel && sel.kind === 'boat') return addPoint(d.p0); sel = { kind: 'gust', i: d.i }; }
     else if (d.k === 'pt') { if (!(sel && sel.kind === 'boat' && sel.i === d.i)) sel = { kind: 'boat', i: d.i }; else return addPoint(d.p0); }
     else if (d.k === 'pin' || d.k === 'cb') sel = null;
     else if (sel && sel.kind === 'boat') return addPoint(d.p0);

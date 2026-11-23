@@ -398,6 +398,11 @@
   function drawOverlays(w) {
     const g = $('overlayLayer'); g.innerHTML = '';
     const scn = state.scn; state.rungNotes = [];
+    // sağanak alanları (Taktik oluştur): rüzgarla rüzgaraltına kayar, içindeki tekne hızlanır
+    for (const gu of scn.gusts || []) {
+      if ((gu.from != null && state.t < gu.from) || (gu.to != null && state.t > gu.to)) continue;
+      E.drawGust(el, g, E.gustAt(scn, gu, state.t), w, state.t);
+    }
     // ayarlardaki anahtar: pin ve hakem botu layline'ları (rüzgara göre her karede)
     if (state.show.startLay && scn.line) E.drawStartLaylines(el, g, scn.line, w);
     if (state.show.rungs && scn.rungs && state.t >= scn.rungs.from && (scn.rungs.to == null || state.t <= scn.rungs.to)) {

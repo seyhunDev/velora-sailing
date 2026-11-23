@@ -171,3 +171,21 @@ body.taktik { background: var(--bg); }
 .tk-in:focus, .tk-sec input:focus { border-color: var(--accent); outline: none; }
 .tk-sw2 { margin: 14px 4px 0; align-items: flex-start; line-height: 1.4; color: var(--text2); } .tk-sw2 input { margin-top: 1px; flex: 0 0 auto; }
 @media (max-width: 640px), (max-height: 460px) { .tk-ref { top: 52px; right: calc(8px + var(--sar)); height: 30px; font-size: 12px; } }
+
+/* rüzgar dönüşü düğmesi (rüzgar kartında) */
+.tk-shift { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 54px; height: 40px; margin-left: 2px; padding: 0 8px;
+  border: 0; border-radius: 12px; background: var(--raised); color: var(--text2); line-height: 1.05; }
+.tk-shift b { font-size: 12.5px; } .tk-shift small { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+.tk-shift.on { background: var(--accent-soft); color: var(--accent); }
+.tk-seg-big button { height: 38px; font-size: 13.5px; }
+.tk-muted { color: var(--muted); font-size: 12px; margin-left: auto; }
+.tk-sw2 .tk-sec input { width: 64px; }
+/* hazır sahneler */
+.tk-tpl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tk-tpl-b { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; color: var(--text); }
+.tk-tpl-b:hover { border-color: var(--accent); }
+.tk-tpl-b b { font-size: 15px; } .tk-tpl-b small { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+@media (max-width: 640px), (max-height: 460px) { .tk-shift { height: 34px; min-width: 46px; } .tk-shift small { display: none; } .tk-tpl-b { padding: 9px 11px; } .tk-tpl-b b { font-size: 14px; } }
+/* yatay telefon: sahne alt çubuğun üstünde kalsın, yazılar tek satır */
+.tk-btn span { white-space: nowrap; }
+@media (max-height: 460px) { #tkSvg { height: calc(100% - 52px - var(--sab)); } }

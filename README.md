@@ -115,6 +115,8 @@ Kuvvetli rüzgar: `windKn` (göstergede şiddet, ≥15 "kuvvetli"), `leeway: {fr
 Yandan görünüş paneli (İleri Teknik dersleri, `js/rigview.js`): `rig: { kn, label, steps: ['…'], mark, keys: [{ t, sheet, vang, push, hand, p }], ghost: { label, short, from, keys } }`.
 `sheet` iskota 0 (kaçık) … 1 (sonuna kadar alınmış), `vang` palanga 0 (boş) … 1 (çok sıkı), `push` bumbayı bastırma 0…1, `hand` elin yeri (`sheet` / `release` / `boom` / `vang` / `tiller`), `board` salma 0 (aşağıda) … 1 (kalkık; `rig.board: true` panelde Salma satırını açar), `p` adım şeridinde vurgulanan adım (0'dan; −1 hiçbiri). Sayılar anahtar kareler arasında doğrusal geçer. `mark` palanga çubuğundaki sarı hedef çizgisi, `ghost` aynı anahtar karelerle kesikli kırmızı karşılaştırma yelkeni (`from` sn'den sonra, yalnız belirgin farkta). Model şematiktir (açılar ölçüm değil).
 
+Sağanak: `gusts: [{x, y, r}]` (içindeki tekne `GUST.k` kat hızlı, sağanak rüzgaraltına `GUST.drift` px/sn kayar; `engine.js`).
+
 Segment modları: `goto` (`x, y` noktasına git; Taktik oluştur rotaları, bkz. `js/taktik-core.js`), `closehauled` (rüzgara 45°, kontrayı takip eder; rüzgar dönerse rota da döner),
 `run` (pupa 150°), `heading` (sabit pusula), `hold` (orsalayıp bekleme, yelken boş), `back` (yelken ters basılı, tekne rotasını koruyup `speed` × taban hızla geri gider; K22.3).
 `turn` dönüş süresi (s), `speed` hız çarpanı, `slip` (her modda: salma kalkık, tekne rüzgaraltına px/sn kayar), `v0` başlangıç hızı.

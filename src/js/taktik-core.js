@@ -12,7 +12,7 @@
   const BASE = 50;                       // taban hız (px/sn), senaryolarla aynı
   const COLORS = ['#e63946', '#2a9d8f', '#f4a261', '#4361ee', '#9b5de5', '#ffd166'];
   const LETTERS = 'ABCDEF';
-  const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12, MAX_NOTES = 10;
+  const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12, MAX_NOTES = 10, MAX_GUSTS = 3;
   const r1 = v => Math.round(v);
   // seyir seçenekleri: rüzgara göre açı (TWA). Rota noktası bu açıyla bir önceki noktaya oturur.
   const SAILS = { orsa: { a: 45, label: 'Orsa' }, apaz: { a: 90, label: 'Apaz' }, genis: { a: 135, label: 'Geniş apaz' }, pupa: { a: 180, label: 'Pupa' } };
@@ -40,8 +40,44 @@
 
   const uid = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
   function blank() {
-    return { id: uid(), title: '', text: '', wind: 0, kn: 8, marks: [{ x: 500, y: 150, zone: true }], line: null, boats: [], updated: 0 };
+    return { id: uid(), title: '', text: '', wind: 0, kn: 8, marks: [{ x: 500, y: 150, zone: true }], line: null, boats: [], notes: [], gusts: [], shift: null, ref: true, updated: 0 };
   }
+
+  // ---------- Hazır başlangıç sahneleri ----------
+  // R: başlangıçtan bacaklarla rota. bacak: ['orsa'|'apaz'|'genis'|'pupa', s(−1 sancak / +1 iskele), mesafe] ya da [x, y]
+  function R(x, y, legs) {
+    let cur = { x, y };
+    return legs.map(l => {
+      if (typeof l[0] === 'number') return (cur = { x: l[0], y: l[1] });
+      const f = E.fwd(sailHeading(0, l[0], l[1]));
+      return (cur = { x: Math.round(cur.x + f.x * l[2]), y: Math.round(cur.y + f.y * l[2]), m: l[0], s: l[1] });
+    });
+  }
+  const B = (i, x, y, legs, role) => ({ id: LETTERS[i], name: LETTERS[i], color: COLORS[i], x, y, role: role || '', route: R(x, y, legs) });
+  const TEMPLATES = [
+    { id: 'bos', label: 'Boş sahne', desc: 'Yalnız bir şamandıra.', make: () => ({}) },
+    { id: 'kesisme', label: 'Sancak / iskele', desc: 'İki tekne orsada karşılaşır. Kim yol verir?', make: () => ({
+      title: 'Sancak / iskele karşılaşması', text: 'Sancak kontradaki A hak sahibi. İskele kontradaki B, A’nın kıçından geçer.',
+      marks: [{ x: 500, y: 110, zone: true }],
+      boats: [B(0, 720, 520, [['orsa', -1, 330]], 'hak'), B(1, 250, 560, [['orsa', 1, 420]], 'yol')] }) },
+    { id: 'samandira', label: 'Şamandıra dönüşü', desc: 'İki tekne sancak layline üstünde şamandırayı döner.', make: () => ({
+      title: 'Şamandıra dönüşü', text: 'A ve B sancak layline üstünde. Şamandırayı iskele tarafında bırakıp geniş girer, dar çıkarlar.',
+      marks: [{ x: 500, y: 200, zone: true }],
+      boats: [B(0, 720, 372, [[548, 200], [505, 148], [450, 190], [420, 330]]), B(1, 860, 512, [[548, 200], [505, 148], [450, 190], [420, 330]])] }) },
+    { id: 'start', label: 'Start', desc: 'Start hattı ve hatta bekleyen beş tekne.', make: () => ({
+      title: 'Start', text: 'Tekneler hattın altından orsada start eder. Hattın hangi ucu daha iyi?',
+      marks: [{ x: 500, y: 110, zone: false }], line: { pin: { x: 260, y: 430 }, boat: { x: 740, y: 430 } },
+      boats: [0, 1, 2, 3, 4].map(i => B(i, 330 + i * 85, 480, [['orsa', -1, 240]])) }) },
+    { id: 'kapatma', label: 'Kapatma ve açma', desc: 'Rüzgar sola döner. A tramola atar, B devam eder.', make: () => ({
+      title: 'Kapatmada tramola', text: 'Rüzgar sola dönünce sancak kontradaki tekneler kapatma yer. A tramola atar ve açmayla yükselir. B devam eder, alçalır.',
+      shift: { t: 4, d: -15 }, marks: [{ x: 500, y: 90, zone: false }],
+      boats: [B(0, 300, 560, [['orsa', -1, 160], ['orsa', 1, 360]], 'dogru'), B(1, 860, 500, [['orsa', -1, 380]], 'hata')] }) },
+    { id: 'saganak', label: 'Sağanak', desc: 'Sağanağa giren tekne hızlanır.', make: () => ({
+      title: 'Sağanağa git', text: 'A sağdaki sağanağa gider ve hızlanır. B sola gider, sağanağı kaçırır.',
+      gusts: [{ x: 730, y: 320, r: 110 }], marks: [{ x: 500, y: 100, zone: false }],
+      boats: [B(0, 560, 560, [['orsa', 1, 360]], 'dogru'), B(1, 440, 560, [['orsa', -1, 360]], 'hata')] }) }
+  ];
+  function fromTemplate(id) { const t = TEMPLATES.find(x => x.id === id) || TEMPLATES[0]; return Object.assign(blank(), t.make()); }
 
   // ---------- Kayıt ----------
   function list() {
@@ -67,6 +103,8 @@
       notes: (d.notes || []).filter(n => n && String(n.text || '').trim()).slice(0, MAX_NOTES)
         .map(n => ({ t: Math.max(0, Math.min(120, Math.round((+n.t || 0) * 2) / 2)), text: String(n.text).trim().slice(0, 200) })).sort((a, b) => a.t - b.t),
       ref: d.ref !== false,
+      shift: d.shift && +d.shift.d ? { t: Math.max(0, Math.min(60, Math.round(+d.shift.t || 0))), d: Math.max(-40, Math.min(40, Math.round(+d.shift.d))) } : null,
+      gusts: (d.gusts || []).slice(0, MAX_GUSTS).map(g => ({ ...pt(g), r: Math.max(50, Math.min(180, r1(+g.r || 90))) })),
       wind: r1(E.norm360(+d.wind || 0)), kn: Math.max(4, Math.min(20, r1(+d.kn || 8))),
       marks: (d.marks || []).slice(0, MAX_MARKS).map(m => ({ ...pt(m), zone: m.zone !== false })),
       line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat) } : null,
@@ -114,6 +152,12 @@
     let cur = { x: b.x, y: b.y }, h = null;
     for (const p of b.route) {
       if (Math.hypot(p.x - cur.x, p.y - cur.y) < 8) continue;
+      // Orsa seçilerek çizilen bacak: tekne o kontrada ORSADA gider (rüzgar dönerse rotası da döner: açma / kapatma)
+      if (p.m === 'orsa') {
+        const tack = p.s < 0 ? 'starboard' : 'port';
+        pts.push({ x: p.x, y: p.y, ch: tack, dist: Math.hypot(p.x - cur.x, p.y - cur.y), turn: h != null && tackOfH(h, w) !== tack ? 1.2 : 0.5 });
+        h = E.tackHeading(w, tack); cur = p; continue;
+      }
       const brg = bearing(cur, p), off = E.norm180(brg - w);
       if (Math.abs(off) < E.CLOSE_HAULED) {
         // önceki kontrada kal; ilk bacaksa hedefin olduğu yana açılan kontra
@@ -126,7 +170,7 @@
       } else h = brg;
       pts.push(p); cur = p;
     }
-    return { pts, tacks, h0: pts.length ? bearing(b, pts[0]) : null };
+    return { pts, tacks, h0: !pts.length ? null : pts[0].ch ? E.tackHeading(w, pts[0].ch) : bearing(b, pts[0]) };
   }
   function startHeading(b, w, lg) {
     if (lg.h0 == null) return E.tackHeading(w, 'starboard');
@@ -138,11 +182,13 @@
   function compile(doc, opts) {
     opts = opts || {};
     const d = clean(doc), w = d.wind;
+    // rüzgar dönüşü: shift.t saniyesinde başlar, 3 sn'de tamamlanır (motor yumuşak geçirir)
+    const wind = d.shift ? [{ t: 0, from: w }, { t: d.shift.t, from: w }, { t: d.shift.t + 3, from: w + d.shift.d }] : w;
     const scn = {
       id: opts.id || 'u-' + d.id, category: CAT, topic: opts.topic || 'Kendi taktiklerim',
       title: `${opts.code || 'T1'} · ${d.title || 'Adsız taktik'}`,
       summary: d.text || 'Kendi kurduğun taktik.',
-      duration: 10, baseSpeed: BASE, wind: w, windKn: d.kn, narration: false, user: true, doc: d,
+      duration: 10, baseSpeed: BASE, wind, windKn: d.kn, gusts: d.gusts.map(g => ({ x: g.x, y: g.y, r: g.r })), narration: false, user: true, doc: d,
       marks: d.marks.map((m, i) => ({ x: m.x, y: m.y, zone: m.zone, label: d.marks.length > 1 ? `Şamandıra ${i + 1}` : 'Şamandıra' })),
       boats: [], steps: [{ t: 0, title: d.title || 'Kendi taktiğin', text: d.text || 'Oynat ve teknelerin rotasını izle.' }]
     };
@@ -151,7 +197,7 @@
     scn.boats = d.boats.map((b, i) => {
       const lg = legs(b, w), h = startHeading(b, w, lg);
       tackPts.push(...lg.tacks.map(p => ({ ...p, color: b.color })));
-      const segs = lg.pts.length ? lg.pts.map(p => ({ mode: 'goto', x: p.x, y: p.y })) : [{ mode: 'hold', h, dur: 1, speed: 0 }];
+      const segs = lg.pts.length ? lg.pts.map(p => p.ch ? { mode: 'closehauled', tack: p.ch, dur: Math.round(p.dist / BASE * 100) / 100, turn: p.turn } : { mode: 'goto', x: p.x, y: p.y }) : [{ mode: 'hold', h, dur: 1, speed: 0 }];
       return { id: b.id || LETTERS[i], name: b.name || `Tekne ${b.id || LETTERS[i]}`, color: b.color, role: b.role || undefined, start: { x: b.x, y: b.y, h }, v0: lg.pts.length ? BASE * 0.9 : 0, segs };
     });
     // süre: en son varan tekne + 2 sn; erken varanlar son rotasıyla yavaşça devam eder
@@ -178,6 +224,12 @@
     // adımlar: açıklama + zamanlı notlar + hakem; temas yerleri sahnede kırmızı halka
     const steps = [scn.steps[0]];
     for (const n of d.notes) if (n.t <= scn.duration) steps.push({ t: n.t, title: 'Not', text: n.text });
+    if (d.shift && d.shift.t <= scn.duration) {
+      const a = Math.abs(d.shift.d), right = d.shift.d > 0;
+      steps.push({ t: d.shift.t, title: `Rüzgar ${a}° ${right ? 'sağa' : 'sola'} döndü`,
+        text: `Rüzgar ${right ? 'sağa' : 'sola'} döndü. ${right ? 'Sancak' : 'İskele'} kontradaki tekneler için bu bir açma: daha yükseğe gidebilirler. ${right ? 'İskele' : 'Sancak'} kontradakiler için kapatma: rotaları düşer. Kapatmada tramola at.` });
+    }
+    if (d.gusts.length && !d.notes.length) steps.push({ t: 0.5, title: 'Sağanak', text: 'Koyu su sağanak demek. Rüzgar orada daha sert, içine giren tekne hızlanır. Sağanak rüzgarla birlikte aşağı kayar.' });
     for (const ev of scn.refEvents) steps.push({ t: ev.t, title: ev.title, text: ev.text });
     steps.sort((a, b) => a.t - b.t);
     // aynı anda iki adım: sonrakini biraz kaydır (ikisi de görünsün)
@@ -265,5 +317,5 @@
     return S;
   }
 
-  global.SailTaktik = { referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
+  global.SailTaktik = { TEMPLATES, fromTemplate, MAX_GUSTS, referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
 })(typeof window !== 'undefined' ? window : globalThis);
