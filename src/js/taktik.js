@@ -134,6 +134,17 @@
         if (on) el('text', { x: p.x, y: p.y + 4 * Math.min(ui, 1.6), 'text-anchor': 'middle', 'font-size': 10 * Math.min(ui, 1.6), 'font-weight': 800, fill: '#0b1a33', 'pointer-events': 'none' }, pg).textContent = k + 1;
       });
     });
+    // kural hakemi: karşılaşma yerinde kural rozeti, temasta kırmızı halka
+    for (const ev of prev.scn.refEvents || []) {
+      if (ev.contact) {
+        el('circle', { cx: ev.x, cy: ev.y, r: 22, fill: 'rgba(248,113,113,.18)', stroke: '#f87171', 'stroke-width': 2.5 }, g);
+        el('text', { x: ev.x, y: ev.y + 5, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 900, fill: '#fecaca' }, g).textContent = '!';
+      } else {
+        const lbl = 'K' + ev.rule;
+        el('rect', { x: ev.x - 16, y: ev.y - 10, width: 32, height: 20, rx: 6, fill: '#fbbf24', opacity: .95 }, g);
+        el('text', { x: ev.x, y: ev.y + 4.5, 'text-anchor': 'middle', 'font-size': 12, 'font-weight': 800, fill: '#1d1d1f' }, g).textContent = lbl;
+      }
+    }
     // kendiliğinden eklenen tramola noktaları
     for (const p of prev.scn.tackPts) {
       el('circle', { cx: p.x, cy: p.y, r: 11, fill: 'rgba(2,21,38,.55)', stroke: p.color, 'stroke-width': 1.5 }, g);
@@ -164,6 +175,7 @@
     $('tkAddBoat').disabled = doc.boats.length >= T.MAX_BOATS;
     $('tkAddMark').disabled = doc.marks.length >= T.MAX_MARKS;
     $('tkUndo').disabled = !undo.length;
+    drawRef();
     $('tkPlay').disabled = !doc.boats.some(b => b.route.length);
     if (document.activeElement !== $('tkTitle')) $('tkTitle').value = doc.title;
   }
@@ -218,6 +230,24 @@
     } else if (act === 'del') { doc.marks.splice(sel.i, 1); sel = null; }
     changed();
   });
+
+  // hakem özeti: kaç karşılaşma, kaç temas; dokununca liste
+  function drawRef() {
+    const b = $('tkRef'), ev = (prev && prev.scn.refEvents) || [];
+    const meet = ev.filter(e => !e.contact).length, hit = ev.filter(e => e.contact).length;
+    const show = doc.ref !== false && doc.boats.filter(x => x.route.length).length >= 2;
+    b.classList.toggle('hidden', !show);
+    if (!show) return;
+    b.classList.toggle('bad', hit > 0); b.classList.toggle('good', !hit && meet > 0);
+    b.innerHTML = hit ? `<b>!</b> ${hit} temas` : meet ? `<b>✓</b> Temas yok · ${meet} kural` : 'Hakem: karşılaşma yok';
+  }
+  $('tkRef').onclick = () => {
+    const ev = (prev && prev.scn.refEvents) || [];
+    openDlg('Kural hakemi', ev.length ? `<div class="tk-rows">${ev.map(e => `<div class="tk-row"><span class="tk-ev ${e.contact ? 'bad' : ''}">${e.contact ? '!' : 'K' + e.rule}</span>
+        <span class="tk-row-t"><b>${esc(e.title)} · ${e.t.toFixed(1)} sn</b><small class="wrap">${esc(e.text)}</small></span></div>`).join('')}</div>
+        <p class="tk-p small">Hakem, tekneler yaklaşınca kimin yol vermesi gerektiğini yazar. Oynatırken bu yazılar bilgi kartında çıkar.</p>`
+      : '<p class="tk-p">Tekneler birbirine yaklaşmıyor. Rotaları kesiştir, hakem kimin yol vermesi gerektiğini söylesin.</p>');
+  };
 
   function drawHint() {
     const h = $('tkHint');
@@ -350,12 +380,38 @@
     try { await navigator.clipboard.writeText(url); toast('Bağlantı kopyalandı. Sporcuna gönder.'); }
     catch (e) { openDlg('Paylaş', `<p class="tk-p">Bu bağlantıyı kopyala ve gönder:</p><textarea class="tk-ta" readonly rows="4">${esc(url)}</textarea>`, b => { const ta = b.querySelector('textarea'); ta.focus(); ta.select(); }); }
   };
-  $('tkNote').onclick = () => openDlg('Açıklama', `<p class="tk-p">Bu taktik ne anlatıyor? Oynatırken bilgi kartında görünür.</p>
-      <textarea class="tk-ta" id="tkNoteTa" maxlength="600" rows="5" placeholder="Örnek: Sancak kontradaki A hak sahibidir. B kıçından geçer.">${esc(doc.text || '')}</textarea>
+  $('tkNote').onclick = () => {
+    const dur = (prev && prev.scn.duration) || 10;
+    let notes = (doc.notes || []).map(n => ({ ...n }));
+    const rows = () => notes.map((n, i) => `<div class="tk-note" data-i="${i}">
+        <label class="tk-sec"><input type="number" min="0" max="${dur}" step="0.5" value="${n.t}" data-f="t" aria-label="Saniye"><span>sn</span></label>
+        <input class="tk-in" maxlength="200" value="${esc(n.text)}" data-f="text" placeholder="Bu anda ne oluyor?">
+        <button class="tb danger" data-del="${i}" title="Sil" aria-label="Notu sil"><svg><use href="#i-trash"/></svg></button></div>`).join('');
+    openDlg('Notlar', `<p class="tk-p">Bu taktik ne anlatıyor? Oynatırken bilgi kartında görünür.</p>
+      <textarea class="tk-ta" id="tkNoteTa" maxlength="600" rows="3" placeholder="Örnek: Sancak kontradaki A hak sahibidir. B kıçından geçer.">${esc(doc.text || '')}</textarea>
+      <div class="tk-lbl tk-lbl2">Zamanlı notlar <small>Taktik ${dur} sn sürüyor</small></div>
+      <div id="tkNotes" class="tk-notes">${rows()}</div>
+      <button class="tb" id="tkNoteAdd"${notes.length >= T.MAX_NOTES ? ' disabled' : ''}><svg><use href="#i-plus"/></svg>Not ekle</button>
+      <label class="tk-sw tk-sw2"><input type="checkbox" id="tkRefOn" ${doc.ref !== false ? 'checked' : ''}><span><b>Kural hakemi</b>: tekneler yaklaşınca kimin yol vermesi gerektiğini yazar, temas olursa gösterir.</span></label>
       <div class="tk-dlg-a"><button class="tb primary" id="tkNoteOk">Tamam</button></div>`, b => {
-    const ta = b.querySelector('#tkNoteTa'); ta.focus();
-    b.querySelector('#tkNoteOk').onclick = () => { doc.text = ta.value.trim(); closeDlg(); changed(); };
-  });
+      const list = b.querySelector('#tkNotes');
+      const sync = () => list.querySelectorAll('.tk-note').forEach(r => { const n = notes[+r.dataset.i]; n.t = +r.querySelector('[data-f=t]').value || 0; n.text = r.querySelector('[data-f=text]').value; });
+      b.querySelector('#tkNoteAdd').onclick = () => {
+        sync(); const lastT = notes.length ? notes[notes.length - 1].t : 0;
+        notes.push({ t: Math.min(dur, Math.round(lastT + Math.max(1, dur / 5))), text: '' }); list.innerHTML = rows();
+        list.querySelector('.tk-note:last-child [data-f=text]').focus();
+        b.querySelector('#tkNoteAdd').disabled = notes.length >= T.MAX_NOTES;
+      };
+      list.onclick = e => { const d = e.target.closest('[data-del]'); if (!d) return; sync(); notes.splice(+d.dataset.del, 1); list.innerHTML = rows(); b.querySelector('#tkNoteAdd').disabled = false; };
+      b.querySelector('#tkNoteOk').onclick = () => {
+        sync();
+        doc.text = b.querySelector('#tkNoteTa').value.trim();
+        doc.notes = notes.filter(n => n.text.trim()).map(n => ({ t: Math.max(0, n.t), text: n.text.trim() })).sort((x, y) => x.t - y.t);
+        doc.ref = b.querySelector('#tkRefOn').checked;
+        closeDlg(); changed();
+      };
+    });
+  };
   $('tkMine').onclick = () => {
     persist();
     const all = T.list();

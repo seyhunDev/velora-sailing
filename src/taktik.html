@@ -42,7 +42,7 @@
     <span id="tkSaved" class="tk-saved" aria-live="polite"></span>
     <div class="spacer"></div>
     <div class="tool-group">
-      <button class="tool" id="tkNote" title="Açıklama yaz"><svg><use href="#i-note"/></svg><span class="lbl">Açıklama</span></button>
+      <button class="tool" id="tkNote" title="Açıklama ve zamanlı notlar"><svg><use href="#i-note"/></svg><span class="lbl">Notlar</span></button>
       <button class="tool" id="tkMine" title="Kayıtlı taktiklerim"><svg><use href="#i-list"/></svg><span class="lbl">Taktiklerim</span></button>
       <button class="tool" id="tkShare" title="Bağlantıyla paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
       <button class="tool tk-play" id="tkPlay" title="Oynat"><svg><use href="#i-play"/></svg><span class="lbl">Oynat</span></button>
@@ -73,6 +73,9 @@
     <!-- ipucu -->
     <div class="tk-hint" id="tkHint"></div>
 
+    <!-- kural hakemi özeti -->
+    <button class="tk-ref hidden" id="tkRef" title="Kural hakemi"></button>
+
     <!-- alt araç çubuğu -->
     <nav class="tk-dock" aria-label="Ekle">
       <button class="tk-btn" id="tkAddBoat"><svg><use href="#i-boat"/></svg><span>Tekne</span></button>
@@ -101,6 +104,7 @@
   <script type="module" src="js/velora-auth.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/boat-draw.js"></script>
+  <script src="js/rules.js"></script>
   <script src="js/taktik-core.js"></script>
   <script src="js/taktik.js"></script>
 </body>

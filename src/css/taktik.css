@@ -128,7 +128,7 @@ body.taktik { background: var(--bg); }
   .tk-top .tool-group { gap: 0; }
   .tk-top .tk-play .lbl { display: none; }
   .tk-top .tk-play { padding: 0 10px; }
-  .tk-title { flex: 1 1 80px; min-width: 60px; }
+  .tk-title { flex: 1 1 60px; min-width: 44px; padding: 0 8px; }
 }
 .tk-top .tool-group > * { flex-shrink: 0; }
 .tk-top .tk-title { flex-shrink: 1; }
@@ -151,3 +151,23 @@ body.taktik { background: var(--bg); }
   .taktik .tb { padding: 0 7px; }
   .tk-name { height: 30px; font-size: 14px; }
 }
+
+/* kural hakemi özeti (rüzgar kartının altında) */
+.tk-ref { position: absolute; z-index: 4; top: 70px; right: 12px; height: 34px; padding: 0 12px; border: 0; border-radius: 12px; background: #fff; color: var(--text2);
+  font-size: 13px; font-weight: 700; box-shadow: 0 6px 24px rgba(0,0,0,.25); display: inline-flex; align-items: center; gap: 6px; }
+.tk-ref b { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--raised); font-size: 12px; }
+.tk-ref.good b { background: #dcfce7; color: #15803d; }
+.tk-ref.bad { color: #b91c1c; } .tk-ref.bad b { background: #ef4444; color: #fff; }
+.tk-ev { flex: 0 0 auto; min-width: 34px; height: 24px; padding: 0 6px; border-radius: 7px; background: #fbbf24; color: #1d1d1f; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.tk-ev.bad { background: #ef4444; color: #fff; }
+.tk-row-t small.wrap { white-space: normal; line-height: 1.35; margin-top: 2px; color: var(--text2); }
+/* notlar penceresi */
+.tk-lbl2 { margin: 14px 4px 8px; display: flex; gap: 8px; align-items: baseline; } .tk-lbl2 small { text-transform: none; letter-spacing: 0; font-weight: 600; }
+.tk-notes { display: grid; gap: 6px; margin-bottom: 8px; }
+.tk-note { display: flex; gap: 6px; align-items: center; }
+.tk-sec { display: flex; align-items: center; gap: 3px; flex: 0 0 auto; font-size: 12px; color: var(--muted); }
+.tk-sec input { width: 58px; height: 36px; padding: 0 6px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 14px; font-weight: 700; text-align: center; }
+.tk-in { flex: 1; min-width: 0; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 14px; outline: none; }
+.tk-in:focus, .tk-sec input:focus { border-color: var(--accent); outline: none; }
+.tk-sw2 { margin: 14px 4px 0; align-items: flex-start; line-height: 1.4; color: var(--text2); } .tk-sw2 input { margin-top: 1px; flex: 0 0 auto; }
+@media (max-width: 640px), (max-height: 460px) { .tk-ref { top: 52px; right: calc(8px + var(--sar)); height: 30px; font-size: 12px; } }

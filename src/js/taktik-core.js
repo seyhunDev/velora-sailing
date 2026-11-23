@@ -12,7 +12,7 @@
   const BASE = 50;                       // taban hız (px/sn), senaryolarla aynı
   const COLORS = ['#e63946', '#2a9d8f', '#f4a261', '#4361ee', '#9b5de5', '#ffd166'];
   const LETTERS = 'ABCDEF';
-  const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12;
+  const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12, MAX_NOTES = 10;
   const r1 = v => Math.round(v);
   // seyir seçenekleri: rüzgara göre açı (TWA). Rota noktası bu açıyla bir önceki noktaya oturur.
   const SAILS = { orsa: { a: 45, label: 'Orsa' }, apaz: { a: 90, label: 'Apaz' }, genis: { a: 135, label: 'Geniş apaz' }, pupa: { a: 180, label: 'Pupa' } };
@@ -64,6 +64,9 @@
     const pt = p => ({ x: r1(p.x), y: r1(p.y) });
     return {
       id: String(d.id || uid()).slice(0, 16), title: String(d.title || '').slice(0, 60), text: String(d.text || '').slice(0, 600),
+      notes: (d.notes || []).filter(n => n && String(n.text || '').trim()).slice(0, MAX_NOTES)
+        .map(n => ({ t: Math.max(0, Math.min(120, Math.round((+n.t || 0) * 2) / 2)), text: String(n.text).trim().slice(0, 200) })).sort((a, b) => a.t - b.t),
+      ref: d.ref !== false,
       wind: r1(E.norm360(+d.wind || 0)), kn: Math.max(4, Math.min(20, r1(+d.kn || 8))),
       marks: (d.marks || []).slice(0, MAX_MARKS).map(m => ({ ...pt(m), zone: m.zone !== false })),
       line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat) } : null,
@@ -167,13 +170,86 @@
       else b.segs.push({ mode: 'heading', h: last.h, dur: rest, speed: 0.35, turn: 0 });
     });
     scn.tackPts = tackPts;
+    // oynatıcıdaki gibi yollar (pis rüzgar yavaşlaması dahil) → kural hakemi
+    let tracks = null;
+    try { tracks = global.SailRules ? SailRules.buildScene(scn, []).scripted : null; } catch (e) { tracks = null; }
+    if (!tracks) tracks = scn.boats.map(b => E.buildTrack(scn, b.start, b.segs, { v0: b.v0 }));
+    scn.refEvents = d.ref && global.SailRules ? referee(scn, tracks) : [];
+    // adımlar: açıklama + zamanlı notlar + hakem; temas yerleri sahnede kırmızı halka
+    const steps = [scn.steps[0]];
+    for (const n of d.notes) if (n.t <= scn.duration) steps.push({ t: n.t, title: 'Not', text: n.text });
+    for (const ev of scn.refEvents) steps.push({ t: ev.t, title: ev.title, text: ev.text });
+    steps.sort((a, b) => a.t - b.t);
+    // aynı anda iki adım: sonrakini biraz kaydır (ikisi de görünsün)
+    for (let i = 1; i < steps.length; i++) if (steps[i].t < steps[i - 1].t + 0.6) steps[i].t = Math.round((steps[i - 1].t + 0.6) * 10) / 10;
+    if (steps.length > 1 && steps[1].t < 0.6) steps[1].t = 0.6;
+    scn.steps = steps;
+    scn.spots = scn.refEvents.filter(e => e.contact).map(e => ({ x: e.x, y: e.y, r: 30, from: e.t, to: Math.min(scn.duration, e.t + 2.5), color: '#f87171', label: 'Temas!' }));
+    scn.tracks = tracks;
     return scn;
+  }
+
+  // ---------- Kural hakemi ----------
+  // İki tekne yaklaşınca (≈2 boy ve yaklaşıyorlar) kim yol vermeli: rules.js classify (simülatörle aynı kurallar: 10/11/12/13).
+  // Gövdeler değerse "Temas". Her karşılaşma bir kez yazılır; tekneler uzaklaşınca (≈3,5 boy) yeni karşılaşma sayılır.
+  const HULL = E.hullOf ? E.hullOf('optimist') : { half: 14, r: 11 };
+  function hullGap(a, b) {
+    // kapsüller: baş-kıç doğrusu üzerinde 5'er nokta (yeterince doğru, hızlı)
+    const pts = p => { const f = E.fwd(p.h); return [-1, -0.5, 0, 0.5, 1].map(k => ({ x: p.x + f.x * HULL.half * k, y: p.y + f.y * HULL.half * k })); };
+    let m = Infinity;
+    for (const u of pts(a)) for (const v of pts(b)) m = Math.min(m, Math.hypot(u.x - v.x, u.y - v.y));
+    return m - 2 * HULL.r;
+  }
+  const RULE_TXT = {
+    10: (y, h) => [`Kural 10`, `${y} iskele kontrada, ${h} sancak kontrada. ${y} yol vermeli. Bu Kural 10.`],
+    11: (y, h) => [`Kural 11`, `İkisi aynı kontrada ve yan yana. Rüzgarüstündeki ${y}, ${h} için yol vermeli. Bu Kural 11.`],
+    12: (y, h) => [`Kural 12`, `İkisi aynı kontrada. Arkadaki ${y}, öndeki ${h} için yol vermeli. Bu Kural 12.`],
+    13: (y, h) => [`Kural 13`, `${y} tramola atıyor. Tramola bitene kadar ${h} için yol vermeli. Bu Kural 13.`]
+  };
+  function referee(scn, tracks) {
+    const R = global.SailRules, out = [], boats = scn.boats, n = boats.length;
+    if (!R || n < 2) return out;
+    const name = i => boats[i].name || `Tekne ${boats[i].id}`;
+    const lastTack = boats.map(() => -10), prevTack = boats.map(() => null);
+    const open = {};                       // çift → { rule, give, contact }
+    for (let t = 0; t <= scn.duration + 1e-6; t += 0.1) {
+      const w = E.windAt(scn.wind, t);
+      const st = tracks.map((tr, i) => {
+        const p = E.sampleTrack(tr, t), tk = R.tackOf(p.h, w);
+        if (prevTack[i] && tk !== prevTack[i] && t > 0.2) lastTack[i] = t;
+        prevTack[i] = tk;
+        return { x: p.x, y: p.y, h: p.h, v: p.v || 0, tack: tk, phase: 'race', lastTack: lastTack[i] };
+      });
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+        const a = st[i], b = st[j], key = i + '-' + j, d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (open[key] && d > 175) delete open[key];
+        if (d > 110 && !(open[key] && d < 175)) continue;
+        if (!open[key]) {
+          const c = R.closest(a, a.h, Math.max(a.v, 20), b, 3);
+          if (c.d > 62 && (c.dmin > 40 || c.dmin > c.d - 4)) continue;    // yakından geçmeyecek / uzaklaşıyor (çok yakın paralel giden sayılır)
+          const ra = R.classify(a, b, w, t), rb = R.classify(b, a, w, t);
+          const give = ra && !rb ? i : rb && !ra ? j : null, rule = give === i ? ra : give === j ? rb : null;
+          open[key] = { rule, give, contact: false };
+          if (give != null && RULE_TXT[rule]) {
+            const [title, text] = RULE_TXT[rule](name(give), name(give === i ? j : i));
+            out.push({ t: Math.round(t * 10) / 10, title, text, rule, give: boats[give].id, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+          }
+        }
+        const o = open[key];
+        if (!o.contact && d < 2 * (HULL.half + HULL.r) && hullGap(a, b) <= 0) {
+          o.contact = true;
+          const y = o.give != null ? name(o.give) : null;
+          out.push({ t: Math.round(t * 10) / 10, title: 'Temas!', text: y ? `${y} yol vermedi ve iki tekne birbirine değdi. ${y} rotasını değiştirmeli: bordalamalı ya da daha erken tramola atmalı.` : 'Tekneler birbirine değdi.', contact: true, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+        }
+      }
+    }
+    return out;
   }
 
   // önizleme için: her teknenin hesaplanan yolu (taslak ekranında ince çizgi)
   function preview(doc) {
     const scn = compile(doc);
-    return { scn, tracks: scn.boats.map(b => E.buildTrack(scn, b.start, b.segs, { v0: b.v0 })) };
+    return { scn, tracks: scn.tracks };
   }
 
   // ---------- Oynatıcıya ekle: kayıtlılar + adresteki paylaşılan ----------
@@ -189,5 +265,5 @@
     return S;
   }
 
-  global.SailTaktik = { SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
+  global.SailTaktik = { referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
 })(typeof window !== 'undefined' ? window : globalThis);
