@@ -1081,3 +1081,22 @@ html:has(> body.acik) { background: #f5f5f7; }
 /* geri düğmesi her sayfada aynı yuvarlak (a.tool kuralı köşeyi 12 px'e çekmesin) */
 header.topbar.acik :is(.back-btn, .home-back) { width: 40px; height: 40px; border-radius: 50%; padding: 0; }
 @media (max-width: 640px) { .scn-top .scn-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+
+/* ---------- Soru modu (Taktik oluştur → oynatıcı) ---------- */
+.quiz-card { position: absolute; z-index: 6; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(340px, calc(100% - 32px));
+  background: #fff; color: #1d1d1f; border-radius: 18px; padding: 16px 16px 14px; box-shadow: 0 12px 40px rgba(0,0,0,.35); display: grid; gap: 10px; }
+.quiz-card.hidden { display: none; }
+.quiz-h { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #2563eb; }
+.quiz-h.ok { color: #16a34a; font-size: 18px; text-transform: none; letter-spacing: 0; }
+.quiz-h.no { color: #dc2626; font-size: 18px; text-transform: none; letter-spacing: 0; }
+.quiz-q { font-size: 17px; line-height: 1.3; }
+.quiz-t { margin: 0; font-size: 15px; line-height: 1.4; color: #3a3a3c; }
+.quiz-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.quiz-opts button { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border: 1px solid #d2d2d7; border-radius: 12px;
+  background: #f5f5f7; font: inherit; font-size: 17px; font-weight: 700; color: #1d1d1f; cursor: pointer; }
+.quiz-opts button:hover { background: #e8effe; border-color: #2563eb; }
+.quiz-opts i { width: 14px; height: 14px; border-radius: 50%; }
+.quiz-f { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.quiz-f small { color: #6e6e73; font-size: 13px; }
+.quiz-go { height: 42px; padding: 0 22px; border: 0; border-radius: 12px; background: #2563eb; color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+@media (max-height: 460px) { .quiz-card { bottom: 8px; padding: 12px; gap: 8px; } .quiz-opts button { height: 40px; } .quiz-q { font-size: 15px; } .quiz-t { font-size: 13.5px; } }

@@ -40,7 +40,7 @@
 
   const uid = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
   function blank() {
-    return { id: uid(), title: '', text: '', wind: 0, kn: 8, marks: [{ x: 500, y: 150, zone: true }], line: null, boats: [], notes: [], gusts: [], shift: null, ref: true, updated: 0 };
+    return { id: uid(), title: '', text: '', wind: 0, kn: 8, marks: [{ x: 500, y: 150, zone: true }], line: null, boats: [], notes: [], gusts: [], shift: null, ref: true, quiz: false, updated: 0 };
   }
 
   // ---------- Hazır başlangıç sahneleri ----------
@@ -57,9 +57,9 @@
   const TEMPLATES = [
     { id: 'bos', label: 'Boş sahne', desc: 'Yalnız bir şamandıra.', make: () => ({}) },
     { id: 'kesisme', label: 'Sancak / iskele', desc: 'İki tekne orsada karşılaşır. Kim yol verir?', make: () => ({
-      title: 'Sancak / iskele karşılaşması', text: 'Sancak kontradaki A hak sahibi. İskele kontradaki B, A’nın kıçından geçer.',
+      title: 'Sancak / iskele karşılaşması', quiz: true, text: 'A sancak kontrada, B iskele kontrada. İkisi orsada karşılaşıyor. Sence kim yol vermeli?',
       marks: [{ x: 500, y: 110, zone: true }],
-      boats: [B(0, 720, 520, [['orsa', -1, 330]], 'hak'), B(1, 250, 560, [['orsa', 1, 420]], 'yol')] }) },
+      boats: [B(0, 720, 520, [['orsa', -1, 330]]), B(1, 250, 560, [['orsa', 1, 420]])] }) },
     { id: 'samandira', label: 'Şamandıra dönüşü', desc: 'İki tekne sancak layline üstünde şamandırayı döner.', make: () => ({
       title: 'Şamandıra dönüşü', text: 'A ve B sancak layline üstünde. Şamandırayı iskele tarafında bırakıp geniş girer, dar çıkarlar.',
       marks: [{ x: 500, y: 200, zone: true }],
@@ -102,7 +102,8 @@
       id: String(d.id || uid()).slice(0, 16), title: String(d.title || '').slice(0, 60), text: String(d.text || '').slice(0, 600),
       notes: (d.notes || []).filter(n => n && String(n.text || '').trim()).slice(0, MAX_NOTES)
         .map(n => ({ t: Math.max(0, Math.min(120, Math.round((+n.t || 0) * 2) / 2)), text: String(n.text).trim().slice(0, 200) })).sort((a, b) => a.t - b.t),
-      ref: d.ref !== false,
+      ref: d.ref !== false, quiz: !!d.quiz,
+      src: /^[A-Z0-9]{6}$/.test(d.src || '') ? d.src : undefined, by: d.by ? String(d.by).slice(0, 40) : undefined,
       shift: d.shift && +d.shift.d ? { t: Math.max(0, Math.min(60, Math.round(+d.shift.t || 0))), d: Math.max(-40, Math.min(40, Math.round(+d.shift.d))) } : null,
       gusts: (d.gusts || []).slice(0, MAX_GUSTS).map(g => ({ ...pt(g), r: Math.max(50, Math.min(180, r1(+g.r || 90))) })),
       wind: r1(E.norm360(+d.wind || 0)), kn: Math.max(4, Math.min(20, r1(+d.kn || 8))),
@@ -220,7 +221,13 @@
     let tracks = null;
     try { tracks = global.SailRules ? SailRules.buildScene(scn, []).scripted : null; } catch (e) { tracks = null; }
     if (!tracks) tracks = scn.boats.map(b => E.buildTrack(scn, b.start, b.segs, { v0: b.v0 }));
-    scn.refEvents = d.ref && global.SailRules ? referee(scn, tracks) : [];
+    const evs = (d.ref || d.quiz) && global.SailRules ? referee(scn, tracks) : [];
+    scn.refEvents = evs;
+    // soru modu: her kural karşılaşmasından az önce durup "kim yol vermeli?" diye sorar (cevap adımı sonra görünür)
+    if (d.quiz) {
+      const nm = id => { const b = scn.boats.find(x => x.id === id); return b ? { id, name: b.name, color: b.color } : { id, name: id, color: '#888' }; };
+      scn.quiz = evs.filter(e => e.give && e.pair).map(e => ({ t: Math.max(0.3, Math.round((e.t - 0.3) * 10) / 10), give: e.give, rule: e.rule, title: e.title, text: e.text, opts: e.pair.map(nm) }));
+    }
     // adımlar: açıklama + zamanlı notlar + hakem; temas yerleri sahnede kırmızı halka
     const steps = [scn.steps[0]];
     for (const n of d.notes) if (n.t <= scn.duration) steps.push({ t: n.t, title: 'Not', text: n.text });
@@ -284,7 +291,7 @@
           open[key] = { rule, give, contact: false };
           if (give != null && RULE_TXT[rule]) {
             const [title, text] = RULE_TXT[rule](name(give), name(give === i ? j : i));
-            out.push({ t: Math.round(t * 10) / 10, title, text, rule, give: boats[give].id, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+            out.push({ t: Math.round(t * 10) / 10, title, text, rule, give: boats[give].id, pair: [boats[i].id, boats[j].id], x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
           }
         }
         const o = open[key];
@@ -317,5 +324,50 @@
     return S;
   }
 
-  global.SailTaktik = { TEMPLATES, fromTemplate, MAX_GUSTS, referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
+  // ---------- Bulutta kodla paylaşım (antrenör → sporcu) ----------
+  // Yarışlarla aynı koleksiyon ve kural (sailChallenges/{KOD}, kind: 'taktik'): yeni Firestore kuralı gerekmez.
+  // Herkes kodla okur; yalnız antrenör (Velora ile giren sahip) oluşturur / siler. Yarış listelerinde kind 'taktik' gizlenir.
+  const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const newCode = () => Array.from(global.crypto.getRandomValues(new Uint8Array(6)), b => ALPH[b % ALPH.length]).join('');
+  let be = null;
+  async function backend() {
+    const D = global.SailTaskData; if (!D) throw new Error('veri-yok');
+    if (!be) { be = D.makeBackend(); await be.init(); }
+    return be;
+  }
+  const cloud = {
+    async canShare() { try { const b = await backend(); return global.SailTaskData.isCoach(b); } catch (e) { return false; } },
+    async share(doc) {
+      const b = await backend(), D = global.SailTaskData;
+      if (!D.isCoach(b)) throw Object.assign(new Error('antrenor'), { code: 'not-coach' });
+      const d = clean(doc), a = D.acc() || {};
+      let code = newCode();
+      for (let i = 0; i < 4 && await b.getTask(code).catch(() => null); i++) code = newCode();
+      await b.createTask(code, { v: 1, kind: 'taktik', code, name: d.title || 'Adsız taktik', owner: b.uid(), ownerName: String(a.name || '').slice(0, 40),
+        state: 'open', tries: 0, due: 0, vis: 'me', boats: d.boats.length, setup: JSON.stringify({ ...d, src: undefined }) });
+      return code;
+    },
+    async open(code) {
+      code = String(code || '').trim().toUpperCase();
+      if (!/^[A-Z0-9]{6}$/.test(code)) throw Object.assign(new Error('kod'), { code: 'bad-code' });
+      const b = await backend();
+      const t = await b.getTask(code);
+      if (!t) throw Object.assign(new Error('yok'), { code: 'not-found' });
+      if (t.kind !== 'taktik') throw Object.assign(new Error('yaris'), { code: 'is-race' });
+      const d = clean(JSON.parse(t.setup));
+      const old = list().find(x => x.src === code);
+      d.id = old ? old.id : uid(); d.src = code;
+      if (t.ownerName) d.by = String(t.ownerName).slice(0, 40);
+      save(d);
+      return d.id;
+    },
+    async mine() { const b = await backend(); return (await b.listMine(b.uid())).filter(t => t.kind === 'taktik').sort((x, y) => (y.at || 0) - (x.at || 0)); },
+    async remove(code) { const b = await backend(); await b.deleteTask(code); },
+    link(code) {
+      const D = global.SailTaskData;
+      return `${location.origin}${location.pathname.replace(/[^/]*$/, '')}taktik.html?kod=${code}${D && D.mode === 'yerel' ? '&net=yerel' : ''}`;
+    }
+  };
+
+  global.SailTaktik = { cloud,  TEMPLATES, fromTemplate, MAX_GUSTS, referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
 })(typeof window !== 'undefined' ? window : globalThis);
