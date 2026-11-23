@@ -1201,3 +1201,6 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
   .home .home-main .home-tabs button { padding: 0 4px; font-size: 13px; }
   .home .home-main .home-tabs button .count { display: none; }
 }
+/* zorluk rozeti (scenarios.js KATALOG → x.ileri): grup içinde temel derslerin arkasında, "İleri" */
+.row-lvl { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; vertical-align: 2px;
+  color: #6d4fc4; background: #efeafc; letter-spacing: .02em; }

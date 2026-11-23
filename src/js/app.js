@@ -14,7 +14,8 @@
   const HULL = 50;                 // tekne boyu (px)
   const COURSE = { w: 1000, h: 680 };   // senaryo koordinat alanı
   const EXTRA_COLORS = ['#ffd166', '#c77dff', '#90be6d', '#f9844a', '#48cae4', '#f94144', '#b5e48c'];
-  const CAT_COLORS = { 'Taktik': 'var(--c-taktik)', 'İleri Taktik': 'var(--c-ileri)', 'Kurallar': 'var(--c-kural)', 'Teknik': 'var(--c-teknik)', 'İleri Teknik': 'var(--c-ileri-teknik)', 'Taktiklerim': 'var(--c-mine)' };
+  // senaryo grupları (scenarios.js KATALOG): ana sayfa sekmeleri ve kod renkleri
+  const CAT_COLORS = { 'Start': 'var(--c-taktik)', 'Parkur': 'var(--c-teknik)', 'Şamandıra': 'var(--c-ileri)', 'Kurallar': 'var(--c-kural)', 'Teknik': 'var(--c-ileri-teknik)', 'Taktiklerim': 'var(--c-mine)' };
   // tekne rolleri: sahnede etiket kenarı + simge, kartta rozet
   const ROLES = {
     hak:   { label: 'Hak sahibi', glyph: '✓', color: '#34d399' },
@@ -808,9 +809,9 @@
   // ---------- Senaryo seçici (kategori sekmeleri + kartlar) ----------
   let seenScn = false;               // kullanıcı bu oturumda bir senaryo açtı mı (ana sayfada "Açık" rozeti için)
   // Taktiklerim (Taktik oluştur ile kurulan, bu cihazda kayıtlı ya da paylaşılan): yalnız varsa sekme olur
-  const CATS = ['Taktik', 'İleri Taktik', 'Kurallar', 'Teknik', 'İleri Teknik'];
+  const CATS = ['Start', 'Parkur', 'Şamandıra', 'Kurallar', 'Teknik'];
   if (window.SailTaktik && SCENARIOS.some(x => x.category === SailTaktik.CAT)) CATS.push(SailTaktik.CAT);
-  let pickerCat = 'Taktik';
+  let pickerCat = 'Start';
   let query = '';
   function openPicker(open) {
     $('picker').classList.toggle('hidden', !open);
@@ -825,7 +826,7 @@
   // Paylaşılan tek senaryo (?izle=ID): yalnız o senaryo açılır, kilit uygulanmaz (paylaşan izin vermiş sayılır)
   const TEK_ID = document.documentElement.classList.contains('tek') ? new URLSearchParams(location.search).get('izle') : null;
   const TEK = TEK_ID ? (SCENARIOS.find(x => x.id === TEK_ID && !x.user) || null) : null;
-  const lockedScn = x => !(TEK && x === TEK) && x.category === 'İleri Taktik' && window.SailAccess && !SailAccess.can('scn.ileri');
+  const lockedScn = x => !(TEK && x === TEK) && x.lock && window.SailAccess && !SailAccess.can('scn.ileri');
   const norm = t => t.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   function scenarioCard(x) {
     const [code, ttl] = splitTitle(x.title);
@@ -859,7 +860,7 @@
     const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
     th.classList.add('thumb', 'row-thumb'); r.appendChild(th);
     const mins = Math.floor(x.duration / 60), secs = Math.round(x.duration % 60);
-    r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}</b>
+    r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}${x.ileri ? '<span class="row-lvl">İleri</span>' : ''}</b>
       <small>${esc(x.short || firstSentence(x.summary))}</small></span>
       <span class="row-r">${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
       <svg class="row-chev"><use href="#i-next"/></svg>`);
@@ -924,7 +925,7 @@
 
   // ---------- Ana sayfa (açılış): adreste senaryo yoksa görünür ----------
   const HOME_CAT = 'ps.home.cat';
-  let homeCat = (() => { try { const c = localStorage.getItem(HOME_CAT); return CATS.includes(c) ? c : 'Taktik'; } catch (e) { return 'Taktik'; } })();
+  let homeCat = (() => { try { const c = localStorage.getItem(HOME_CAT); return CATS.includes(c) ? c : 'Start'; } catch (e) { return 'Start'; } })();
   let homeQuery = '', homeOn = null, fromHome = false;
   function buildHome() {
     if (window.SailThumbs) SailThumbs.reset();
