@@ -938,7 +938,8 @@ html.is-embedded .ver-badge { bottom: 1px; }
 
 /* Sesli anlatım (js/narration.js): oynat çubuğunda hoparlör; okurken dalgalar yanıp söner */
 .narr-btn.hidden { display: none; }
-.narr-btn:not(.on) .wave { opacity: .25; }
+.narr-btn:not(.on) { color: var(--muted); }
+.narr-toast { pointer-events: none; }
 .narr-btn.speaking .wave { animation: narr-wave 1.1s ease-in-out infinite; }
 @keyframes narr-wave { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 .narr-row { display: flex; gap: 8px; align-items: center; margin: 4px 0 6px; }

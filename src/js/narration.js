@@ -153,9 +153,12 @@
   // Ses Google dosyasından mı (true) yoksa cihazdan mı çalacak: ayarlarda gösterilir
   const fileVoices = () => ready.then(() => VOICES.filter(v => index[v.id] && index[v.id].size).map(v => v.id));
 
+  // on / voice canlı okunmalı: Object.assign getter'ı bir kez kopyalar, o yüzden defineProperty
+  Object.defineProperty(api, 'on', { get: () => prefs.on });
+  Object.defineProperty(api, 'voice', { get: () => prefs.voice });
   Object.assign(api, {
-    get on() { return prefs.on; }, setOn(b) { prefs.on = !!b; save(); if (!b) stop(); },
-    get voice() { return prefs.voice; }, setVoice(v) { if (VOICES.some(x => x.id === v)) { prefs.voice = v; save(); } },
+    setOn(b) { prefs.on = !!b; save(); if (!b) stop(); },
+    setVoice(v) { if (VOICES.some(x => x.id === v)) { prefs.voice = v; save(); } },
     busy: () => busy, paused: () => paused,
     speak, stop, pause, resume, unlock, fileVoices, onBusy(fn) { onChange = fn; }
   });

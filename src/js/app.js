@@ -655,7 +655,15 @@
     b.classList.toggle('hidden', !has); $('narrSettings').hidden = !has;
     const on = has && SailNarr.on;
     b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    b.querySelector('use').setAttribute('href', on ? '#i-voice' : '#i-voice-off');   // kapalıyken üstü çizili hoparlör
     b.title = on ? 'Sesli anlatım açık (kapatmak için dokun)' : 'Sesli anlatım kapalı (açmak için dokun)';
+  }
+  // Kısa bildirim: anlatım açıldı / kapandı (2 sn)
+  let narrToastEl = null, narrToastT = 0;
+  function narrToast(msg) {
+    if (!narrToastEl) { narrToastEl = document.createElement('div'); narrToastEl.className = 'acc-toast narr-toast'; document.body.appendChild(narrToastEl); }
+    narrToastEl.textContent = msg; narrToastEl.classList.remove('out');
+    clearTimeout(narrToastT); narrToastT = setTimeout(() => narrToastEl.classList.add('out'), 1800);
   }
   function setSpeed(v) {
     state.speed = v; [...$('speedSeg').children].forEach(x => x.classList.toggle('on', +x.dataset.v === v));
@@ -664,6 +672,7 @@
     SailNarr.onBusy(b => $('btnNarr').classList.toggle('speaking', b));
     $('btnNarr').onclick = () => {
       SailNarr.setOn(!SailNarr.on); updateNarrButton();
+      narrToast(SailNarr.on ? 'Sesli anlatım açık' : 'Sesli anlatım kapalı');
       if (SailNarr.on) { SailNarr.unlock(); setSpeed(1); narrIdx = -1; narrSync(); } else narrIdx = -1;
     };
     const sel = $('selVoice');
