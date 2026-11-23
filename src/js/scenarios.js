@@ -999,6 +999,67 @@
     addBoatLabels: { pin: 'Önde (iç)', middle: 'Arkada', committee: 'Dışta' }
   });
 
+  // ---------- E2: orsa şamandırası kalabalığı — sancak layline sırası, bölgede tramola ----------
+  S.push({
+    id: 'e2-windward-queue',
+    category: 'Taktik', topic: 'Şamandıra',
+    title: 'E2 · Orsa şamandırası kalabalık: sancak layline\'a erken gir, bölgede tramola atma',
+    summary: 'Kalabalık filoda orsa şamandırasına sancak kontrada, layline üzerinde sıra hâlinde gelinir. Yeşil D layline\'a bölgenin dışında, erkenden girer ve sıraya katılır. Turuncu P iskele kontrada gelir ve bölgenin içinde, sıradaki teknelerin hemen önüne tramola atar. Bölgede tramola atan şamandıra yeri isteyemez. P, D\'yi kaçmak zorunda bırakır, protesto edilir ve iki tur ceza döner.',
+    duration: 30,
+    baseSpeed: 20,
+    wind: 0,
+    marks: [{ x: 480, y: 260, label: 'Orsa şamandırası', zone: true }],
+    boats: (() => {
+      // sancak layline: şamandıra iskelede bırakılır; tekne şamandıranın 20 px sağından geçer, sonra apaza bırakır
+      const lane = { start: { x: 791, y: 543, h: 315 }, v0: 20, segs: [
+        { mode: 'closehauled', tack: 'starboard', dur: 20.6, turn: 0 },
+        { mode: 'goto', x: 476, y: 228, dur: 4, rate: 140 },
+        { mode: 'goto', x: 448, y: 250, dur: 4, rate: 140 },
+        { mode: 'run', tack: 'starboard', dur: 10, turn: 1.0 }
+      ] };
+      const D =
+      { id: 'D', name: 'Layline\'da sırada', role: 'dogru', color: '#2a9d8f',
+        start: { x: 791, y: 543, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 15.0, turn: 0, note: 'Bölgenin dışında layline\'a girdi' },
+          { mode: 'closehauled', tack: 'starboard', angle: 30, speed: 0.45, dur: 1.6, turn: 0.4, note: 'P önüme tramola attı! Protesto!' },
+          { mode: 'goto', x: 476, y: 228, dur: 10, rate: 140, note: 'Şamandıra yeri benim' },
+          { mode: 'goto', x: 448, y: 250, dur: 4, rate: 140 },
+          { mode: 'run', tack: 'starboard', dur: 10, turn: 1.0 }
+        ] };
+      const P =
+      { id: 'P', name: 'Bölgede tramola', role: 'hata', color: '#e76f51',
+        start: { x: 330, y: 538, h: 45 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 14.0, turn: 0, note: 'İskele kontrada, sıranın altına' },
+          { mode: 'closehauled', tack: 'starboard', dur: 1.8, turn: 1.2, note: 'HATA: bölgede, D\'nin önüne tramola' },
+          { mode: 'hold', h: 320, dur: 0.8, speed: 0.2, turn: 0.4, note: 'Protesto! Şamandıra yeri yok' },
+          { mode: 'heading', h: 240, dur: 1.6, turn: 0.8, speed: 0.8, note: 'Sıradan çıkıyor' },
+          { mode: 'heading', h: 225, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: 135, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: 45, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -45, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -135, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -225, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -315, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: 150, dur: 3.5, turn: 1.2, note: 'Sıranın en sonuna' }
+        ] };
+      return [D, P, ...fleetTrain(lane, [-4, -3, -2, -1, 1.3, 2.3], 3, 20, 1)];
+    })(),
+    steps: [
+      { t: 0, title: 'Herkes şamandıraya', text: 'Orsa şamandırası kalabalık. Tekneler sancak kontrada, layline üzerinde arka arkaya geliyor. Kesikli daire bölge. Üç tekne boyudur.' },
+      { t: 3, title: 'D sırada', text: 'Yeşil D layline\'a bölgenin çok dışında, erkenden girdi. Sıraya katıldı. Sancak kontrada olduğu için iskele teknelere karşı hakkı var.' },
+      { t: 8, title: 'P iskele kontrada geliyor', text: 'Turuncu P iskele kontrada, sıranın altından geliyor. Sıranın içinde bir boşluk arıyor.' },
+      { t: 14.1, title: 'P bölgede tramola atıyor', text: 'P, bölgenin içinde, D\'nin hemen önüne tramola atıyor. Bölgede tramola atan tekne şamandıra yeri isteyemez. Bu Kural 18.3. Sancağa geçince de D\'ye kaçacak yer bırakmalıydı. Bu da Kural 15.' },
+      { t: 15.2, title: 'D kaçmak zorunda', text: 'D çarpmamak için orsalayıp yavaşlıyor ve protesto diye sesleniyor.' },
+      { t: 17, title: 'P ceza turu atıyor', text: 'P sıranın dışına çıkıp iki tur ceza atıyor. Sonra sıranın en sonuna gitmek zorunda.' },
+      { t: 22, title: 'D şamandırayı dönüyor', text: 'D sırasıyla şamandırayı yakından dönüyor ve pupaya bırakıyor.' },
+      { t: 26, title: 'Özet', text: 'Kalabalık orsa şamandırasına sancak kontrada, layline\'dan gel. Layline\'a bölgenin dışında gir ve sıraya katıl. Bölgenin içinde, birinin önüne tramola atma. Ceza alırsın ve en sona düşersin.' }
+    ],
+    addBoat: { pin: { x: 760, y: 520 }, middle: { x: 860, y: 560 }, committee: { x: 300, y: 500 } },
+    addBoatLabels: { pin: 'Layline\'da', middle: 'Arkada', committee: 'İskele kontra' }
+  });
+
   // ---------- İA3: Hakem botu ucunda yer tut ----------
   S.push({
     id: 'ia3-committee-hold',

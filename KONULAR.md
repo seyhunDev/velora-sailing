@@ -28,7 +28,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 | B6 | Kural 15/16 – Yeni hak kazanınca yer ver, rota değiştirirken yer ver | Lee-bow tramola sonrası diğer tekneye kaçınma fırsatı. | ⬜ |
 | B7 | Kural 17 – Rüzgaraltından bindirme kuran teknenin orsa sınırı | "Uygun rota" üstüne çıkamaz. | ⬜ |
 | B8 | Kural 18 – Şamandıra yeri (zone, bindirme, 3 tekne boyu) | Zone'a girerken bindirme varsa içteki tekneye yer verilir. 2025-28 değişikliği: zone'a ilk giren tekne. | ✅ |
-| B9 | Kural 18.3 – Zone içinde tramola | Zone içinde tramola atan tekne şamandıra yeri isteyemez. | ⬜ |
+| B9 | Kural 18.3 – Zone içinde tramola | Zone içinde tramola atan tekne şamandıra yeri isteyemez. (E2 içinde gösterildi.) | ✅ (E2) |
 | B10 | Kural 19/20 – Engel ve "yer istiyorum" (room to tack) | Kıyı / demirli tekne önünde seslenme. | ⬜ |
 | B11 | Kural 31 / 44 – Şamandıraya temas, tek tur ceza, iki tur ceza | Ceza turu animasyonu. | ⬜ |
 | B12 | Kural 42 – İtme/pompalama yasağı (temel) | Hangi hareketler yasak. | ⬜ |
@@ -83,7 +83,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 | # | Konu | Animasyonda ne gösterilecek | Durum |
 |---|------|-----------------------------|-------|
 | E1 | Geniş gir – dar çık (wide in, tight out) | Doğru ve yanlış dönüş yayları. | ⬜ |
-| E2 | Orsa şamandırasına starboard layline'dan yaklaşma | Kalabalıkta sancak layline'ın değeri. | ⬜ |
+| E2 | Orsa şamandırasına starboard layline'dan yaklaşma | Kalabalıkta sancak layline'ın değeri. E2: 6 teknelik sıra, D erken layline'a girer; P bölgede tramola atar (K18.3, K15), protesto, iki tur ceza. | ✅ |
 | E3 | Offset / gate (kapı) şamandırası seçimi | Hangi kapı ucu rüzgara yakın? D4'te kalabalık/boş kapı seçimi var; rüzgara yakın uç varyantı eksik. | ✅ (D4 içinde) |
 | E4 | Finiş çizgisi: avantajlı uç | Starttaki mantığın tersi. | ⬜ |
 
