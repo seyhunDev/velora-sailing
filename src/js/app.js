@@ -895,6 +895,7 @@
   function buildList(tabs, list, cat, q0, onTab, rows) {
     tabs.innerHTML = '';
     for (const c of CATS) {
+      if (rows && window.SailTaktik && c === SailTaktik.CAT && cat !== c) continue;   // ana sayfada kendi taktiklerin Oluştur sekmesinde
       const n = SCENARIOS.filter(x => x.category === c).length;
       const b = document.createElement('button'); b.setAttribute('role', 'tab'); b.style.setProperty('--cat', CAT_COLORS[c]);
       b.innerHTML = `${c}<span class="count">${n}</span>`;
@@ -956,6 +957,33 @@
       buildHome();
     }, true);
   }
+  // 4 sekme (Öğren · Yarış · Oluştur · Yelken ayarı bağlantı): seçilen sekme hatırlanır (simülatörden dönünce Yarış açık)
+  const HOME_TAB = 'ps.home.tab', TABS = ['ogren', 'yaris', 'olustur'];
+  let homeTab = (() => { try { const t = localStorage.getItem(HOME_TAB); return TABS.includes(t) ? t : 'ogren'; } catch (e) { return 'ogren'; } })();
+  function setTab(t) {
+    homeTab = t;
+    try { localStorage.setItem(HOME_TAB, t); } catch (e) { /* yok */ }
+    for (const b of document.querySelectorAll('#appNav [data-tab]')) { const on = b.dataset.tab === t; b.classList.toggle('on', on); b.setAttribute('aria-current', on ? 'page' : 'false'); }
+    for (const p of document.querySelectorAll('.home-pane')) p.hidden = p.dataset.pane !== t;
+    if (t === 'olustur') buildMine();
+    if (t === 'ogren') buildHome();
+    const pane = document.querySelector(`.home-pane[data-pane="${t}"]`); if (pane) pane.scrollTop = 0;
+  }
+  // Oluştur: "Yeni taktik" + kayıtlı / paylaşılan taktikler (taktik-core.js → SCENARIOS, kategori Taktiklerim)
+  function buildMine() {
+    if (window.SailThumbs) SailThumbs.reset();
+    const list = $('mineList'); list.innerHTML = '';
+    const CAT = window.SailTaktik ? SailTaktik.CAT : 'Taktiklerim';
+    const items = SCENARIOS.filter(x => x.category === CAT);
+    const h = document.createElement('div'); h.className = 'ls-head'; h.innerHTML = `TAKTİKLERİM<span>${items.length}</span>`; list.appendChild(h);
+    const box = document.createElement('div'); box.className = 'row-list'; list.appendChild(box);
+    const a = document.createElement('a'); a.className = 'scn-row new-row'; a.href = 'taktik.html';
+    a.innerHTML = '<span class="thumb row-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span><span class="row-t"><b>Yeni taktik</b><small>Boş sahneden ya da hazır bir sahneden başla</small></span><svg class="row-chev"><use href="#i-next"/></svg>';
+    box.appendChild(a);
+    for (const x of items) box.appendChild(scenarioRow(x));
+    if (!items.length) { const d = document.createElement('p'); d.className = 'pane-note'; d.textContent = 'Henüz kayıtlı taktiğin yok. İlk taktiğin burada görünecek.'; list.appendChild(d); }
+  }
+  for (const b of document.querySelectorAll('#appNav [data-tab]')) b.onclick = () => setTab(b.dataset.tab);
   function setHome(on) {
     if (on === homeOn) return;
     homeOn = on;
@@ -967,8 +995,8 @@
     if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
     if (on) {
       state.playing = false; narrStop(); updatePlayButton(); openPicker(false);
-      if (state.scn) homeCat = state.scn.category;
-      buildHome();
+      if (state.scn) { if (window.SailTaktik && state.scn.category === SailTaktik.CAT) homeTab = 'olustur'; else { homeCat = state.scn.category; homeTab = 'ogren'; } }
+      setTab(homeTab);
     } else { seenScn = true; if (window.SailThumbs) SailThumbs.reset(); }
     document.title = on ? 'Velora Sailing' : `${state.scn ? state.scn.title + ' · ' : ''}Velora Sailing`;
   }
@@ -989,7 +1017,7 @@
     const b = e.target.closest('button'); if (!b || b.dataset.c === BoatDraw.pref()) return;
     BoatDraw.setPref(b.dataset.c); syncCls();
     if (state.scn) render();
-    if (homeOn) buildHome(); else if (!$('picker').classList.contains('hidden')) buildPicker();
+    if (homeOn) setTab(homeTab); else if (!$('picker').classList.contains('hidden')) buildPicker();
   };
   syncCls();
   function openSettings(open) {
@@ -1080,7 +1108,7 @@
   // giriş/kayıt sonrası kilitler değişir: seçici açıksa yenile, adresteki kilitli senaryoyu aç
   document.addEventListener('sail-access', () => {
     if (!$('picker').classList.contains('hidden')) buildPicker();
-    if (homeOn) buildHome();
+    if (homeOn) setTab(homeTab);
     updateScnNav();
     const s = SCENARIOS.find(s => s.id === location.hash.slice(1));
     if (s && s !== state.scn && !lockedScn(s)) loadScenario(s);

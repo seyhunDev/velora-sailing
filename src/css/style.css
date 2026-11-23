@@ -1204,3 +1204,83 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 /* zorluk rozeti (scenarios.js KATALOG → x.ileri): grup içinde temel derslerin arkasında, "İleri" */
 .row-lvl { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; vertical-align: 2px;
   color: #6d4fc4; background: #efeafc; letter-spacing: .02em; }
+
+/* ==========================================================================
+   ANA SAYFA v7: 4 SEKME (kullanıcı 2026-11-23: "taktik oluştur, yarış, online, yelken ayarı, simülatör bölüm değil, ayrı işler;
+   kolay, pratik, sade, anlaşılır") · Öğren (senaryolar) · Yarış (tek başına / arkadaşlarınla / antrenör) · Oluştur (taktiklerin) · Yelken ayarı (sayfa)
+   iPad yatay + masaüstü: solda 232 px menü (simge + ad, seçili satır beyaz) · iPad dikey: 92 px şerit (simge üstte, ad altta)
+   yatay telefon: 76 px şerit · dikey telefon: altta sekme çubuğu. Her sekme kendi içinde kayar.
+   ========================================================================== */
+.home .home-body { grid-template-columns: 232px minmax(0, 1fr); max-width: none; }
+.home-pane[hidden] { display: none !important; }
+.home .home-pane { width: 100%; max-width: 1080px; justify-self: center; }
+.app-nav { display: flex; flex-direction: column; gap: 4px; padding: 16px 12px calc(16px + var(--sab)) calc(12px + var(--sal));
+  border-right: 1px solid var(--border); overflow-y: auto; }
+.nav-it { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent;
+  color: var(--text2); font-size: 16px; font-weight: 600; text-decoration: none; text-align: left; cursor: pointer; }
+.nav-it svg { width: 24px; height: 24px; flex: 0 0 auto; color: var(--muted); }
+.nav-it:hover { background: var(--hover); }
+.nav-it.on { background: var(--panel-solid); color: var(--accent); box-shadow: 0 0 0 1px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.05); }
+.nav-it.on svg { color: var(--accent); }
+.nav-it:active { transform: scale(.98); }
+.pane-lead { margin: -4px 4px 18px; font-size: 15px; color: var(--muted); }
+.pane-note { margin: 12px 6px; font-size: 14px; color: var(--muted); }
+
+/* Yarış: üç kart */
+.mode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 16px; }
+.mode-card { display: flex; flex-direction: column; border-radius: 18px; overflow: hidden; background: var(--panel-solid); color: var(--text);
+  text-decoration: none; box-shadow: 0 0 0 1px rgba(0,0,0,.04); transition: transform .15s; }
+.mode-card:hover { transform: translateY(-2px); }
+.mode-card:active { transform: scale(.98); }
+.mode-img { position: relative; display: block; aspect-ratio: 16 / 10; background: #0b2a46; }
+.mode-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mode-t { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 4px; flex: 1; }
+.mode-t b { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
+.mode-t small { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.mode-go { align-self: flex-start; margin: 10px 16px 16px; padding: 9px 18px; border-radius: 12px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; }
+
+/* iPad dikey (ve dar pencere): dar şerit */
+@media (max-width: 1000px) {
+  .home .home-body { grid-template-columns: 92px minmax(0, 1fr); }
+  .app-nav { padding: 12px 8px calc(12px + var(--sab)) calc(8px + var(--sal)); gap: 6px; }
+  .nav-it { flex-direction: column; justify-content: center; gap: 4px; height: 68px; padding: 0 4px; font-size: 12px; text-align: center; line-height: 1.15; }
+}
+/* yatay telefon */
+@media (max-height: 500px) and (min-width: 641px) {
+  .home .home-body { grid-template-columns: 76px minmax(0, 1fr); }
+  .app-nav { padding-top: 8px; gap: 2px; }
+  .nav-it { height: 60px; font-size: 11px; }
+  .nav-it svg { width: 22px; height: 22px; }
+  .mode-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .mode-t { padding: 10px 12px 2px; } .mode-t b { font-size: 15px; } .mode-t small { font-size: 12px; }
+  .mode-go { margin: 8px 12px 12px; padding: 6px 14px; font-size: 13px; }
+  .pane-lead { margin-bottom: 10px; font-size: 13px; }
+}
+/* dikey telefon: altta sekme çubuğu; Yarış kartları yatay satır */
+@media (max-width: 640px) {
+  .home .home-body { display: block; padding-bottom: calc(64px + var(--sab)); }
+  .app-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; flex-direction: row; gap: 0; padding: 4px 6px calc(4px + var(--sab));
+    border: 0; border-top: 1px solid var(--border); background: rgba(250,250,252,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .nav-it { flex: 1 1 0; flex-direction: column; justify-content: center; gap: 2px; height: 54px; padding: 0; font-size: 11px; text-align: center; }
+  .nav-it.on { background: none; box-shadow: none; }
+  .mode-card { flex-direction: row; align-items: center; }
+  .mode-img { flex: 0 0 96px; width: 96px; aspect-ratio: 1; align-self: stretch; }
+  .mode-t { padding: 12px 12px; } .mode-t b { font-size: 16px; } .mode-t small { font-size: 13px; }
+  .mode-go { display: none; }
+}
+/* iPad dikey: Yarış kartları alt alta yatay satır (görsel solda) */
+@media (max-width: 1000px) and (min-width: 641px) and (min-height: 501px) {
+  .mode-list { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .mode-card { flex-direction: row; align-items: stretch; }
+  .mode-img { flex: 0 0 240px; width: 240px; aspect-ratio: auto; min-height: 150px; }
+  .mode-t { justify-content: center; padding: 16px 18px 4px; }
+  .mode-card { position: relative; }
+  .mode-go { position: absolute; right: 16px; bottom: 16px; margin: 0; }
+  .mode-t small { padding-right: 90px; }
+}
+@media (max-height: 500px) and (min-width: 641px) { .mode-img { aspect-ratio: 16 / 8; } }
+@media (max-height: 500px) and (min-width: 641px) {
+  .mode-img { aspect-ratio: 16 / 6; }
+  .mode-t small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pane-lead { display: none; }
+}

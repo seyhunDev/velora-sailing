@@ -38,6 +38,8 @@
     <symbol id="i-trim" viewBox="0 0 24 24"><path d="M5 6h8M17 6h2M5 12h3M12 12h7M5 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3c3 3.5 4 8 3.5 15h-7C8 11 9 6.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.7 7.7 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.7 7.7 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.7 7.7 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.7 7.7 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-learn" viewBox="0 0 24 24"><path d="M3 6.5 12 3l9 3.5-9 3.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 8.5v5c0 1.6 2.2 3 5 3s5-1.4 5-3v-5M21 6.5v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></symbol>
     <symbol id="i-sail" viewBox="0 0 24 24"><path d="M11 3v15M11 3.5c4.5 3.5 6.8 8.6 7 13.5H11M7.5 7.5 4 17h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-voice" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-voice-off" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -58,31 +60,41 @@
         <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
       </div>
     </header>
-    <!-- iki ayrı alan (kullanıcı 2026-11-23: "bir alan senaryolar, bir alan diğer düğmeler"):
-         solda BÖLÜMLER (kendi kendine kayar), sağda SENARYOLAR (başlık + arama, sekmeler, liste). Telefon dikeyde alt alta. -->
-    <div class="home-body home-scroll">
-      <aside class="home-side" aria-label="Bölümler">
-        <div class="ls-head">BÖLÜMLER</div>
-        <nav class="home-go" aria-label="Bölümler">
-          <a id="lnkTaktik" class="sec-card" href="taktik.html"><span class="sec-img"><img src="img/bolum/taktik.webp" alt="" width="640" height="400"><span class="sec-chip">Yeni</span></span>
-            <span class="sec-t"><b>Taktik oluştur</b><small>Tekne koy, rota çiz, oynat</small></span></a>
-          <a id="lnkRaces" class="sec-card" href="havuz.html"><span class="sec-img"><img src="img/bolum/yaris.webp" alt="" width="640" height="400"><span class="sec-chip">Antrenör</span></span>
-            <span class="sec-t"><b>Yarış oluştur</b><small>Kur, gönder, sıralamayı gör</small></span></a>
-          <a id="lnkOnline" class="sec-card" href="sim.html?online"><span class="sec-img"><img src="img/bolum/online.webp" alt="" width="640" height="400"><span class="sec-chip"><i></i>Canlı</span></span>
-            <span class="sec-t"><b>Online yarış</b><small>Şifreli odada birlikte yarış</small></span></a>
-          <a id="lnkTrim" class="sec-card" href="ayar.html"><span class="sec-img"><img src="img/bolum/yelken.webp" alt="" width="640" height="400"></span>
-            <span class="sec-t"><b>Yelken ayarı</b><small>Havaya göre Optimist trimi</small></span></a>
-          <a id="lnkSim" class="sec-card" href="sim.html"><span class="sec-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
-            <span class="sec-t"><b>Simülatör</b><small>Tekneni sür, taktiğini dene</small></span></a>
-        </nav>
-      </aside>
-      <div class="home-main">
+    <!-- 4 sekme (kullanıcı 2026-11-23: "bunlar bölüm değil, ayrı işler; sade, anlaşılır"): çocuk ne yapmak istediğini seçer.
+         iPad/masaüstü: solda menü · yatay telefon: solda dar menü · dikey telefon: altta sekme çubuğu. js/app.js → setTab -->
+    <div class="home-body">
+      <nav class="app-nav" id="appNav" aria-label="Ana menü">
+        <button class="nav-it" data-tab="ogren"><svg><use href="#i-learn"/></svg><span>Öğren</span></button>
+        <button class="nav-it" data-tab="yaris"><svg><use href="#i-flag"/></svg><span>Yarış</span></button>
+        <button class="nav-it" data-tab="olustur"><svg><use href="#i-pen"/></svg><span>Oluştur</span></button>
+        <a class="nav-it" id="lnkTrim" href="ayar.html"><svg><use href="#i-sail"/></svg><span>Yelken ayarı</span></a>
+      </nav>
+      <div class="home-main home-pane" data-pane="ogren">
         <div class="home-head">
           <h2 class="home-h2">Senaryolar</h2>
           <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
         </div>
         <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo kategorileri"></div>
         <div class="home-list" id="homeList"></div>
+      </div>
+      <!-- YARIŞ: üç yol (görseller img/bolum/) -->
+      <div class="home-main home-pane" data-pane="yaris" hidden>
+        <div class="home-head"><h2 class="home-h2">Yarış</h2></div>
+        <p class="pane-lead">Tekneni kendin sür. Nasıl yarışmak istersin?</p>
+        <div class="mode-list">
+          <a class="mode-card" id="lnkSim" href="sim.html"><span class="mode-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
+            <span class="mode-t"><b>Tek başına</b><small>Filoya karşı antrenman yarışı. Start, rüzgar ve sağanağı sen seç.</small></span><span class="mode-go">Başla</span></a>
+          <a class="mode-card" id="lnkOnline" href="sim.html?online"><span class="mode-img"><img src="img/bolum/online.webp" alt="" width="640" height="400"></span>
+            <span class="mode-t"><b>Arkadaşlarınla</b><small>Şifreli bir oda aç ya da katıl, aynı anda yarışın.</small></span><span class="mode-go">Oda aç</span></a>
+          <a class="mode-card" id="lnkRaces" href="havuz.html"><span class="mode-img"><img src="img/bolum/yaris.webp" alt="" width="640" height="400"></span>
+            <span class="mode-t"><b>Antrenör yarışı</b><small>Antrenörünün kodunu gir, yarış ve sıralamayı gör. Antrenörsen yarış kur.</small></span><span class="mode-go">Kodu gir</span></a>
+        </div>
+      </div>
+      <!-- OLUŞTUR: kendi taktiklerin (Taktik oluştur sayfası) -->
+      <div class="home-main home-pane" data-pane="olustur" hidden>
+        <div class="home-head"><h2 class="home-h2">Oluştur</h2></div>
+        <p class="pane-lead">Tekneleri koy, rotalarını çiz, oynat. Taktiğini kaydet ve paylaş.</p>
+        <div class="home-list" id="mineList"></div>
       </div>
     </div>
   </section>
