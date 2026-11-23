@@ -307,7 +307,7 @@
             if (al > 0 && al < 80 && lat < 26) vt = Math.min(vt, Math.max(0, o.v * 0.9 + (al - 36) * 2));
           }
         }
-        if (!holding && shadowsOn) vt *= 1 - E.SHADOW.loss * E.shadowK({ x: b.x, y: b.y, ref: b }, casters, w, base).k;   // pis rüzgar
+        if (!holding && shadowsOn) vt *= 1 - E.SHADOW.loss * E.shadowK({ x: b.x, y: b.y, ref: b }, casters, w, base, scn.shadowLen).k;   // pis rüzgar
         b.v += (vt - b.v) * Math.min(1, DT / TAU);
       }
       t += DT;
@@ -368,7 +368,7 @@
         let rate = 1;
         if (scripted[i].noShadow) rate = 1;
         else if (rel < 0.2) rate = 1 + Math.min(2, lag * 2);                  // beklerken gecikmeyi kapat
-        else rate = 1 - E.SHADOW.loss * E.shadowK(p, casters, w, base).k;
+        else rate = 1 - E.SHADOW.loss * E.shadowK(p, casters, w, base, scn.shadowLen).k;
         tau[i] = Math.min(t + DT, tau[i] + rate * DT);
       });
     }

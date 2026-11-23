@@ -47,7 +47,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 | A6 | Transit (kerteriz) ile hattı görme | Pin–hakem botu hizasının kıyıdaki sabit noktası; "transit kapanınca hattasın". Pin'den ve hakem botundan iki yönlü transit. | 🔜 (İA2'de nişan hattı var; kıyı transiti eksik) |
 | A7 | Rüzgaraltına boşluk yaratma (hole) | Son 60 sn: rüzgaraltındaki boşluğu açma (bear away, sonra orsa), boşluğu rüzgarüstü teknelerden koruma; boşluk = hızlanma alanı. | 🔜 |
 | A8 | Bekleme (hold) teknikleri | Orsalayıp durma, yelkeni boşaltma, "double tack", geri yelken (backing); hattın 2-4 boy gerisinde yer tutma. | 🔜 |
-| A9 | Start sonrası ilk 2 dakika | Temiz hava: rüzgaraltı teknenin rüzgar gölgesi, "lane" kaybedince erken tramola kararı; kapalı rüzgarda ısrar etmemek. | 🔜 |
+| A9 | Start sonrası ilk 2 dakika | Temiz hava: rüzgaraltı teknenin rüzgar gölgesi, "lane" kaybedince erken tramola kararı; kapalı rüzgarda ısrar etmemek. A9: pis havadan tramolayla sağa (K10, kıçlardan geç). A9b: tramola yolu kapalıysa bordala-hızlan, boşluğa kay; HATA: sıkıştırma (pinch). | ✅ (A9 + A9b) |
 | A10 | İskele kontra start | Pin ucu çok avantajlı ve filo seyrekse: pin'den iskele kontra çıkış; sancak filosunun önünden geçme hesabı; risk analizi. | 🔜 |
 | A11 | Yaklaşma rotaları: Vanderbilt ve "dip" | Uzaklaş–dön–geri (zamanla ölçülmüş), hattın rüzgarüstünden inip (dip start, yalnızca I bayrağı yokken) yer alma. | ⬜ |
 | A12 | Start sinyalleri ve bayraklar | P / I / U / siyah bayrak ve son 1 dakika kuralı; burnu çizgide olan tekne (UFD); geri çekilme (K22.3). 5-4-1-0 sırası ve AP/Birinci Tekrar bayrakları ayrıca eklenecek. | ✅ |

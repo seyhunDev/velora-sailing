@@ -317,6 +317,117 @@
     expectEarly: ['F']
   });
 
+  // ---------- A9: start sonrası ilk 2 dakika — pis havadan tramolayla çık ----------
+  S.push({
+    id: 'a9-clear-air-tack',
+    category: 'Taktik', topic: 'Start sonrası',
+    title: 'A9 · Start sonrası pis havadasın: omzuna bak, tramolayla temiz havaya çık',
+    summary: 'Start sonrası ikinci sırada, öndeki teknenin hemen rüzgaraltında-arkasında kaldıysan onun pis rüzgarındasın: hızın %20-30 düşer ve her saniye geri kalırsın. Yeşil X ilk saniyelerde bunu fark eder, omzunun üstünden bakar, sağ tarafı boşken tramola atar, sancak teknelerin kıçından geçer (Kural 10) ve sağdaki temiz havada filonun önüne geçer. Turuncu Y aynı durumda inatla devam eder ve gölgede kalır.',
+    duration: 36,
+    baseSpeed: 16,
+    wind: 0,
+    line: { pin: { x: 300, y: 480 }, boat: { x: 900, y: 480 } },
+    startAt: 6,
+    goBefore: 4,
+    committeeLabel: 'upright',
+    shadowLen: 150,   // kalabalık filonun bozduğu hava ~3 boy uzanır (varsayılan koni 1,5 boy)
+    rungs: { boat: 'X', from: 14 },
+    boats: [
+      { id: 'X', name: 'Tramola: temiz hava', role: 'dogru', color: '#2a9d8f',
+        start: { x: 790, y: 545, h: 340 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 6.5, turn: 1.0, note: 'İkinci sırada: pis rüzgar' },
+          { mode: 'closehauled', tack: 'port', dur: 7.5, turn: 1.2, note: 'Sağ boş: tramola, kıçlardan geç' },
+          { mode: 'closehauled', tack: 'starboard', dur: 20, turn: 1.2, note: 'Temiz havada' }
+        ] },
+      { id: 'Y', name: 'Pis havada devam', role: 'hata', color: '#e76f51',
+        start: { x: 574, y: 545, h: 340 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 34, turn: 1.0, note: 'HATA: gölgede devam' }
+        ] }
+    ],
+    crowdLife: { gap: 38 },
+    crowd: [
+      { slot: 0.07, back: 6, drift: 0 }, { slot: 0.16 }, { slot: 0.25 }, { slot: 0.34, back: 5 }, { slot: 0.43, drift: 0 },
+      { slot: 0.52 }, { slot: 0.61 }, { slot: 0.70, back: 4 }, { slot: 0.79, drift: 0 }, { slot: 0.88 },
+      { slot: 0.16, row: 1 }, { slot: 0.61, row: 1 }
+    ],
+    steps: [
+      { t: 0, title: 'Start\'a 6 sn', text: 'Filo hattın dibinde doldurup hızlanıyor. Yeşil X ve turuncu Y ikinci sırada: ikisi de öndeki teknenin hemen rüzgaraltında-arkasında.' },
+      { t: 6, title: 'START: ikinci sıradasın', text: 'Herkes sancak kontrada orsa çıkıyor. Öndeki teknelerin yelkeninden çıkan bozuk hava (pis rüzgar) rüzgaraltına doğru uzanır; kalabalık bir ön sıranın arkasında 2-3 boy boyunca hava bozuktur (koyu koniler). X ve Y bu gölgenin içinde: hızları %20-30 düşüyor (mor rozet).' },
+      { t: 7, title: 'X omzunun üstünden bakıyor', text: 'X ilk birkaç saniyede karar verir: sağında, rüzgarüstünde tekne var mı? Sağ taraf boş: tramola atabilir. Kural 10: iskele kontraya geçince sancak teknelere yol verecek, onların kıçından geçecek.' },
+      { t: 9, title: 'Tramola: kıçlardan geç', text: 'X tramola attı, iskele kontrada sağdaki sancak teknelerin kıçından geçiyor. Kimseyi kaçmaya zorlamıyor. Gölgeden çıktığı an tam hıza dönüyor.' },
+      { t: 14, title: 'Merdiven: kim önde?', text: 'Kesikli çizgi rüzgara dik merdiven basamağı. X temiz havada tam hızda, Y hâlâ öndeki filonun gölgesinde. Tramolada kaybettiği mesafeyi birkaç saniyede geri alıyor; fark her saniye büyüyor.' },
+      { t: 17, title: 'X sancağa dönüyor', text: 'X filonun rüzgarüstünde, kendi temiz şeridinde (lane) sancağa döndü. Artık kimse onun havasını kesmiyor.' },
+      { t: 30, title: 'Özet', text: 'Starttan sonra ilk iş hızına bakmak: yanındakilerden yavaşsan pis havadasın. Önce omzuna bak, yer varsa tramola at ve kıçlardan geç. Yarım dakikada X, Y\'nin yaklaşık 1 boy önüne geçti; gölgede kalmak her dakika birkaç boy demek.' }
+    ],
+    addBoat: { pin: { x: 380, y: 600 }, middle: { x: 640, y: 600 }, committee: { x: 860, y: 600 } },
+    startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
+  });
+
+  // ---------- A9b: tramola yolu kapalıysa bordala, hızlan; sıkıştırma ----------
+  S.push({
+    id: 'a9b-foot-out',
+    category: 'Taktik', topic: 'Start sonrası',
+    title: 'A9b · Tramola yolun kapalı: bordala, hızlan, rüzgaraltındaki boşluğa çık',
+    summary: 'Pis havadasın ama rüzgarüstünde, hemen yanında bir tekne var: tramola atarsan ona çarparsın. Çıkış rüzgaraltında: burnu 20-25° düşür, yelkeni biraz kaçır, hızlan ve öndeki iki tekne arasındaki boşluğa kay; boşlukta orsaya dön. Yeşil S bunu yapar. Turuncu H gölgeden orsalayarak (sıkıştırarak, pinch) kurtulmaya çalışır: tekne yavaşlar, gölgede daha uzun kalır ve iyice geride kalır.',
+    duration: 36,
+    baseSpeed: 16,
+    wind: 0,
+    line: { pin: { x: 300, y: 480 }, boat: { x: 900, y: 480 } },
+    startAt: 6,
+    goBefore: 4,
+    committeeLabel: 'upright',
+    rungs: { boat: 'S', from: 16 },
+    gaps: { from: 0, to: 6.5, items: [
+      { a: 3, b: 4, label: 'Boşluk', color: '#34d399' },
+      { a: 5, b: 6, label: 'Boşluk', color: '#34d399' }
+    ] },
+    boats: [
+      { id: 'S', name: 'Bordala, boşluğa kay', role: 'dogru', color: '#2a9d8f',
+        start: { x: 609, y: 547, h: 340 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 5, turn: 1.0, note: 'Pis hava; sağında tekne: tramola yok' },
+          { mode: 'heading', h: 290, dur: 5, turn: 1.2, speed: 1.2, note: 'Bordala, hızlan: boşluğa' },
+          { mode: 'closehauled', tack: 'starboard', dur: 24, turn: 1.4, note: 'Boşlukta, temiz havada' }
+        ] },
+      { id: 'H', name: 'Sıkıştırıyor (pinch)', role: 'hata', color: '#e76f51',
+        start: { x: 790, y: 545, h: 340 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 5, turn: 1.0 },
+          { mode: 'closehauled', tack: 'starboard', angle: 36, dur: 14, turn: 1.0, note: 'HATA: orsalıyor, hız yok' },
+          { mode: 'closehauled', tack: 'starboard', dur: 15, turn: 1.0, note: 'Geride kaldı' }
+        ] },
+      // rüzgarüstündeki komşular (gri filo): tramola yolunu kapatırlar
+      { id: '1', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 658, y: 553, h: 340 }, v0: 0,
+        segs: [{ mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 }, { mode: 'closehauled', tack: 'starboard', dur: 34, turn: 1.0 }] },
+      { id: '2', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 882, y: 563, h: 340 }, v0: 0,
+        segs: [{ mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 }, { mode: 'closehauled', tack: 'starboard', dur: 34, turn: 1.0 }] }
+    ],
+    crowdLife: { gap: 38 },
+    crowd: [
+      { slot: 0.07, back: 6, drift: 0 }, { slot: 0.16 }, { slot: 0.25, back: 4 }, { slot: 0.34, drift: 0 },
+      { slot: 0.52, drift: 0 }, { slot: 0.61, drift: 0 }, { slot: 0.79, drift: 0 }, { slot: 0.88, drift: 0 },
+      { slot: 0.16, row: 1 }
+    ],
+    steps: [
+      { t: 0, title: 'Start\'a 6 sn', text: 'Yeşil S ve turuncu H ikinci sırada, öndeki teknenin hemen rüzgaraltında-arkasında. İkisinin de sağında (rüzgarüstünde) yan yana bir tekne var. Öndeki sırada iki boşluk var (yeşil parantez).' },
+      { t: 6, title: 'START: gölgedesin', text: 'Filo sancak kontrada çıkıyor. S ve H öndeki teknenin pis havasında: hız %20-30 düşük (mor rozet). Bozuk hava öndeki teknenin 1-2 boy arkasına uzanır.' },
+      { t: 6.8, title: 'Tramola yolu kapalı', text: 'Tramola atsalar sağdaki tekneye çarparlar ya da önünü keserler (Kural 13: tramola atarken yol ver). Bu durumda çıkış yolu rüzgaraltı.' },
+      { t: 8, title: 'S bordalıyor', text: 'S burnu 20-25° düşürüyor, yelkeni biraz kaçırıp hızlanıyor (footing) ve rüzgaraltındaki boşluğa kayıyor. Rüzgarüstü tekne olduğu için soldaki tekneden uzak duruyor (Kural 11).' },
+      { t: 10, title: 'H sıkıştırıyor', text: 'H gölgeden yukarı, orsalayarak çıkmaya çalışıyor (pinch). Yelken boşalıyor, tekne yavaşlıyor; öndeki tekne uzaklaşmadığı için gölgeden de çıkamıyor.' },
+      { t: 13, title: 'S boşlukta orsaya döndü', text: 'S boşluğa yerleşti: önü ve rüzgarüstü açık, temiz havada tam hızda. Bordalarken kaybettiği yükseklik birkaç saniyede geri geliyor.' },
+      { t: 18, title: 'Merdiven: kim önde?', text: 'Rüzgara dik kesikli çizgi. S temiz havada filoyla aynı hızda gidiyor; H hem sıkıştırma hem gölge yüzünden geride kalıyor.' },
+      { t: 30, title: 'Özet', text: 'Pis havadaysan ve tramola yolun kapalıysa: rüzgaraltına bak. Boşluk varsa bordala, hızlan, boşlukta orsaya dön. Gölgeden orsalayarak çıkmaya çalışma: sıkıştıran tekne hem yavaşlar hem gölgede kalır. Yarım dakikada S, H\'nin yaklaşık 1 boy önüne geçti.' }
+    ],
+    addBoat: { pin: { x: 380, y: 600 }, middle: { x: 560, y: 620 }, committee: { x: 860, y: 620 } },
+    startSlots: { pin: [0.1], middle: [0.4], committee: [0.67] }
+  });
+
   // ---------- İA1: Pin'in dışında bekleyip apaz gel, grubun altına tramola ----------
   S.push({
     id: 'ia1-port-approach-pin',

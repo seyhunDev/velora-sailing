@@ -394,32 +394,34 @@
     return 0.4 + 0.6 * Math.max(0, Math.min(1, (rel - 0.15) / 0.45));
   }
   // p noktası c teknesinin gölgesinde mi? 0..1 (gölge gücü hariç)
-  function shadowOf(p, c, w) {
+  // len: koninin boyu (px); senaryo `shadowLen` ile uzatabilir (kalabalık filonun bozduğu hava 2-3 boy uzanır)
+  function shadowOf(p, c, w, len) {
+    const L = len || SHADOW.len;
     const d = fwd(w + 180), r = fwd(w + 90);
     const dx = p.x - c.x, dy = p.y - c.y, along = dx * d.x + dy * d.y;
-    if (along < SHADOW.from || along > SHADOW.len) return 0;
+    if (along < SHADOW.from || along > L) return 0;
     const half = SHADOW.w0 + along * SHADOW.spread, lat = Math.abs(dx * r.x + dy * r.y);
     if (lat > half) return 0;
-    const a = (along - SHADOW.from) / (SHADOW.len - SHADOW.from), l = lat / half;
+    const a = (along - SHADOW.from) / (L - SHADOW.from), l = lat / half;
     // koninin içindeki her tekne yavaşlar: kenarda ve uçta da en az %30 etki (en çok kıçın hemen arkasında)
     return 0.3 + (1 - 0.3) * (1 - 0.7 * a) * (1 - l * l);
   }
   // casters: [{x,y,v?,str?,ref?}] → { k (0..1, hız kaybı = SHADOW.loss·k), by (gölgeyi yapan) }
-  function shadowK(p, casters, w, base) {
+  function shadowK(p, casters, w, base, len) {
     let best = { k: 0, by: null };
     for (const c of casters) {
       if (c === p || (c.ref != null && c.ref === p.ref)) continue;
-      const k = shadowOf(p, c, w) * (c.str != null ? c.str : shadowStrength(c.v, base));
+      const k = shadowOf(p, c, w, len) * (c.str != null ? c.str : shadowStrength(c.v, base));
       if (k > best.k) best = { k: Math.min(1, k), by: c.ref != null ? c.ref : c };
     }
     return best;
   }
   // Koninin çokgen noktaları (SVG points)
-  function shadowPolygon(c, w) {
-    const d = fwd(w + 180), r = fwd(w + 90), S = SHADOW;
+  function shadowPolygon(c, w, len) {
+    const d = fwd(w + 180), r = fwd(w + 90), S = SHADOW, L = len || S.len;
     const p = (a, l) => `${(c.x + d.x * a + r.x * l).toFixed(1)},${(c.y + d.y * a + r.y * l).toFixed(1)}`;
-    const h0 = S.w0 + S.from * S.spread, h1 = S.w0 + S.len * S.spread;
-    return [p(S.from, -h0), p(S.from, h0), p(S.len, h1), p(S.len, -h1)].join(' ');
+    const h0 = S.w0 + S.from * S.spread, h1 = S.w0 + L * S.spread;
+    return [p(S.from, -h0), p(S.from, h0), p(L, h1), p(L, -h1)].join(' ');
   }
 
   // ---------- Hakem botu (start hattının sağ ucu) ----------

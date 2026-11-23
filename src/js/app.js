@@ -480,12 +480,12 @@
       const all = [...state.boats, ...state.extras].map(b => ({ ...E.sampleTrack(b.track, state.t), ref: b }));
       all.forEach(c => c.str = E.shadowStrength(c.v, base));
       if (state.show.shadows && inWin(scn.shadows === true || !scn.shadows ? {} : scn.shadows)) {
-        for (const c of all) el('polygon', { points: E.shadowPolygon(c, w), fill: `rgba(2,10,20,${(0.3 * c.str).toFixed(2)})`,
+        for (const c of all) el('polygon', { points: E.shadowPolygon(c, w, scn.shadowLen), fill: `rgba(2,10,20,${(0.3 * c.str).toFixed(2)})`,
           stroke: `rgba(248,113,113,${(0.4 * c.str).toFixed(2)})`, 'stroke-dasharray': '3 4' }, g);
       }
       for (const p of all) {
         if (p.ref.crowd || p.ref.extra || (p.v || 0) < base * 0.25) continue;          // yalnızca seyreden senaryo teknelerine not
-        const sh = E.shadowK(p, all, w, base);
+        const sh = E.shadowK(p, all, w, base, scn.shadowLen);
         if (sh.k > 0.15) state.shadowed.set(p.ref.id, sh.k);
       }
     }
