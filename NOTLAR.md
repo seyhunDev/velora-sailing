@@ -126,6 +126,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-23 · **Simülatör ve Taktik oluştur ayrı bölüm (kullanıcı karar kartı):** simülatör bugünkü elle sürülen yarış oyunu olarak kalır. Ana sayfaya ayrı bir "Taktik oluştur" kartı + sahne kurma aracı gelecek (tekne/rüzgar yerleştir, rota çiz, kurallarla oynat, kendi senaryon olarak kaydet; "Senaryo editörü" maddesinin yerine geçer). Ayrı sohbette yapılacak.
 - 2026-11-23 · **Adım metinleri 10-14 yaş diliyle** (kullanıcı: "cümleleri basitleştir, 10-14 yaş grubu"): kısa cümle, "sen" dili, parantez/ok/tırnak/yüzde gibi işaret yok, kural numarası ayrı kısa cümle ("Bu Kural 11."), İngilizce terim yerine Türkçe (header → kapatma, lift → açma, zone → bölge, overlap → yan yana). Ekrandaki yazı = okunan ses. Yeni adım yazarken bu üsluba uy.
 - 2026-11-23 · **Sesli anlatım hazır MP3 ile, anahtar istemciye gitmez**: ses yayın sırasında (GitHub Actions) bir kez üretilir, statik dosya olarak sunulur; sunucu fonksiyonu yok, dinleme başına ücret yok. Animasyon anlatımı bekler (adım sınırında durur), hızlanmaz/yavaşlamaz.
 - 2026-11-23 · **Pis hava konisi senaryo başına uzatılabilir (`shadowLen`)**: varsayılan 1,5 boy koni, start sonrası kalabalık ön sıranın arkasındaki bozuk havayı göstermeye yetmiyordu (ikinci sıradaki tekne 1,5 boy geri düşünce temiz havaya çıkıyordu). Global değer değişmedi; yalnız isteyen senaryo uzatır (A9: 150). Simülatör (`sim-core`) etkilenmez.
@@ -281,7 +282,7 @@
 ## Oturum günlüğü (en yeni üstte)
 ### 2026-11-23 · Ana sayfadan tüm bölümler + uygulama dökümü
 - Kullanıcı: uygulamada neler var, hepsine ilk sayfadan düzgün erişim, senaryolar gibi ön gösterimli kartlar; simülatör ileride "kendi taktiğini oluştur" olacak, yarış = oluştur ve sporculara gönder.
-- Yapılan: döküm belgesi (Claude Doc), dört bölüm kartı, `?online` parametresi. Simülatörün taktik oluşturucuya dönüşmesi için plan kullanıcıya soruldu (karar bekliyor).
+- Yapılan: döküm belgesi (Claude Doc), dört bölüm kartı, `?online` parametresi. Karar: simülatör ve Taktik oluştur ayrı bölüm (Kararlar 2026-11-23); araç ayrı sohbette.
 
 
 ### 2026-11-23 · Ayarlar 3D Optimist: gövde, dümen, bumba ipleri (kullanıcının Winner/ELOC fotoğraflarına göre)
