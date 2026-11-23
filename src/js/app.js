@@ -277,15 +277,21 @@
   function removeBoat() { state.extras.pop(); simulateExtras(); buildLegend(); render(); }
 
   // ---------- Sabit parkur ----------
-  let cbNode = null;                                   // hakem botu: rüzgarla döner (demirde başı rüzgarda)
+  let cbNode = null, pinNode = null;                                   // hakem botu: rüzgarla döner (demirde başı rüzgarda)
   function drawCourse() {
-    const g = $('courseLayer'); g.innerHTML = ''; cbNode = null;
+    const g = $('courseLayer'); g.innerHTML = ''; cbNode = null; pinNode = null;
     const scn = state.scn;
     if (scn.line) {
       const { pin, boat } = scn.line;
       el('line', { x1: pin.x, y1: pin.y, x2: boat.x, y2: boat.y, stroke: '#ffd166', 'stroke-width': 2, 'stroke-dasharray': '10 8', opacity: .9 }, g);
-      el('circle', { cx: pin.x, cy: pin.y, r: 7, fill: '#ff8c42', stroke: '#fff', 'stroke-width': 1.5 }, g);
-      el('text', { x: pin.x, y: pin.y + 24, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12 }, g).textContent = 'Pin';
+      if (scn.line.pinBoat) {
+        pinNode = E.drawCommitteeBoat(el, g);
+        pinNode.setAttribute('transform', E.pinBoatTransform(scn.line, E.windAt(scn.wind, state.t)));
+        el('text', { x: pin.x, y: pin.y + 60, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12, 'paint-order': 'stroke', stroke: 'rgba(0,0,0,.45)', 'stroke-width': 3 }, g).textContent = 'Pin teknesi';
+      } else {
+        el('circle', { cx: pin.x, cy: pin.y, r: 7, fill: '#ff8c42', stroke: '#fff', 'stroke-width': 1.5 }, g);
+        el('text', { x: pin.x, y: pin.y + 24, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12 }, g).textContent = 'Pin';
+      }
       cbNode = E.drawCommitteeBoat(el, g);
       cbNode.setAttribute('transform', E.committeeBoatTransform(boat.x, boat.y, E.windAt(scn.wind, state.t)));
       // committeeLabel: 'right' → yazı hakem botunun sağına (sol tarafta bekleyen tekneyle çakışmasın)
@@ -599,6 +605,7 @@
     $('course').style.setProperty('--ls', state.ls.toFixed(3));
     const w = E.windAt(scn.wind, state.t);
     if (cbNode) cbNode.setAttribute('transform', E.committeeBoatTransform(scn.line.boat.x, scn.line.boat.y, w));
+    if (pinNode) pinNode.setAttribute('transform', E.pinBoatTransform(scn.line, w));
     drawWind(w); drawOverlays(w);
     const bl = $('boatLayer'); bl.innerHTML = '';
     frameNotes = [...state.rungNotes];

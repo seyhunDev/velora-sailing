@@ -186,7 +186,8 @@
     const o = [];
     for (const m of scn.marks || []) o.push({ x: m.x, y: m.y, r: 14, rDraw: 9 });
     if (scn.line) {
-      o.push({ x: scn.line.pin.x, y: scn.line.pin.y, r: 14, rDraw: 7 });
+      if (scn.line.pinBoat) { const c = pinBoatCenter(scn.line, w != null ? w : (scn.wind != null ? windAt(scn.wind, 0) : 0)); o.push({ x: c.x, y: c.y, r: 30, rDraw: 22 }); }
+      else o.push({ x: scn.line.pin.x, y: scn.line.pin.y, r: 14, rDraw: 7 });
       const wd = w != null ? w : (scn.wind != null ? windAt(scn.wind, 0) : 0);
       o.push(orientObstacle({ hull: true, ax: scn.line.boat.x, ay: scn.line.boat.y, r: CB_HULL.r, w: null }, wd));
     }
@@ -526,6 +527,10 @@
     return g;
   }
   const committeeBoatTransform = (x, y, windFrom) => `translate(${x},${y}) rotate(${norm360(windFrom).toFixed(1)})`;
+  // Pin teknesi (pin ucu şamandıra yerine tekne): hakem botu çizimi, gövdesi hattın dışında kalacak şekilde gerekirse aynalı
+  const pinBoatMirror = (line, w) => { const r = norm360(w) * Math.PI / 180; return (line.boat.x - line.pin.x) * Math.cos(r) + (line.boat.y - line.pin.y) * Math.sin(r) > 0; };
+  const pinBoatTransform = (line, w) => committeeBoatTransform(line.pin.x, line.pin.y, w) + (pinBoatMirror(line, w) ? ' scale(-1,1)' : '');
+  function pinBoatCenter(line, w) { const r = norm360(w) * Math.PI / 180, s = pinBoatMirror(line, w) ? -1 : 1; return { x: line.pin.x + s * 12 * Math.cos(r), y: line.pin.y + s * 12 * Math.sin(r) }; }
 
   /* Start hattı layline'ları (ayarlardaki anahtar, senaryolar ve simülatör): pin'den ve hakem botundan
      rüzgaraltına, iki kontranın orsa rotası boyunca. Bu çizginin üstünde (rüzgarüstünde) olan tekne o kontrada
@@ -559,7 +564,7 @@
   function seedOf(id) { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) % 1000; return h / 37; }
 
   global.SailEngine = {
-    sailPose, sailShape, seedOf, drawCommitteeBoat, committeeBoatTransform, drawStartLaylines,
+    sailPose, sailShape, seedOf, drawCommitteeBoat, committeeBoatTransform, pinBoatTransform, pinBoatCenter, drawStartLaylines,
     SHADOW, shadowStrength, shadowOf, shadowK, shadowPolygon,
     DEG, norm180, norm360, lerp, lerpAngle, fwd,
     windAt, tackHeading, runHeading, buildTrack, sampleTrack, sailState, speedFor, obstaclesOf, orientObstacle, obstacleNear, obstacleGap, hullObstacleGap, avoidDir, steerAround,

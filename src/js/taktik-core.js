@@ -108,7 +108,7 @@
       gusts: (d.gusts || []).slice(0, MAX_GUSTS).map(g => ({ ...pt(g), r: Math.max(50, Math.min(180, r1(+g.r || 90))) })),
       wind: r1(E.norm360(+d.wind || 0)), kn: Math.max(4, Math.min(20, r1(+d.kn || 8))),
       marks: (d.marks || []).slice(0, MAX_MARKS).map(m => ({ ...pt(m), zone: m.zone !== false })),
-      line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat) } : null,
+      line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat), ...(d.line.pinBoat ? { pinBoat: true } : {}) } : null,
       boats: (d.boats || []).slice(0, MAX_BOATS).map((b, i) => ({
         id: String(b.id || LETTERS[i]).slice(0, 2), name: String(b.name || '').slice(0, 20), color: /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : COLORS[i % COLORS.length],
         ...pt(b), role: ROLES.includes(b.role) ? b.role : '',
@@ -193,7 +193,7 @@
       marks: d.marks.map((m, i) => ({ x: m.x, y: m.y, zone: m.zone, label: d.marks.length > 1 ? `Şamandıra ${i + 1}` : 'Şamandıra' })),
       boats: [], steps: [{ t: 0, title: d.title || 'Kendi taktiğin', text: d.text || 'Oynat ve teknelerin rotasını izle.' }]
     };
-    if (d.line) scn.line = { pin: d.line.pin, boat: d.line.boat };
+    if (d.line) scn.line = { pin: d.line.pin, boat: d.line.boat, pinBoat: !!d.line.pinBoat };
     const tackPts = [];
     scn.boats = d.boats.map((b, i) => {
       const lg = legs(b, w), h = startHeading(b, w, lg);

@@ -97,9 +97,16 @@
       const { pin, boat } = doc.line;
       el('line', { x1: pin.x, y1: pin.y, x2: boat.x, y2: boat.y, stroke: '#ffd166', 'stroke-width': 2, 'stroke-dasharray': '10 8', opacity: .9 }, g);
       const pn = el('g', { 'data-k': 'pin', class: 'tk-drag' + (sel && sel.kind === 'pin' ? ' on' : '') }, g);
-      el('circle', { cx: pin.x, cy: pin.y, r: 22 * ui, fill: 'transparent' }, pn);
-      el('circle', { cx: pin.x, cy: pin.y, r: 7, fill: '#ff8c42', stroke: '#fff', 'stroke-width': 1.5 }, pn);
-      el('text', { x: pin.x, y: pin.y + 24, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12 }, pn).textContent = 'Pin';
+      if (doc.line.pinBoat) {
+        const c = E.pinBoatCenter(doc.line, doc.wind);
+        el('circle', { cx: c.x, cy: c.y, r: 30 * ui, fill: 'transparent' }, pn);
+        E.drawCommitteeBoat(el, pn).setAttribute('transform', E.pinBoatTransform(doc.line, doc.wind));
+        el('text', { x: pin.x, y: pin.y + 60, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12, 'paint-order': 'stroke', stroke: 'rgba(0,0,0,.45)', 'stroke-width': 3 }, pn).textContent = 'Pin teknesi';
+      } else {
+        el('circle', { cx: pin.x, cy: pin.y, r: 22 * ui, fill: 'transparent' }, pn);
+        el('circle', { cx: pin.x, cy: pin.y, r: 7, fill: '#ff8c42', stroke: '#fff', 'stroke-width': 1.5 }, pn);
+        el('text', { x: pin.x, y: pin.y + 24, 'text-anchor': 'middle', fill: '#ffd166', 'font-size': 12 }, pn).textContent = 'Pin';
+      }
       const cg = el('g', { 'data-k': 'cb', class: 'tk-drag' + (sel && sel.kind === 'cb' ? ' on' : '') }, g);
       el('circle', { cx: boat.x, cy: boat.y, r: 28 * ui, fill: 'transparent' }, cg);
       const cb = E.drawCommitteeBoat(el, cg);
@@ -197,7 +204,7 @@
   // ---------- Seçili nesne kartı ----------
   function drawSel() {
     const c = $('tkSel');
-    if (!sel || (sel.kind !== 'boat' && sel.kind !== 'mark' && sel.kind !== 'gust')) { c.classList.add('hidden'); c.innerHTML = ''; return; }
+    if (!sel || (sel.kind !== 'boat' && sel.kind !== 'mark' && sel.kind !== 'gust' && sel.kind !== 'pin')) { c.classList.add('hidden'); c.innerHTML = ''; return; }
     c.classList.remove('hidden');
     if (sel.kind === 'boat') {
       const b = doc.boats[sel.i]; if (!b) { sel = null; return drawSel(); }
@@ -225,6 +232,12 @@
         <div class="tk-lbl">Büyüklük</div>
         <div class="tk-seg" role="group" aria-label="Büyüklük">${[[70, 'Küçük'], [100, 'Orta'], [140, 'Büyük']].map(([r, l]) => `<button data-gr="${r}" class="${Math.abs(gu.r - r) < 15 ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="tk-sel-a"><button class="tb danger" data-a="del"><svg><use href="#i-trash"/></svg>Sağanağı sil</button></div>`;
+    } else if (sel.kind === 'pin') {
+      if (!doc.line) { sel = null; return drawSel(); }
+      c.innerHTML = `<div class="tk-sel-h"><span class="tk-dot" style="background:#ff8c42"></span><b class="tk-sel-t">Start hattının pin ucu</b>
+          <button class="tk-ic sm" data-a="close" title="Bitti" aria-label="Bitti"><svg><use href="#i-close"/></svg></button></div>
+        <div class="tk-seg" role="group" aria-label="Pin ucu">${[['', 'Şamandıra'], ['1', 'Tekne']].map(([k, l]) => `<button data-pinb="${k}" class="${!!doc.line.pinBoat === !!k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <p class="tk-sel-p">Büyük yarışlarda pin ucunda şamandıra yerine bir tekne (pin teknesi) durabilir. Sürükleyerek yerini değiştir.</p>`;
     } else {
       const m = doc.marks[sel.i]; if (!m) { sel = null; return drawSel(); }
       c.innerHTML = `<div class="tk-sel-h"><span class="tk-dot" style="background:#ff8c42"></span><b class="tk-sel-t">Şamandıra</b>
@@ -237,6 +250,8 @@
   $('tkSel').addEventListener('click', e => {
     const sb = e.target.closest('[data-sail]');
     if (sb) { sail = sb.dataset.sail; try { localStorage.setItem(SAIL_KEY, sail); } catch (er) { /* yok */ } drawSel(); render(); return; }
+    const pb = e.target.closest('[data-pinb]');
+    if (pb && doc.line) { if (pb.dataset.pinb) doc.line.pinBoat = true; else delete doc.line.pinBoat; changed(); return; }
     const gr = e.target.closest('[data-gr]');
     if (gr && sel && sel.kind === 'gust') { doc.gusts[sel.i].r = +gr.dataset.gr; changed(); return; }
     const rb = e.target.closest('[data-role]');
@@ -326,6 +341,7 @@
       doc.line = { pin: { x: clampX(c.x - r.x * 190), y: clampY(c.y - r.y * 190) }, boat: { x: clampX(c.x + r.x * 190), y: clampY(c.y + r.y * 190) } };
     }
     if (sel && (sel.kind === 'pin' || sel.kind === 'cb')) sel = null;
+    if (doc.line) sel = { kind: 'pin' };     // pin ucu seçeneği (şamandıra / tekne) hemen görünsün
     changed();
   };
   function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); }
@@ -398,7 +414,8 @@
     else if (d.k === 'mark') sel = { kind: 'mark', i: d.i };
     else if (d.k === 'gust') { if (sel && sel.kind === 'boat') return addPoint(d.p0); sel = { kind: 'gust', i: d.i }; }
     else if (d.k === 'pt') { if (!(sel && sel.kind === 'boat' && sel.i === d.i)) sel = { kind: 'boat', i: d.i }; else return addPoint(d.p0); }
-    else if (d.k === 'pin' || d.k === 'cb') sel = null;
+    else if (d.k === 'pin') sel = sel && sel.kind === 'pin' ? null : { kind: 'pin' };
+    else if (d.k === 'cb') sel = null;
     else if (sel && sel.kind === 'boat') return addPoint(d.p0);
     else sel = null;
     render();
