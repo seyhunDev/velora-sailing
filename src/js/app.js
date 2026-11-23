@@ -316,8 +316,19 @@
     const sail = E.sailState(s.h, w);
     const g = el('g', { transform: `translate(${s.x.toFixed(1)},${s.y.toFixed(1)}) rotate(${s.h.toFixed(1)})` }, parent);
     const seed = E.seedOf(b.id);
-    const pose = E.sailPose(s.h, w, { v: s.v, base: state.scn.baseSpeed || 55, t: state.t, seed, back: !!s.back });
-    BoatDraw.draw(g, BoatDraw.pref(), { color: b.color, pose, t: state.t, seed, heading: s.h, speed: (s.v || 0) / (state.scn.baseSpeed || 55) });   // sınıfa göre gövde ve donanım
+    // sağanağa giriş (Taktik oluştur, scn.gustIn): 2,5 sn boyunca iskota çekilir (bumba biraz içeri) + ok + not
+    const gin = state.scn.gustIn && state.scn.gustIn[b.id], gt = gin ? gin.filter(x => x <= state.t + 1e-6).pop() : null;
+    const sheetIn = gt != null && state.t - gt < 2.5 && !sail.luffing && !s.back ? Math.min(1, (state.t - gt) / 0.6) : 0;
+    const pose = E.sailPose(s.h, w, { v: s.v, base: state.scn.baseSpeed || 55, t: state.t, seed, back: !!s.back, ...(sheetIn ? { sheet: Math.max(1, sail.boom - Math.min(7, sail.boom * 0.5) * sheetIn) } : {}) });
+    const drawn = BoatDraw.draw(g, BoatDraw.pref(), { color: b.color, pose, t: state.t, seed, heading: s.h, speed: (s.v || 0) / (state.scn.baseSpeed || 55) });   // sınıfa göre gövde ve donanım
+    if (sheetIn && drawn && drawn.tip) {
+      // iskota: bumba ucundan kokpite sarı kesikli çizgi, akan çizgi = çekiliyor
+      const tp = drawn.tip, cy = 12;
+      const ln = el('line', { x1: tp.x.toFixed(1), y1: tp.y.toFixed(1), x2: 0, y2: cy, stroke: '#fbbf24', 'stroke-width': 2.2, 'stroke-dasharray': '4 3', 'stroke-linecap': 'round' }, g);
+      ln.setAttribute('stroke-dashoffset', (-(state.t * 28) % 7).toFixed(1));
+      el('circle', { cx: 0, cy, r: 2.6, fill: '#fbbf24' }, g);
+      frameNotes.push({ x: s.x, y: s.y, text: 'Sağanak! İskotayı çek', color: '#fbbf24' });
+    }
     if (state.show.labels) drawLabel(parent, b, s, sail);
     if (s.note) frameNotes.push({ x: s.x, y: s.y, text: s.note, color: b.color });
     const shk = state.shadowed && state.shadowed.get(b.id);
@@ -331,7 +342,7 @@
     const boats = [...state.boats, ...state.extras].map(b => E.sampleTrack(b.track, state.t));
     // engeller: tekne gövdeleri, tekne etiketleri, hakem botu (+ yazısı), pin, şamandıralar
     const obst = [];
-    for (const p of boats) { obst.push({ x: p.x - 16, y: p.y - 26, w: 32, h: 52 }); if (state.show.labels) obst.push({ x: p.x - 28 * ls, y: p.y + 26, w: 56 * ls, h: 20 * ls }); }
+    for (const p of boats) { obst.push({ x: p.x - 16, y: p.y - 26, w: 32, h: 52 }); if (state.show.labels) { const lw = (state.scn.user || state.scn.speedLabels ? 104 : 56) * ls; obst.push({ x: p.x - lw / 2, y: p.y + 26, w: lw, h: 20 * ls }); } }
     const scn = state.scn;
     if (scn.line) { const { pin, boat: cb } = scn.line; obst.push({ x: cb.x - 40, y: cb.y - 54, w: 80, h: 122 }, { x: pin.x - 16, y: pin.y - 10, w: 32, h: 40 }); }
     for (const m of scn.marks || []) obst.push({ x: m.x - 12, y: m.y - 28, w: 24, h: 38 });
@@ -370,7 +381,12 @@
       return;
     }
     const r = ROLES[b.role], tack = sail.tack === 'starboard' ? 'S' : 'İ';
-    const idW = Math.ceil(textW(b.id, 12, 700)), gW = r ? 15 : 0, w = 8 + gW + idW + 5 + 14 + 3, h = 20;
+    // hız (Taktik oluştur ya da speedLabels): knot, sağanaktayken sarı ve oklu
+    const scn = state.scn, spd = scn.user || scn.speedLabels;
+    const kn = spd ? (s.v || 0) / (scn.baseSpeed || 55) * E.upwindKn(scn.boatClass || 'optimist', scn.windKn || 8) : 0;
+    const inGust = spd && E.gustK(scn, s.x, s.y, state.t) > 1.03;
+    const spT = spd ? `${inGust ? '▲ ' : ''}${kn.toFixed(1).replace('.', ',')} kn` : '', spW = spd ? Math.ceil(textW(spT, 10.5, 700)) + 10 : 0;
+    const idW = Math.ceil(textW(b.id, 12, 700)), gW = r ? 15 : 0, w = 8 + gW + idW + 5 + 14 + 3 + (spd ? spW + 3 : 0), h = 20;
     const g = el('g', { transform: `translate(${(x - w * ls / 2).toFixed(1)},${(y - h * ls / 2).toFixed(1)}) scale(${ls.toFixed(3)})` }, parent);
     el('rect', { width: w, height: h, rx: 9, fill: 'rgba(7,18,30,.82)', stroke: r ? r.color : 'rgba(255,255,255,.35)', 'stroke-width': r ? 1.5 : 1 }, g);
     let cx = 8;
@@ -383,6 +399,11 @@
     cx += idW + 5;                                          // kontra: küçük renkli kutu (sancak yeşil, iskele kırmızı — seyir feneri gibi)
     el('rect', { x: cx, y: 3, width: 14, height: h - 6, rx: 4, fill: tack === 'S' ? '#22c55e' : '#ef4444' }, g);
     el('text', { x: cx + 7, y: h / 2 + 3.5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 10, 'font-weight': 800 }, g).textContent = tack;
+    if (spd) {
+      cx += 17;
+      el('rect', { x: cx, y: 3, width: spW, height: h - 6, rx: 4, fill: inGust ? '#fbbf24' : 'rgba(255,255,255,.16)' }, g);
+      el('text', { x: cx + spW / 2, y: h / 2 + 3.5, 'text-anchor': 'middle', fill: inGust ? '#3b2300' : '#fff', 'font-size': 10.5, 'font-weight': 700 }, g).textContent = spT;
+    }
     el('title', {}, g).textContent = `${b.id} · ${b.name} · ${sail.tack === 'starboard' ? 'sancak' : 'iskele'} kontra` + (r ? ` · ${r.label}` : '');
   }
 

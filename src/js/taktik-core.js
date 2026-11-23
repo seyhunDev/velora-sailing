@@ -238,6 +238,24 @@
     }
     if (d.gusts.length && !d.notes.length) steps.push({ t: 0.5, title: 'Sağanak', text: 'Koyu su sağanak demek. Rüzgar orada daha sert, içine giren tekne hızlanır. Sağanak rüzgarla birlikte aşağı kayar.' });
     for (const ev of scn.refEvents) steps.push({ t: ev.t, title: ev.title, text: ev.text });
+    // sağanağa giriş: her teknenin girdiği anlar (oynatıcıda "iskotayı çek" oku ve notu); ilk girişte adım + hız farkı
+    scn.gustIn = {};
+    if (d.gusts.length) {
+      const knOf = v => (v || 0) / BASE * E.upwindKn('optimist', d.kn);
+      const fmt = v => knOf(v).toFixed(1).replace('.', ',');
+      scn.boats.forEach((b, i) => {
+        const tr = tracks[i], ins = []; let was = false;
+        for (let t = 0; t <= scn.duration + 1e-6; t += 0.1) {
+          const p = E.sampleTrack(tr, t), on = E.gustK(scn, p.x, p.y, t) > 1.03;
+          if (on && !was) ins.push(Math.round(t * 10) / 10);
+          was = on;
+        }
+        if (!ins.length) return;
+        scn.gustIn[b.id] = ins;
+        const t0 = ins[0], v0 = E.sampleTrack(tr, Math.max(0, t0 - 0.4)).v, v1 = E.sampleTrack(tr, Math.min(scn.duration, t0 + 2.2)).v;
+        steps.push({ t: t0, title: `Sağanak: ${b.name}`, text: `${b.name} sağanağa girdi. Rüzgar sertleşti: iskotayı çek, yelkeni doldur, sırtını dışarı ver (hiking). Tekne hızlanıyor: ${fmt(v0)} → ${fmt(v1)} knot.` });
+      });
+    }
     steps.sort((a, b) => a.t - b.t);
     // aynı anda iki adım: sonrakini biraz kaydır (ikisi de görünsün)
     for (let i = 1; i < steps.length; i++) if (steps[i].t < steps[i - 1].t + 0.6) steps[i].t = Math.round((steps[i - 1].t + 0.6) * 10) / 10;
