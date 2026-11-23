@@ -313,6 +313,7 @@
     let t = null;
     try { t = await be.getTask(code); } catch (e) { t = null; T.err = isDenied(e) ? 'Yarış okunamadı: Firebase kuralları yayında mı?' : 'Yarış okunamadı. İnternetini kontrol et.'; }
     busy(false);
+    if (t && t.kind === 'taktik') { t = null; T.err = `${code} bir taktik kodu. Taktik oluştur → Taktiklerim → Kodla aç.`; }
     if (!t) { T.view = 'home'; if (!T.err) T.err = `${code} kodlu yarış yok.`; render(); return; }
     if (!taskSetup(t)) { T.view = 'home'; T.err = 'Yarışın kurulumu bozuk.'; render(); return; }
     if (!T.task || T.task.code !== t.code) T.pick = [];

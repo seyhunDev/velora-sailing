@@ -141,6 +141,7 @@
   // ---------- Senaryo yükleme ----------
   function loadScenario(scn) {
     state.scn = scn; state.t = 0; state.playing = false; state.stepIdx = 0;
+    quizReset(); quizHide();
     state.boats = scn.boats.map(b => ({ ...b }));
     // kalabalık filo: senaryoda tanımlı, kural motoruyla birlikte simüle edilen tekneler
     state.extras = (scn.crowd || []).map((c, i) => {
@@ -203,7 +204,7 @@
     ticks.innerHTML = ''; bar.innerHTML = '';
     scn.steps.forEach((st, i) => {
       const t = document.createElement('button'); t.style.left = (st.t / scn.duration * 100) + '%'; t.title = `${i + 1}. ${st.title}`;
-      t.onclick = () => { state.t = st.t; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
+      t.onclick = () => { quizHide(); state.t = st.t; quizRewind(); state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
       ticks.appendChild(t);
       const b = document.createElement('button'); b.title = `${i + 1}. ${st.title}`; b.setAttribute('aria-label', `Adım ${i + 1}`);
       b.onclick = () => browse(i);
@@ -618,6 +619,7 @@
       if (state.playing) {
         const dt = Math.min(0.1, (ts - state.lastTs) / 1000);
         state.t = narrHold(state.t + dt * state.speed);
+        quizCheck();
         if (state.t >= state.scn.duration) { state.t = state.scn.duration; state.playing = false; updatePlayButton(); }
         render({ dt });
         narrSync();
@@ -628,13 +630,55 @@
     }
     state.lastTs = ts; requestAnimationFrame(tick);
   }
+  // ---------- Soru modu (Taktik oluştur: scn.quiz) ----------
+  // Oynarken her kural karşılaşmasından hemen önce durur, "kim yol vermeli?" diye sorar; cevaptan sonra sürer.
+  // Zaman çubuğuyla geri gidilince soru yeniden sorulur.
+  const quiz = { el: null, score: 0, asked: 0 };
+  function quizReset() { const q = state.scn && state.scn.quiz; if (q) q.forEach(x => { x.done = false; }); quiz.score = 0; quiz.asked = 0; }
+  function quizHide() { if (quiz.el) quiz.el.classList.add('hidden'); }
+  function quizRewind() {
+    const qs = state.scn && state.scn.quiz; if (!qs) return;
+    qs.forEach(x => { if (x.done && state.t < x.t - 0.05) { x.done = false; if (x.ok != null) { quiz.asked--; if (x.ok) quiz.score--; x.ok = null; } } });
+    if (state.t <= 0.05) { quiz.score = 0; quiz.asked = 0; }
+  }
+  function quizCheck() {
+    const qs = state.scn && state.scn.quiz; if (!qs || !qs.length) return;
+    const q = qs.find(x => !x.done && state.t >= x.t);
+    if (!q) return;
+    q.done = true; state.t = q.t; state.playing = false; updatePlayButton();
+    if (narrActive()) SailNarr.pause();
+    quizShow(q);
+  }
+  function quizShow(q) {
+    if (!quiz.el) {
+      quiz.el = document.createElement('div'); quiz.el.className = 'quiz-card hidden'; quiz.el.setAttribute('role', 'dialog');
+      document.querySelector('main.stage').appendChild(quiz.el);
+    }
+    const el = quiz.el;
+    el.innerHTML = `<div class="quiz-h">Soru</div><b class="quiz-q">Tekneler karşılaşıyor. Kim yol vermeli?</b>
+      <div class="quiz-opts">${q.opts.map(o => `<button data-id="${o.id}"><i style="background:${o.color}"></i>${o.name.replace(/[<>&"]/g, '')}</button>`).join('')}</div>`;
+    el.classList.remove('hidden');
+    el.onclick = e => {
+      const btn = e.target.closest('[data-id]');
+      if (btn && q.ok == null) {
+        q.ok = btn.dataset.id === q.give; quiz.asked++; if (q.ok) quiz.score++;
+        const n = state.scn.quiz.length;
+        el.innerHTML = `<div class="quiz-h ${q.ok ? 'ok' : 'no'}">${q.ok ? 'Doğru!' : 'Yanlış'}</div>
+          <p class="quiz-t">${q.text}</p>
+          <div class="quiz-f"><small>${quiz.score} / ${quiz.asked} doğru${n > 1 ? ` · ${n} soru` : ''}</small><button class="quiz-go" data-go="1">Devam</button></div>`;
+        return;
+      }
+      if (e.target.closest('[data-go]')) { quizHide(); if (!state.playing) togglePlay(); }
+    };
+  }
+
   function updatePlayButton() {
     const b = $('btnPlay'); b.querySelector('use').setAttribute('href', state.playing ? '#i-pause' : '#i-play');
     b.setAttribute('aria-label', state.playing ? 'Duraklat' : 'Oynat');
   }
   function togglePlay() {
-    if (state.t >= state.scn.duration) { state.t = 0; narrStop(); }
-    state.playing = !state.playing; if (state.playing) setFollow(true); updatePlayButton();
+    if (state.t >= state.scn.duration) { state.t = 0; narrStop(); quizReset(); }
+    state.playing = !state.playing; if (state.playing) { setFollow(true); quizHide(); } updatePlayButton();
     // ses dokunuşun içinde başlasın (iOS): duraklatılmış anlatım kaldığı yerden, yoksa bu adımın anlatımı
     if (narrActive()) {
       SailNarr.unlock();
@@ -703,7 +747,7 @@
 
   // ---------- Olaylar ----------
   $('btnPlay').onclick = togglePlay;
-  $('btnReset').onclick = () => { state.t = 0; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
+  $('btnReset').onclick = () => { quizHide(); quizReset(); state.t = 0; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
   // hız: masaüstünde üç düğme; telefonda yalnız seçili görünür, dokununca sıradakine geçer
   $('speedSeg').onclick = e => {
     const btn = e.target.closest('button'); if (!btn) return;
@@ -711,7 +755,7 @@
     const next = phoneMq.matches && btn.classList.contains('on') ? all[(all.indexOf(btn) + 1) % all.length] : btn;
     all.forEach(x => x.classList.toggle('on', x === next)); state.speed = +next.dataset.v;
   };
-  $('scrub').oninput = e => { state.t = +e.target.value; narrStop(); setFollow(true); render(); };
+  $('scrub').oninput = e => { quizHide(); state.t = +e.target.value; quizRewind(); narrStop(); setFollow(true); render(); };
   $('btnAdd').onclick = addBoat; $('btnRemove').onclick = removeBoat;
   $('chkWind').onchange = e => { state.show.wind = e.target.checked; render(); };
   $('chkStartLay').onchange = e => { state.show.startLay = e.target.checked; render(); };
@@ -736,7 +780,7 @@
   }
   $('btnPrev').onclick = () => browse(state.stepIdx - 1);
   $('btnNext').onclick = () => browse(state.stepIdx + 1);
-  $('btnGoto').onclick = () => { state.t = state.scn.steps[state.stepIdx].t; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
+  $('btnGoto').onclick = () => { quizHide(); state.t = state.scn.steps[state.stepIdx].t; quizRewind(); state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { openPicker(false); openSettings(false); if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu(); return; }
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;

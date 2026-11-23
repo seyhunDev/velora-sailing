@@ -77,7 +77,7 @@ body.taktik { background: var(--bg); }
 .tk-ta { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: #fff; font: inherit; font-size: 15px; resize: vertical; outline: none; }
 .tk-ta:focus { border-color: var(--accent); }
 .tk-dlg-a { display: flex; justify-content: flex-end; margin-top: 10px; }
-.tk-rows { display: grid; gap: 0; background: #fff; border-radius: 12px; overflow: hidden; }
+.tk-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .tk-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
 .tk-row + .tk-row { box-shadow: inset 0 1px 0 var(--border); }
 .tk-row.cur { background: var(--accent-soft); }
@@ -189,3 +189,18 @@ body.taktik { background: var(--bg); }
 /* yatay telefon: sahne alt çubuğun üstünde kalsın, yazılar tek satır */
 .tk-btn span { white-space: nowrap; }
 @media (max-height: 460px) { #tkSvg { height: calc(100% - 52px - var(--sab)); } }
+/* paylaş: kod / bağlantı, kodla aç */
+.tk-share { display: grid; gap: 8px; }
+.tk-share-b { display: grid; gap: 3px; text-align: left; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff; font: inherit; color: var(--text); cursor: pointer; }
+.tk-share-b:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.tk-share-b:disabled { opacity: .7; cursor: default; }
+.tk-share-b b { font-size: 16px; }
+.tk-share-b small { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.tk-code { font-size: 38px; font-weight: 800; letter-spacing: .14em; text-align: center; padding: 14px 0 6px; font-variant-numeric: tabular-nums; }
+.tk-dlg-a2 { gap: 8px; }
+.tk-kod { display: flex; gap: 8px; margin-bottom: 2px; }
+.tk-kod .tk-in { flex: 1 1 auto; min-width: 0; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.tk-kod-err:empty { display: none; }
+.tk-kod-err { margin: 4px 4px 8px; color: var(--text2); }
+.tk-code-s { font-weight: 800; letter-spacing: .06em; font-size: 13px; padding: 3px 7px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); }
+.tk-kod .tk-in::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; }

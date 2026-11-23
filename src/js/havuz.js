@@ -29,7 +29,7 @@
     const be = await backend();
     if (!be) { H.loading = false; H.err = 'Bağlantı kurulamadı. İnternetini kontrol et.'; render(); return; }
     if (coach()) {
-      try { H.tasks = (await be.listMine(be.uid())).sort((a, b) => (b.at || 0) - (a.at || 0)); }
+      try { H.tasks = (await be.listMine(be.uid())).filter(t => t.kind !== 'taktik').sort((a, b) => (b.at || 0) - (a.at || 0)); }
       catch (e) { H.tasks = []; H.denied = isDenied(e); H.err = H.denied ? '' : 'Yarışlar okunamadı. İnternetini kontrol et.'; }
       await Promise.all(H.tasks.map(t => loadRuns(t.code)));
     }
@@ -46,6 +46,7 @@
     $('hvErr').textContent = '';
     const be = await backend(); if (!be) { $('hvErr').textContent = 'Bağlantı kurulamadı.'; return; }
     let t = null; try { t = await be.getTask(code); } catch (e) { t = null; }
+    if (t && t.kind === 'taktik') { $('hvErr').textContent = `${code} bir taktik kodu: Taktik oluştur → Taktiklerim → Kodla aç.`; return; }
     if (!t) { $('hvErr').textContent = `${code} kodlu yarış yok.`; return; }
     if (D.mode === 'firebase' && !be.uid()) await be.anon().catch(() => {});
     await loadRuns(code);
