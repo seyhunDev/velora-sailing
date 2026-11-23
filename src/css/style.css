@@ -1062,3 +1062,22 @@ html.is-embedded .ver-badge { bottom: 1px; }
 .topbar.acik :is(.back-btn, .home-back) { background: var(--raised2); }
 .topbar.acik :is(.back-btn, .home-back):hover { background: var(--border-strong); }
 html:has(> body.acik) { background: #f5f5f7; }
+
+/* Ortak üst çubuk v5.1 (kullanıcı 2026-11-23: "ana sayfa dahil hepsi aynı, geçişte görünüm değişmesin"):
+   ana sayfanın çubuğu da diğerleriyle birebir aynı: aynı yükseklik, iç boşluk, alt çizgi, simge boyu; tam genişlik */
+.home .topbar.home-top.acik { min-height: 60px; gap: 6px; border-bottom: 1px solid var(--border) !important;
+  padding: calc(8px + var(--sat)) calc(16px + var(--sar)) 8px calc(16px + var(--sal)); }
+.topbar.acik .tool svg { width: 20px; height: 20px; }
+.home .topbar.home-top .home-brand { font-size: 18px; margin-left: 0; }
+.home .topbar.home-top .home-brand svg { width: 36px; height: 36px; border-radius: 10px; }
+.home .home-scroll { padding-top: 14px; }
+@media (max-width: 640px), (max-height: 460px) {
+  .home .topbar.home-top.acik { min-height: 52px; padding: calc(6px + var(--sat)) calc(10px + var(--sar)) 6px calc(10px + var(--sal)); }
+}
+/* liste sayfalarında da çubuk tam genişlik (sayfa geçişinde düğmeler yerinden oynamasın) */
+@media (min-width: 900px) {
+  body[data-shell="page"] .topbar.acik { padding-left: calc(16px + var(--sal)); padding-right: calc(16px + var(--sar)); }
+}
+/* geri düğmesi her sayfada aynı yuvarlak (a.tool kuralı köşeyi 12 px'e çekmesin) */
+header.topbar.acik :is(.back-btn, .home-back) { width: 40px; height: 40px; border-radius: 50%; padding: 0; }
+@media (max-width: 640px) { .scn-top .scn-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
