@@ -7,11 +7,10 @@
      normal hızda oynar; bir adımın anlatımı bitmeden sonraki adıma gelinirse animasyon orada bekler (app.js).
    Node'da da yüklenir (scripts/tts.mjs): speechText + key aynı olmalı ki dosya adları tutsun. */
 (function (global) {
-  // Google Chirp 3 HD Türkçe sesler (sesliasistan'daki listeden üç tanesi)
+  // Google Chirp 3 HD Türkçe ses. Kullanıcı 2026-11-23 üç örnekten Aoede'yi (Kadın 1) seçti; diğerleri
+  // (Kore, Charon) yayında üretilmesin diye listeden çıktı. Ses eklemek: listeye { id, label } ekle.
   const VOICES = [
-    { id: 'Aoede', label: 'Kadın 1 · sıcak' },
-    { id: 'Kore', label: 'Kadın 2 · net' },
-    { id: 'Charon', label: 'Erkek · sakin' }
+    { id: 'Aoede', label: 'Kadın · sıcak' }
   ];
   const DEFAULT_VOICE = 'Aoede';
   const SAMPLE = 'Merhaba! Bu dersi ben anlatacağım. Rüzgar üç yüz elli dereceden esiyor; pin hafif avantajlı.';

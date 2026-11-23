@@ -669,6 +669,7 @@
     const sel = $('selVoice');
     for (const v of SailNarr.VOICES) { const o = document.createElement('option'); o.value = v.id; o.textContent = v.label; sel.appendChild(o); }
     sel.value = SailNarr.voice;
+    sel.hidden = SailNarr.VOICES.length < 2;   // tek ses: seçici yok, yalnız Dinle
     const note = () => SailNarr.fileVoices().then(fv => {
       $('narrNote').textContent = fv.includes(SailNarr.voice)
         ? 'Google doğal sesi (Chirp 3 HD).'
