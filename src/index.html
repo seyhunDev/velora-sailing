@@ -39,6 +39,7 @@
     <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3c3 3.5 4 8 3.5 15h-7C8 11 9 6.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4 1a7.7 7.7 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.5A7.7 7.7 0 0 0 7 6.5l-2.4-1-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-1a7.7 7.7 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a7.7 7.7 0 0 0 2.6-1.5l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-sail" viewBox="0 0 24 24"><path d="M11 3v15M11 3.5c4.5 3.5 6.8 8.6 7 13.5H11M7.5 7.5 4 17h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-voice" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-steps" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   </svg>
 
@@ -148,6 +149,11 @@
     <div id="viewSettings" class="page-settings view-settings" hidden>
       <div class="pop-title">Görünüm</div>
       <label class="switch row-sw" title="Sahneyi teknelere yakın sığdırır, gerekirse olayı izler (telefonda varsayılan açık)"><span class="sw-lbl">Yakın görünüm</span><input type="checkbox" id="chkZoom"><span class="track"><span class="knob"></span></span></label>
+      <div id="narrSettings" hidden>
+        <div class="pop-title">Sesli anlatım</div>
+        <div class="narr-row"><select id="selVoice" class="tb" aria-label="Anlatıcı sesi"></select><button id="btnVoiceTry" class="tb" type="button">Dinle</button></div>
+        <div class="narr-note" id="narrNote"></div>
+      </div>
       <div class="pop-title">Sahnede göster</div>
       <label class="switch row-sw"><span class="sw-lbl">Rüzgar çizgileri</span><input type="checkbox" id="chkWind" checked><span class="track"><span class="knob"></span></span></label>
       <label class="switch row-sw" title="Pin'den ve hakem botundan rüzgaraltına, iki kontranın orsa rotası: çizginin üstündeki tekne o ucu tutar"><span class="sw-lbl">Pin ve hakem botu layline'ı</span><input type="checkbox" id="chkStartLay"><span class="track"><span class="knob"></span></span></label>
@@ -194,6 +200,7 @@
     <div class="row main-row">
       <button id="btnPlay" class="play" title="Oynat / duraklat (boşluk)"><svg><use href="#i-play"/></svg></button>
       <button id="btnReset" class="tool" title="Başa al"><svg><use href="#i-reset"/></svg></button>
+      <button id="btnNarr" class="tool narr-btn hidden" title="Sesli anlatım: açık / kapalı" aria-pressed="false"><svg><use href="#i-voice"/></svg></button>
       <div class="timeline">
         <input type="range" id="scrub" min="0" max="100" step="0.05" value="0" aria-label="Zaman">
         <div class="ticks" id="ticks"></div>
@@ -218,6 +225,7 @@
   <script src="js/scenarios.js"></script>
   <script src="js/thumbs.js"></script>
   <script src="js/rigview.js"></script>
+  <script src="js/narration.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

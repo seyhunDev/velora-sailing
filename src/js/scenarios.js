@@ -432,6 +432,7 @@
   S.push({
     id: 'ia1-port-approach-pin',
     category: 'İleri Taktik', topic: 'Start · Pin',
+    narration: true,   // sesli anlatım (pilot, kullanıcı 2026-11-23): js/narration.js, ses dosyaları scripts/tts.mjs
     title: 'İA1 · Pin\'in dışında bekle, apaz gel, grubun en altına tramola',
     summary: 'Pin avantajlıysa pin grubu erken oluşur. İleri taktik: pin\'in SOLUNDA, kavganın dışında bekle; son 45 sn\'de apaz ile hattın altından gel, rüzgara baş vermiş grubun en alttaki teknesinin rüzgaraltındaki boşluğa tramola at. Tek şart: tramola noktası pin layline\'ının ÜSTÜNDE olmalı; boşluk kapalıysa ya da pin\'i kurtarmıyorsan girmenin anlamı yok.',
     duration: 36.5,

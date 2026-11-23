@@ -40,6 +40,7 @@
     vb: { x: 0, y: 0, w: COURSE.w, h: COURSE.h },      // ekranı dolduran görünüm alanı
     follow: true, stepIdx: 0, infoOpen: true, zoom: null, rungNotes: [], ls: 1
   };
+  let narrIdx = -1;                 // sesli anlatımda şu an okunan adım (-1: yok)
 
   const phoneMq = window.matchMedia('(max-width: 640px), (max-height: 460px)');
 
@@ -165,6 +166,7 @@
     setFollow(true);
     buildLegend(); buildTimeline(); buildSideOptions(); drawCourse(); updatePlayButton();
     if (window.SailRigView) { SailRigView.show(scn.rig); document.body.classList.toggle('has-rig', !!scn.rig); }
+    narrStop(); updateNarrButton();
     showStep(0, false); render();
     if (window.SailTrack) SailTrack.log('scenario', { id: scn.id, title: scn.title, category: scn.category });
   }
@@ -195,7 +197,7 @@
     ticks.innerHTML = ''; bar.innerHTML = '';
     scn.steps.forEach((st, i) => {
       const t = document.createElement('button'); t.style.left = (st.t / scn.duration * 100) + '%'; t.title = `${i + 1}. ${st.title}`;
-      t.onclick = () => { state.t = st.t; state.playing = false; updatePlayButton(); setFollow(true); render(); };
+      t.onclick = () => { state.t = st.t; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
       ticks.appendChild(t);
       const b = document.createElement('button'); b.title = `${i + 1}. ${st.title}`; b.setAttribute('aria-label', `Adım ${i + 1}`);
       b.onclick = () => browse(i);
@@ -604,9 +606,10 @@
     try {
       if (state.playing) {
         const dt = Math.min(0.1, (ts - state.lastTs) / 1000);
-        state.t += dt * state.speed;
+        state.t = narrHold(state.t + dt * state.speed);
         if (state.t >= state.scn.duration) { state.t = state.scn.duration; state.playing = false; updatePlayButton(); }
         render({ dt });
+        narrSync();
       }
     } catch (e) {
       if (Date.now() - tickErr > 15000) { tickErr = Date.now(); console.error('[senaryo] kare hatası', e);
@@ -618,11 +621,68 @@
     const b = $('btnPlay'); b.querySelector('use').setAttribute('href', state.playing ? '#i-pause' : '#i-play');
     b.setAttribute('aria-label', state.playing ? 'Duraklat' : 'Oynat');
   }
-  function togglePlay() { if (state.t >= state.scn.duration) state.t = 0; state.playing = !state.playing; if (state.playing) setFollow(true); updatePlayButton(); }
+  function togglePlay() {
+    if (state.t >= state.scn.duration) { state.t = 0; narrStop(); }
+    state.playing = !state.playing; if (state.playing) setFollow(true); updatePlayButton();
+    // ses dokunuşun içinde başlasın (iOS): duraklatılmış anlatım kaldığı yerden, yoksa bu adımın anlatımı
+    if (narrActive()) {
+      SailNarr.unlock();
+      if (!state.playing) SailNarr.pause();
+      else if (SailNarr.paused() && narrIdx === stepAt(state.t)) SailNarr.resume();
+      else { narrIdx = -1; narrSync(); }
+    }
+  }
+
+  // ---------- Sesli anlatım (js/narration.js; senaryoda narration: true) ----------
+  // Oynarken her adımın başlığı + metni okunur. Anlatım bitmeden sonraki adıma gelinirse animasyon
+  // o adımın hemen önünde bekler; anlatım bitince sürer. Zaman çubuğu / başa al / adım işareti anlatımı keser.
+  function narrActive() { return !!(window.SailNarr && state.scn && state.scn.narration && SailNarr.on); }
+  function narrStop() { narrIdx = -1; if (window.SailNarr) SailNarr.stop(); }
+  function narrSync() {
+    if (!narrActive() || !state.playing) return;
+    const i = stepAt(state.t);
+    if (i === narrIdx) return;
+    narrIdx = i; const s = state.scn.steps[i];
+    SailNarr.speak(SailNarr.speechText(s.title, s.text));
+  }
+  function narrHold(t) {
+    if (!narrActive() || narrIdx < 0 || !SailNarr.busy()) return t;
+    const next = state.scn.steps[narrIdx + 1];
+    return next && t > next.t - 0.02 ? Math.max(state.t, next.t - 0.02) : t;
+  }
+  function updateNarrButton() {
+    const has = !!(window.SailNarr && state.scn && state.scn.narration), b = $('btnNarr');
+    b.classList.toggle('hidden', !has); $('narrSettings').hidden = !has;
+    const on = has && SailNarr.on;
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+    b.title = on ? 'Sesli anlatım açık (kapatmak için dokun)' : 'Sesli anlatım kapalı (açmak için dokun)';
+  }
+  function setSpeed(v) {
+    state.speed = v; [...$('speedSeg').children].forEach(x => x.classList.toggle('on', +x.dataset.v === v));
+  }
+  if (window.SailNarr) {
+    SailNarr.onBusy(b => $('btnNarr').classList.toggle('speaking', b));
+    $('btnNarr').onclick = () => {
+      SailNarr.setOn(!SailNarr.on); updateNarrButton();
+      if (SailNarr.on) { SailNarr.unlock(); setSpeed(1); narrIdx = -1; narrSync(); } else narrIdx = -1;
+    };
+    const sel = $('selVoice');
+    for (const v of SailNarr.VOICES) { const o = document.createElement('option'); o.value = v.id; o.textContent = v.label; sel.appendChild(o); }
+    sel.value = SailNarr.voice;
+    const note = () => SailNarr.fileVoices().then(fv => {
+      $('narrNote').textContent = fv.includes(SailNarr.voice)
+        ? 'Google doğal sesi (Chirp 3 HD).'
+        : 'Google sesi henüz hazır değil: şimdilik cihazın kendi Türkçe sesi okuyor.';
+    });
+    note();
+    const tryVoice = () => { SailNarr.unlock(); narrIdx = -1; SailNarr.speak(SailNarr.SAMPLE); };
+    sel.onchange = () => { SailNarr.setVoice(sel.value); note(); tryVoice(); };
+    $('btnVoiceTry').onclick = tryVoice;
+  }
 
   // ---------- Olaylar ----------
   $('btnPlay').onclick = togglePlay;
-  $('btnReset').onclick = () => { state.t = 0; state.playing = false; updatePlayButton(); setFollow(true); render(); };
+  $('btnReset').onclick = () => { state.t = 0; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
   // hız: masaüstünde üç düğme; telefonda yalnız seçili görünür, dokununca sıradakine geçer
   $('speedSeg').onclick = e => {
     const btn = e.target.closest('button'); if (!btn) return;
@@ -630,7 +690,7 @@
     const next = phoneMq.matches && btn.classList.contains('on') ? all[(all.indexOf(btn) + 1) % all.length] : btn;
     all.forEach(x => x.classList.toggle('on', x === next)); state.speed = +next.dataset.v;
   };
-  $('scrub').oninput = e => { state.t = +e.target.value; setFollow(true); render(); };
+  $('scrub').oninput = e => { state.t = +e.target.value; narrStop(); setFollow(true); render(); };
   $('btnAdd').onclick = addBoat; $('btnRemove').onclick = removeBoat;
   $('chkWind').onchange = e => { state.show.wind = e.target.checked; render(); };
   $('chkStartLay').onchange = e => { state.show.startLay = e.target.checked; render(); };
@@ -655,7 +715,7 @@
   }
   $('btnPrev').onclick = () => browse(state.stepIdx - 1);
   $('btnNext').onclick = () => browse(state.stepIdx + 1);
-  $('btnGoto').onclick = () => { state.t = state.scn.steps[state.stepIdx].t; state.playing = false; updatePlayButton(); setFollow(true); render(); };
+  $('btnGoto').onclick = () => { state.t = state.scn.steps[state.stepIdx].t; state.playing = false; narrStop(); updatePlayButton(); setFollow(true); render(); };
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { openPicker(false); openSettings(false); if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu(); return; }
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
@@ -764,7 +824,7 @@
     if (g.parentElement !== bar) bar.appendChild(g);
     if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
     if (on) {
-      state.playing = false; updatePlayButton(); openPicker(false);
+      state.playing = false; narrStop(); updatePlayButton(); openPicker(false);
       if (state.scn) homeCat = state.scn.category;
       buildHome();
     } else { seenScn = true; if (window.SailThumbs) SailThumbs.reset(); }

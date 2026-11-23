@@ -28,6 +28,16 @@ jobs:
       # Testler kırılırsa yayın yapılmaz, site eski haliyle kalır (senaryo + simülatör + 60 rastgele yarış)
       - run: npm run check
       - run: node scripts/build.mjs
+      # Sesli anlatım MP3'leri (scripts/tts.mjs): metin değişmedikçe önbellekten, anahtar yalnız burada
+      - uses: actions/cache@v4
+        with:
+          path: .tts-cache
+          key: tts-${{ github.run_id }}
+          restore-keys: tts-
+      - name: Sesli anlatım
+        run: node scripts/tts.mjs
+        env:
+          GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}
       # Netlify'a yayın (derleme burada yapılır, Netlify yalnız dist'i alır; Netlify derleme dakikası harcanmaz).
       # Gizli anahtarlar: Settings → Secrets and variables → Actions → NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID
       - name: Netlify'a yayınla
