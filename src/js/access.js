@@ -377,6 +377,6 @@
     // Velora'dan anahtarla gelindi: giriş ekranı gösterilmeden velora-auth.js oturumu açar; 12 sn'de olmazsa ekran açılır
     veloraWait = true;
     setTimeout(() => { if (veloraWait && !acc) openGate('home'); veloraWait = false; }, 12000);
-  } else if (!acc) openGate('home');
+  } else if (!acc && !document.documentElement.classList.contains('tek')) openGate('home');   // paylaşılan senaryo: girişsiz izlenir
   askConsent();
 })();

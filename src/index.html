@@ -41,6 +41,7 @@
     <symbol id="i-sail" viewBox="0 0 24 24"><path d="M11 3v15M11 3.5c4.5 3.5 6.8 8.6 7 13.5H11M7.5 7.5 4 17h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 20.5h17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-voice" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path class="wave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="i-voice-off" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12.5V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-steps" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   </svg>
 
@@ -52,6 +53,7 @@
       <div class="spacer"></div>
       <!-- sağ düğmeler (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) tek grupta; senaryo açılınca senaryo çubuğuna taşınır -->
       <div class="tool-group" id="toolGroup">
+        <button id="btnShare" class="tool scn-only share-btn" title="Bu senaryonun bağlantısını paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
         <button id="btnInfo" class="tool scn-only" title="Bilgi kartı (i)"><svg><use href="#i-info"/></svg><span class="lbl">Bilgi</span></button>
         <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
       </div>
@@ -103,6 +105,8 @@
     </div>
     <a id="btnEdit" class="edit-btn hidden" href="taktik.html" title="Bu taktiği düzenle"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span>Düzenle</span></a>
     <div class="spacer"></div>
+    <!-- paylaşılan bağlantı (?izle=ID, html.tek): yalnız bu düğme; geri, sekme, başka senaryo yok -->
+    <button id="btnTekClose" class="btn-round tek-close" title="Kapat" aria-label="Kapat"><svg><use href="#i-close"/></svg></button>
   </header>
 
   <!-- SAHNE -->

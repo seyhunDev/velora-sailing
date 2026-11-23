@@ -165,9 +165,10 @@
     // kendi taktiğin: Düzenle → Taktik oluştur (paylaşılan: kendi kopyan olarak açılır)
     const ed = $('btnEdit');
     if (ed) {
-      ed.classList.toggle('hidden', !scn.user);
+      ed.classList.toggle('hidden', !scn.user || !!TEK_ID);
       if (scn.user && window.SailTaktik) ed.href = scn.id.startsWith('s-') ? 'taktik.html?t=' + SailTaktik.encode(scn.doc) : 'taktik.html?id=' + encodeURIComponent(scn.doc.id);
     }
+    $('btnShare').classList.toggle('hidden', !!scn.user);          // kendi taktiğin Taktik oluştur'dan paylaşılır
     document.querySelectorAll('.card').forEach(c => c.classList.toggle('active', c.dataset.id === scn.id));
     updateScnNav();
     setFollow(true);
@@ -814,7 +815,10 @@
     }
   }
   // erişim: misafire kapalı kategoriler (js/access.js → FEATURES)
-  const lockedScn = x => x.category === 'İleri Taktik' && window.SailAccess && !SailAccess.can('scn.ileri');
+  // Paylaşılan tek senaryo (?izle=ID): yalnız o senaryo açılır, kilit uygulanmaz (paylaşan izin vermiş sayılır)
+  const TEK_ID = document.documentElement.classList.contains('tek') ? new URLSearchParams(location.search).get('izle') : null;
+  const TEK = TEK_ID ? (SCENARIOS.find(x => x.id === TEK_ID && !x.user) || null) : null;
+  const lockedScn = x => !(TEK && x === TEK) && x.category === 'İleri Taktik' && window.SailAccess && !SailAccess.can('scn.ileri');
   const norm = t => t.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   function scenarioCard(x) {
     const [code, ttl] = splitTitle(x.title);
@@ -930,6 +934,7 @@
     // sağdaki düğme grubu (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) görünen çubuğa
     const g = $('toolGroup'), bar = on ? document.querySelector('.home-top') : document.querySelector('.scn-top');
     if (g.parentElement !== bar) bar.appendChild(g);
+    if (TEK_ID && !on) bar.appendChild($('btnTekClose'));          // paylaşılan bağlantıda Kapat en sağda
     if (window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
     if (on) {
       state.playing = false; narrStop(); updatePlayButton(); openPicker(false);
@@ -976,11 +981,11 @@
       b.disabled = !n; b.title = n ? `${lbl}: ${n.title}${n.category !== state.scn.category ? ' (' + n.category + ')' : ''}` : lbl;
     }
   }
-  function goScn(dir) { const n = scnNeighbor(dir); if (n) location.hash = n.id; }
+  function goScn(dir) { if (TEK_ID) return; const n = scnNeighbor(dir); if (n) location.hash = n.id; }
   $('btnScnPrev').onclick = () => goScn(-1);
   $('btnScnNext').onclick = () => goScn(1);
   $('pickerSearch').addEventListener('input', e => { query = e.target.value; buildPicker(); });
-  $('btnScenarios').onclick = () => openPicker(true);
+  $('btnScenarios').onclick = () => { if (!TEK_ID) openPicker(true); };
   $('btnPickerClose').onclick = () => openPicker(false);
   $('picker').addEventListener('click', e => { if (e.target === $('picker')) openPicker(false); });
 
@@ -1017,12 +1022,14 @@
 
   if (window.SailRigView) SailRigView.mount($('rigPanel'));
   const fromHash = () => {
+    if (TEK) return TEK;
     const s = SCENARIOS.find(s => s.id === location.hash.slice(1)) || SCENARIOS[0];
     if (lockedScn(s)) { SailAccess.guard('scn.ileri'); return state.scn || SCENARIOS.find(x => !lockedScn(x)); }
     return s;
   };
   const hasScn = () => SCENARIOS.some(s => s.id === location.hash.slice(1));
   window.addEventListener('hashchange', () => {
+    if (TEK_ID) { history.replaceState(null, '', location.pathname + location.search); return; }   // başka senaryoya geçilmez
     if (!hasScn()) { fromHome = false; setHome(true); return; }
     if (homeOn && lockedScn(SCENARIOS.find(s => s.id === location.hash.slice(1)))) {
       SailAccess.guard('scn.ileri'); history.replaceState(null, '', location.pathname + location.search); return;
@@ -1046,7 +1053,57 @@
     id: state.scn && state.scn.id, t: state.t, playing: state.playing, speed: state.speed, follow: state.follow, stepIdx: state.stepIdx,
     infoOpen: state.infoOpen, show: { ...state.show }, extras: state.extras.length, zoom: state.zoom
   }));
+  // ---------- Paylaş: bu senaryonun tek ekran bağlantısı (açan yalnız bu senaryoyu görür, giriş gerekmez) ----------
+  const shareUrl = scn => new URL('./?izle=' + encodeURIComponent(scn.id), location.href).href;
+  function toast(msg) {
+    const t = document.createElement('div'); t.className = 'acc-toast'; t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.classList.add('out'), 2400); setTimeout(() => t.remove(), 2900);
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* eski yol */ }
+    const a = document.createElement('textarea'); a.value = text; a.setAttribute('readonly', ''); a.style.cssText = 'position:fixed;opacity:0;left:0;top:0';
+    document.body.appendChild(a); a.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { /* yok */ } a.remove(); return ok;
+  }
+  $('btnShare').onclick = async () => {
+    const scn = state.scn; if (!scn || scn.user) return;
+    const url = shareUrl(scn), title = `${scn.title} · Velora Sailing`;
+    if (window.SailTrack) try { SailTrack.log('scenario_share', { id: scn.id }); } catch (e) { /* yok */ }
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+      try { await navigator.share({ title, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    toast(await copyText(url) ? 'Bağlantı kopyalandı. Açan kişi yalnız bu senaryoyu görür.' : url);
+  };
+  // Kapat: Velora içinde Velora'ya döner; tarayıcıda sekmeyi kapatmayı dener, olmazsa "kapandı" ekranı (geri yolu yok)
+  $('btnTekClose').onclick = () => {
+    state.playing = false; narrStop(); updatePlayButton();
+    if (document.documentElement.classList.contains('is-embedded')) {
+      try { window.parent.postMessage({ type: 'velora-sailing', event: 'close' }, '*'); } catch (e) { /* yok */ }
+      return;
+    }
+    try { window.close(); } catch (e) { /* yok */ }
+    setTimeout(() => {
+      if (document.getElementById('tekDone')) return;
+      const d = document.createElement('div'); d.id = 'tekDone'; d.className = 'tek-done';
+      d.innerHTML = `<div class="tek-done-card"><svg class="tek-done-logo"><use href="#i-logo"/></svg>
+        <h2>Senaryo kapandı</h2><p>Bu sekmeyi kapatabilirsin.</p>
+        <button class="tb primary" id="tekAgain">Tekrar izle</button></div>`;
+      document.body.appendChild(d);
+      d.querySelector('#tekAgain').onclick = () => { d.remove(); state.t = 0; state.stepIdx = 0; showStep(0, false); render(); };
+    }, 250);
+  };
+  if (TEK_ID) {
+    document.body.classList.add('tek-on');
+    if (window.SailTrack) try { SailTrack.log('scenario_link', { id: TEK_ID, ok: !!TEK }); } catch (e) { /* yok */ }
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    if (!TEK) {                                                   // yanlış / eski bağlantı: yalnız bilgi + Kapat
+      document.body.classList.add('tek-bad');
+      const d = document.createElement('div'); d.className = 'tek-done';
+      d.innerHTML = '<div class="tek-done-card"><svg class="tek-done-logo"><use href="#i-logo"/></svg><h2>Senaryo bulunamadı</h2><p>Bağlantı eski ya da eksik olabilir. Gönderen kişiden yeni bağlantı iste.</p></div>';
+      document.body.appendChild(d);
+    }
+  }
+
   fitViewBox(); loadScenario(fromHash()); setInfoOpen(true);
-  setHome(!hasScn());
+  setHome(TEK_ID ? false : !hasScn());
   requestAnimationFrame(ts => { state.lastTs = ts; requestAnimationFrame(tick); });
 })();
