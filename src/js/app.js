@@ -853,7 +853,7 @@
     th.classList.add('thumb', 'row-thumb'); r.appendChild(th);
     const mins = Math.floor(x.duration / 60), secs = Math.round(x.duration % 60);
     r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}</b>
-      <small>${esc(firstSentence(x.summary))}</small></span>
+      <small>${esc(x.short || firstSentence(x.summary))}</small></span>
       <span class="row-r">${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
       <svg class="row-chev"><use href="#i-next"/></svg>`);
     r.onclick = () => {
@@ -875,7 +875,7 @@
     }
     list.innerHTML = '';
     const q = norm(q0.trim());
-    const items = q ? SCENARIOS.filter(x => norm([x.title, x.summary, x.topic || '', x.category].join(' ')).includes(q))
+    const items = q ? SCENARIOS.filter(x => norm([x.title, x.short || '', x.summary, x.topic || '', x.category].join(' ')).includes(q))
                     : SCENARIOS.filter(x => x.category === cat);
     if (!items.length) {
       const d = document.createElement('div'); d.className = 'picker-empty';

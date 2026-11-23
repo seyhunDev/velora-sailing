@@ -179,7 +179,7 @@
     return Math.abs(off) < 42 ? w + (off < 0 ? -42 : 42) : lg.h0;
   }
 
-  // taslak → senaryo (oynatıcı biçimi). opts.code: kartta görünen kod (T1 …)
+  // taslak → senaryo (oynatıcı biçimi). opts.code: kartta görünen kod (B1 …)
   function compile(doc, opts) {
     opts = opts || {};
     const d = clean(doc), w = d.wind;
@@ -187,7 +187,7 @@
     const wind = d.shift ? [{ t: 0, from: w }, { t: d.shift.t, from: w }, { t: d.shift.t + 3, from: w + d.shift.d }] : w;
     const scn = {
       id: opts.id || 'u-' + d.id, category: CAT, topic: opts.topic || 'Kendi taktiklerim',
-      title: `${opts.code || 'T1'} · ${d.title || 'Adsız taktik'}`,
+      title: `${opts.code || 'B1'} · ${d.title || 'Adsız taktik'}`,
       summary: d.text || 'Kendi kurduğun taktik.',
       duration: 10, baseSpeed: BASE, wind, windKn: d.kn, gusts: d.gusts.map(g => ({ x: g.x, y: g.y, r: g.r })), narration: false, user: true, doc: d,
       marks: d.marks.map((m, i) => ({ x: m.x, y: m.y, zone: m.zone, label: d.marks.length > 1 ? `Şamandıra ${i + 1}` : 'Şamandıra' })),
@@ -314,7 +314,7 @@
   // ---------- Oynatıcıya ekle: kayıtlılar + adresteki paylaşılan ----------
   function inject(S) {
     const mine = list();
-    mine.slice().reverse().forEach((d, i) => S.push(compile(d, { code: `T${i + 1}` })));
+    mine.slice().reverse().forEach((d, i) => S.push(compile(d, { code: `B${i + 1}` })));
     let shared = null;
     try { const q = new URLSearchParams(location.search).get('t'); if (q) shared = decode(q); } catch (e) { /* yok */ }
     if (shared && !mine.some(d => d.id === shared.id)) {

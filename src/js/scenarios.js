@@ -559,7 +559,7 @@
     id: 'ia2b-no-sag',
     category: 'İleri Taktik', topic: 'Start · Orta',
     title: 'İA2b · Yay yok: hattı gör, boşluğa herkesle aynı hizada gir',
-    summary: 'İA2\'nin eşi: bu kez filo hattın dibinde, yay yok. Pin tarafından transitle bakan tekne bunu görür; ortaya gelir, bir boşluğa komşularıyla AYNI hizada yerleşir. Avantaj yukarı durmaktan değil, zamanlamadan ve rüzgaraltındaki boşluktan gelir. Yay yokken yukarı durmaya çalışan, erken çıkar (OCS).',
+    summary: 'İT3\'ün eşi: bu kez filo hattın dibinde, yay yok. Pin tarafından transitle bakan tekne bunu görür; ortaya gelir, bir boşluğa komşularıyla AYNI hizada yerleşir. Avantaj yukarı durmaktan değil, zamanlamadan ve rüzgaraltındaki boşluktan gelir. Yay yokken yukarı durmaya çalışan, erken çıkar (OCS).',
     duration: 32,
     baseSpeed: 40, tau: 1.0,
     clockScale: 3,
@@ -612,7 +612,7 @@
     id: 'ia2c-pick-gap',
     category: 'İleri Taktik', topic: 'Start · Orta',
     title: 'İA2c · Yay yok: dar mı, geniş mi? 2 dk önceden boşluk seç',
-    summary: 'İA2b\'nin devamı: filo yine hattın dibinde ama sırada üç boşluk var: pin yanında DAR bir boşluk, ortada ve hakem botu tarafında iki GENİŞ boşluk. Rüzgar 5° sağda, hakem botu ucu biraz avantajlı. S hatta 2 dakika kala bakar; süresi olduğu için avantajlı uzaktaki geniş boşluğa gider ve rüzgarüstü komşusunun hemen rüzgaraltına sokulur. D 1 dakika kala bakar, süresi yetmez, dezavantajlı uçtaki dar boşluğa sıkışır.',
+    summary: 'İT4\'ün devamı: filo yine hattın dibinde ama sırada üç boşluk var: pin yanında DAR bir boşluk, ortada ve hakem botu tarafında iki GENİŞ boşluk. Rüzgar 5° sağda, hakem botu ucu biraz avantajlı. S hatta 2 dakika kala bakar; süresi olduğu için avantajlı uzaktaki geniş boşluğa gider ve rüzgarüstü komşusunun hemen rüzgaraltına sokulur. D 1 dakika kala bakar, süresi yetmez, dezavantajlı uçtaki dar boşluğa sıkışır.',
     duration: 36,
     baseSpeed: 40, tau: 1.0,
     clockScale: 4,
@@ -1568,7 +1568,7 @@
     id: 'ia11-plan-b',
     category: 'İleri Taktik', topic: 'Start · Orta',
     title: 'İA11 · B planı: seçtiğin boşluk dolarsa yoldaki ikinci boşluğa gir',
-    summary: 'İA2c\'nin devamı: S 2 dk kala hatta bakar, avantajlı hakem botu tarafındaki geniş boşluğu (A planı) seçer ve yoldaki orta boşluğu da aklına yazar (B planı). Filonun altından giderken gri F hakem botu tarafından gelip A boşluğunu doldurur. S bunu görünce hemen yanındaki B boşluğuna girer ve rahat start eder. Turuncu D aynı A planındadır ama B planı yoktur: dolan boşluğa gitmeye devam eder, F\'nin arkasında, ikinci sırada kalır.',
+    summary: 'İT5\'in devamı: S 2 dk kala hatta bakar, avantajlı hakem botu tarafındaki geniş boşluğu (A planı) seçer ve yoldaki orta boşluğu da aklına yazar (B planı). Filonun altından giderken gri F hakem botu tarafından gelip A boşluğunu doldurur. S bunu görünce hemen yanındaki B boşluğuna girer ve rahat start eder. Turuncu D aynı A planındadır ama B planı yoktur: dolan boşluğa gitmeye devam eder, F\'nin arkasında, ikinci sırada kalır.',
     duration: 40,
     baseSpeed: 40,
     clockScale: 4,
@@ -1905,6 +1905,62 @@
     addBoat: { pin: { x: 710, y: 560 }, middle: { x: 830, y: 620 }, committee: { x: 650, y: 620 } },
     addBoatLabels: { pin: 'Arkada', middle: 'Daha arkada', committee: 'Rüzgaraltında' }
   });
+
+  /* ---------- KATALOG (kullanıcı 2026-11-23: "isimlendirme, numaralandırma, açıklamalar karma karışık") ----------
+     Görünen kod, ad, kısa açıklama ve konu TEK yerde. Kod = kategori harfi + sıra:
+       T Taktik · İT İleri Taktik · K Kurallar · TE İleri Teknik (kendi taktiklerin: B1, B2 …)
+     Sıra = listede ve önceki/sonraki düğmelerinde görünen sıra (konu konu). id'ler DEĞİŞMEZ: paylaşım bağlantıları
+     (?izle=<id>, #<id>) ve kayıtlar id ile çalışır. Yeni senaryo: S.push({...}) + buraya bir satır (yoksa kendi başlığıyla sona eklenir).
+     short = listede görünen tek cümle (10-14 yaş, Türkçe terimler); summary (uzun anlatım) Bilgi panelinde kalır. */
+  const KATALOG = [
+    // Taktik
+    ['a1-line-bias',          'T1',  'Start', 'Start hattının avantajlı ucu', 'Hat rüzgara dik değilse bir uç öndedir; oradan çıkan önde başlar.'],
+    ['a1b-measure',           'T2',  'Start', 'Avantajlı ucu bulmanın 3 yolu', 'Starttan önce ölç: rüzgara dön, hat boyunca seyret, pusulaya bak.'],
+    ['a3-pin-favored',        'T3',  'Start', 'Pin avantajlı: pin\'den çık, tramola at', 'Pin\'in yanından çık, hemen tramolayla filonun önünden geç.'],
+    ['a4-committee-favored',  'T4',  'Start', 'Hakem botu avantajlı: alttan gel', 'Oraya rüzgaraltından gelerek girersin; üstten sokulmak hak vermez.'],
+    ['a2-timing',             'T5',  'Start', 'Zamanlama: bekle, 10-12 sn kala doldur', 'Hattın hemen gerisinde bekle, sinyalden 10-12 sn önce yelkeni doldur.'],
+    ['a12-flags',             'T6',  'Start', 'Start bayrakları: P, I, U, siyah', 'Hazırlık bayrağı, erken çıkarsan ne olacağını söyler.'],
+    ['a9-clear-air-tack',     'T7',  'Start sonrası', 'Pis havadan tramolayla çık', 'Öndekinin pis rüzgarındaysan omzuna bak, yol boşsa tramola at.'],
+    ['a9b-foot-out',          'T8',  'Start sonrası', 'Tramola yolu kapalı: bordala, hızlan', 'Burnu biraz düşür, hızlan, rüzgaraltındaki boşluğa kay.'],
+    ['c1-header-tack',        'T9',  'Rüzgar ve orsa', 'Rüzgar kapatınca tramola at', 'Rüzgar salınıyorsa kapatmada tramola at, açan kontrada kal.'],
+    ['d3-shadow-attack',      'T10', 'Pupa', 'Pupada gölgeyle saldır', 'Gölgeni öndeki teknenin yelkenine düşür, onu yavaşlat.'],
+    ['d3b-gybe-escape',       'T11', 'Pupa', 'Gölgeden kavançayla kaç', 'Arkandaki seni gölgelerse kavança at, temiz havaya çık.'],
+    ['d4-gate-choice',        'T12', 'Pupa', 'Pupa kapısı: boş şamandırayı seç', 'Herkes bir şamandıraya yığılırsa sen boş olanı dön.'],
+    ['e1-wide-in-tight-out',  'T13', 'Şamandıra', 'Pupa şamandırası: geniş gir, dar çık', 'Biraz dışarıdan gir, şamandırayı dibinden sıyırarak çık.'],
+    ['e2-windward-queue',     'T14', 'Şamandıra', 'Orsa şamandırası: sıraya erken gir', 'Sancak layline\'ına bölgeden önce gir; bölgede tramola atma.'],
+    // İleri Taktik (hepsi start; hattın solundan sağına, sonra yer tutma)
+    ['ia1-port-approach-pin', 'İT1',  'Pin ucu', 'Dışarıda bekle, alttan tramola', 'Kavganın dışında bekle, apaz gel, grubun altına tramola at.'],
+    ['ia8-pin-chaos',         'İT2',  'Pin ucu', 'Pin kalabalık: layline\'ın üstünde kal', 'Pin layline\'ının üstünde yer tut; altında kalırsan pin\'i dönemezsin.'],
+    ['ia2-line-sag',          'İT3',  'Hattın ortası', 'Hat yayı: ortada önde dur', 'Ortadaki filo hattan geride kalır; hattı gören biraz önde durur.'],
+    ['ia2b-no-sag',           'İT4',  'Hattın ortası', 'Yay yok: herkesle aynı hizada dur', 'Filo hattın dibindeyse önde durma, erken çıkarsın.'],
+    ['ia2c-pick-gap',         'İT5',  'Hattın ortası', 'Boşluk seç: dar mı, geniş mi?', '2 dakika kala bak, geniş ve avantajlı boşluğu seç.'],
+    ['ia11-plan-b',           'İT6',  'Hattın ortası', 'B planı: ikinci boşluğu aklında tut', 'Seçtiğin boşluk dolarsa yoldaki ikinci boşluğa gir.'],
+    ['ia12-late-port-tack',   'İT7',  'Hattın ortası', 'Son saniyede tramola: boşluk yeter mi?', 'İskele kontradan geliyorsan yalnız geniş boşluğa tramola at.'],
+    ['ia3-committee-hold',    'İT8',  'Hakem botu ucu', 'Hakem botunda yer tut', 'Erken gel, bayrağın dibinde bekle, altındaki boşluğu koru.'],
+    ['ia5-committee-crowd',   'İT9',  'Hakem botu ucu', 'Hakem botu kalabalık: erken gir', 'Son dakikada gelen yer bulamaz; erken gir, yerini tut.'],
+    ['ia6-committee-gap',     'İT10', 'Hakem botu ucu', 'Kuvvetli rüzgar: açılan boşluğa gir', 'Bekleyenler aşağı kayar; botun dibinde açılan boşluğa gir.'],
+    ['ia4-leeward-of-windward','İT11','Yer tutma', 'Sıkıştıysan boş yere geç', 'Kalabalıktan çık, bir teknenin hemen rüzgaraltına yanaş.'],
+    ['ia7-hold-climb',        'İT12', 'Yer tutma', 'Kaydıkça yüksel', 'Kaybettiğin yüksekliği kısa iskota ve tramola hamleleriyle geri al.'],
+    ['ia9-brake-back',        'İT13', 'Yer tutma', 'Fren yap, geri git', 'Orsala; yetmezse yelkeni ters bas ve kontrollü geri git.'],
+    ['ia10-defend-gap',       'İT14', 'Yer tutma', 'Boşluğunu savun', 'Rüzgaraltındaki boşluğu kapat, kimse araya girmesin.'],
+    ['ia13-black-flag',       'İT15', 'Geri çağırma', 'Siyah bayrak: son dakikada hatta değme', 'Son 1 dakikada hattı geçen diskalifiye olur; yarım boy geride bekle.'],
+    // Kurallar
+    ['b1-rule10',             'K1', 'Temel hak kuralları', 'Kural 10: iskele kontra yol verir', 'Kesişirken iskele kontradaki tekne yol verir: arkadan geç ya da tramola at.'],
+    ['b8-rule18',             'K2', 'Şamandıra', 'Kural 18: şamandıra yeri', 'Bölgeye girerken içte bindirmesi olan tekne dönüş yeri kazanır.'],
+    // İleri Teknik
+    ['it1-vang-strong',       'TE1', 'Palanga', 'Pupaya dönmeden palangayı al', 'Şamandıradan önce: iskotayı al, bumbayı bastır, palangayı al.'],
+    ['it1b-vang-light',       'TE2', 'Palanga', 'Hafif havada palanga', 'Hafif havada palangayı yalnız boşluğu alacak kadar çek.'],
+  ];
+  const CAT_ORDER = ['Taktik', 'İleri Taktik', 'Kurallar', 'Teknik', 'İleri Teknik'];
+  const rank = new Map(KATALOG.map((k, i) => [k[0], i]));
+  for (const [id, code, topic, name, short] of KATALOG) {
+    const x = S.find(s => s.id === id); if (!x) continue;
+    x.code = code; x.topic = topic; x.name = name; x.short = short; x.title = code + ' · ' + name;
+  }
+  const ci = c => { const i = CAT_ORDER.indexOf(c); return i < 0 ? 99 : i; };
+  const ord = S.map((s, i) => [s, i]);
+  ord.sort((a, b) => ci(a[0].category) - ci(b[0].category) || (rank.has(a[0].id) ? rank.get(a[0].id) : 1e3 + a[1]) - (rank.has(b[0].id) ? rank.get(b[0].id) : 1e3 + b[1]));
+  S.splice(0, S.length, ...ord.map(o => o[0]));
 
   global.SCENARIOS = S;
 })(typeof window !== 'undefined' ? window : globalThis);

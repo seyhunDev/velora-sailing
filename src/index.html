@@ -58,27 +58,32 @@
         <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
       </div>
     </header>
-    <div class="home-scroll">
-      <!-- bölümler: küçük ön izlemeli kutular (görseller img/bolum/, 640x400 webp); telefonda tek beyaz listede satırlar -->
-      <div class="ls-head">BÖLÜMLER</div>
-      <nav class="home-go" aria-label="Bölümler">
-        <a id="lnkTaktik" class="sec-card" href="taktik.html"><span class="sec-img"><img src="img/bolum/taktik.webp" alt="" width="640" height="400"><span class="sec-chip">Yeni</span></span>
-          <span class="sec-t"><b>Taktik oluştur</b><small>Tekneleri koy, rotayı çiz, oynat</small></span></a>
-        <a id="lnkRaces" class="sec-card" href="havuz.html"><span class="sec-img"><img src="img/bolum/yaris.webp" alt="" width="640" height="400"><span class="sec-chip">Antrenör</span></span>
-          <span class="sec-t"><b>Yarış oluştur</b><small>Kur, sporculara gönder, sıralamayı gör</small></span></a>
-        <a id="lnkOnline" class="sec-card" href="sim.html?online"><span class="sec-img"><img src="img/bolum/online.webp" alt="" width="640" height="400"><span class="sec-chip"><i></i>Canlı</span></span>
-          <span class="sec-t"><b>Online yarış</b><small>Şifreli odada birlikte yarış</small></span></a>
-        <a id="lnkTrim" class="sec-card" href="ayar.html"><span class="sec-img"><img src="img/bolum/yelken.webp" alt="" width="640" height="400"></span>
-          <span class="sec-t"><b>Yelken ayarı</b><small>Havaya göre Optimist trimi</small></span></a>
-        <a id="lnkSim" class="sec-card" href="sim.html"><span class="sec-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
-          <span class="sec-t"><b>Simülatör</b><small>Tekneni sür, taktiğini dene</small></span></a>
-      </nav>
-      <!-- senaryolar: kategori sekmeleri (bölümlü düğme) + arama tek satırda, altında konu konu satır listesi -->
-      <div class="home-head">
+    <!-- iki ayrı alan (kullanıcı 2026-11-23: "bir alan senaryolar, bir alan diğer düğmeler"):
+         solda BÖLÜMLER (kendi kendine kayar), sağda SENARYOLAR (başlık + arama, sekmeler, liste). Telefon dikeyde alt alta. -->
+    <div class="home-body home-scroll">
+      <aside class="home-side" aria-label="Bölümler">
+        <div class="ls-head">BÖLÜMLER</div>
+        <nav class="home-go" aria-label="Bölümler">
+          <a id="lnkTaktik" class="sec-card" href="taktik.html"><span class="sec-img"><img src="img/bolum/taktik.webp" alt="" width="640" height="400"><span class="sec-chip">Yeni</span></span>
+            <span class="sec-t"><b>Taktik oluştur</b><small>Tekne koy, rota çiz, oynat</small></span></a>
+          <a id="lnkRaces" class="sec-card" href="havuz.html"><span class="sec-img"><img src="img/bolum/yaris.webp" alt="" width="640" height="400"><span class="sec-chip">Antrenör</span></span>
+            <span class="sec-t"><b>Yarış oluştur</b><small>Kur, gönder, sıralamayı gör</small></span></a>
+          <a id="lnkOnline" class="sec-card" href="sim.html?online"><span class="sec-img"><img src="img/bolum/online.webp" alt="" width="640" height="400"><span class="sec-chip"><i></i>Canlı</span></span>
+            <span class="sec-t"><b>Online yarış</b><small>Şifreli odada birlikte yarış</small></span></a>
+          <a id="lnkTrim" class="sec-card" href="ayar.html"><span class="sec-img"><img src="img/bolum/yelken.webp" alt="" width="640" height="400"></span>
+            <span class="sec-t"><b>Yelken ayarı</b><small>Havaya göre Optimist trimi</small></span></a>
+          <a id="lnkSim" class="sec-card" href="sim.html"><span class="sec-img"><img src="img/bolum/simulator.webp" alt="" width="640" height="400"></span>
+            <span class="sec-t"><b>Simülatör</b><small>Tekneni sür, taktiğini dene</small></span></a>
+        </nav>
+      </aside>
+      <div class="home-main">
+        <div class="home-head">
+          <h2 class="home-h2">Senaryolar</h2>
+          <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
+        </div>
         <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo kategorileri"></div>
-        <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
+        <div class="home-list" id="homeList"></div>
       </div>
-      <div class="home-list" id="homeList"></div>
     </div>
   </section>
 
