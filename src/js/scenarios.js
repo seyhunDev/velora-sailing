@@ -816,6 +816,170 @@
     addBoat: { pin: { x: 440, y: 650 }, middle: { x: 620, y: 650 }, committee: { x: 760, y: 650 } }
   });
 
+  // ---------- C3: layline — erken tramola, tam layline, fazla gitme (overstand) ----------
+  S.push({
+    id: 'c3-layline',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C3 · Layline: tam zamanında tramola at, fazla gitme',
+    summary: 'Layline, orsa şamandırasına tek kontrada gidebileceğin çizgidir. Üç tekne aynı hizadan iskele kontrada çıkıyor. Yeşil D tam layline\'da tramola atar ve şamandıraya dümdüz gider. Turuncu F layline\'ı geçer, fazla gider. Sonra apaza bırakıp boşuna yol yapar. Mor E çok erken tramola atar, iki tramola fazla yapar ve layline\'daki filonun arkasına sıkışır.',
+    duration: 38,
+    baseSpeed: 26,
+    wind: 0,
+    rungs: { boat: 'D', from: 6 },
+    marks: [{ x: 430, y: 190, label: 'Orsa şamandırası', zone: true }],
+    boats: (() => {
+      const round = [
+        { mode: 'goto', x: 408, y: 164, dur: 4, rate: 150 },
+        { mode: 'heading', h: 195, dur: 20, turn: 1.2 }
+      ];
+      const D =
+      { id: 'D', name: 'Tam layline\'da tramola', role: 'dogru', color: '#2a9d8f', noShadow: true,
+        start: { x: 300, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'Layline\'a gelince tramola' },
+          ...round
+        ] };
+      const F =
+      { id: 'F', name: 'Fazla gidiyor', role: 'hata', color: '#e76f51',
+        start: { x: 390, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 16, turn: 0 },
+          { mode: 'closehauled', tack: 'port', dur: 5, turn: 0, note: 'Layline\'ı geçti, devam ediyor' },
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'HATA: fazla gitti, apazla dönüyor' },
+          ...round
+        ] };
+      const E =
+      { id: 'E', name: 'Çok erken tramola', role: 'hata', color: '#8e6bbf',
+        start: { x: 250, y: 670, h: 45 }, v0: 26,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 8, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 3, turn: 1.4, note: 'Erken tramola, şamandırayı tutmuyor' },
+          { mode: 'closehauled', tack: 'port', dur: 11, turn: 1.4, note: 'Bir tramola daha' },
+          { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'Üçüncü tramola' },
+          ...round
+        ] };
+      return [D, F, E, ...fleetCopies(D, [{ dx: 60, dy: -100 }, { dx: 80, dy: -180 }], 1)];
+    })(),
+    steps: [
+      { t: 0, title: 'Üç tekne aynı hizada', text: 'Üçü de iskele kontrada orsa gidiyor. Kesikli çizgiye göre hepsi aynı basamakta. Şamandıraya kim önce varacak?' },
+      { t: 9, title: 'E erken tramola atıyor', text: 'Mor E çok erken tramola attı. Bu kontrada şamandırayı tutmuyor. Hemen bir tramola daha atmak zorunda kaldı.' },
+      { t: 17, title: 'Layline nedir?', text: 'Layline, şamandıraya tek kontrada gidebileceğin çizgidir. Yeşil D tam bu çizgiye geldi ve tramola atıyor. Gri filo da aynı çizgide sıra oldu.' },
+      { t: 20, title: 'F fazla gidiyor', text: 'Turuncu F layline\'ı geçti ama hâlâ iskele kontrada. Buna fazla gitmek denir. İngilizcesi overstand.' },
+      { t: 23, title: 'E pis havada', text: 'E üçüncü tramolasını attı ve layline\'a D\'nin hemen altından girdi. D\'nin pis havasında kaldı. Fazla tramola hem yavaşlattı hem de onu sıranın arkasına itti.' },
+      { t: 26, title: 'Boşa giden yol', text: 'F tramola attı ama şamandıranın çok üstünü tutuyor. Apaza bırakıp şamandıraya iniyor. Rüzgarüstüne gittiği yol boşa gitti.' },
+      { t: 30, title: 'Kim önde?', text: 'D şamandırayı ilk döndü. E fazla tramolalar yüzünden geride. F boşa yol yaptığı için en geride.' },
+      { t: 35, title: 'Özet', text: 'Layline\'a gelmeden tramola atma, geçme de. Şamandırayı yandan, omzunun biraz arkasında görünce tramola at. Kalabalıkta bir iki boy yukarıdan gir, öndekilerin pis havası seni aşağı itmesin.' }
+    ],
+    addBoat: { pin: { x: 160, y: 670 }, middle: { x: 260, y: 670 }, committee: { x: 460, y: 670 } }
+  });
+
+  // ---------- C4: lee-bow — geçemeyeceğin sancak teknenin önüne, rüzgaraltına tramola ----------
+  S.push({
+    id: 'c4-lee-bow',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C4 · Lee-bow: geçemiyorsan önüne, rüzgaraltına tramola at',
+    summary: 'İskele kontradaki tekne sancak tekneyi geçemiyorsa iki yolu vardır: arkasından dolanmak ya da önüne, rüzgaraltına tramola atmak. Buna lee-bow denir. Yeşil D tramolayı bir boy önde ve yeterince uzakta atar. Yelkeninden kıvrılan rüzgar sancak teknenin yelkenini bozar, o yavaşlar ve tramola atıp gider. Turuncu Y tramolayı çok yakında atar. Sancak tekne kaçmak zorunda kalır, Y protesto edilir ve iki tur ceza döner.',
+    duration: 22,
+    baseSpeed: 20,
+    wind: 0,
+    boats: (() => {
+      const D =
+      { id: 'D', name: 'Doğru lee-bow', role: 'dogru', color: '#2a9d8f',
+        start: { x: 220, y: 470, h: 45 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 4.6, turn: 0, note: 'Sancak tekneyi geçemiyorum' },
+          { mode: 'closehauled', tack: 'starboard', dur: 21.4, turn: 1.4, note: 'Önüne, rüzgaraltına tramola' }
+        ] };
+      const S1 =
+      { id: '1', name: 'Sancak tekne', color: '#b8c7d6', crowd: true,
+        start: { x: 440, y: 490, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 7.5, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 4.5, turn: 0, speed: 0.7, note: 'Ters rüzgar, yelkenim bozuldu' },
+          { mode: 'closehauled', tack: 'port', dur: 13, turn: 1.4, note: 'Tramola atıp kaçıyor' }
+        ] };
+      const Y =
+      { id: 'Y', name: 'Çok yakın tramola', role: 'hata', color: '#e76f51',
+        start: { x: 660, y: 470, h: 45 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'port', dur: 6.2, turn: 0 },
+          { mode: 'closehauled', tack: 'starboard', dur: 2, turn: 1.4, note: 'HATA: burnunun dibine tramola' },
+          { mode: 'closehauled', tack: 'starboard', dur: 1.5, turn: 0, note: 'Protesto! Kural 15' },
+          { mode: 'heading', h: 250, dur: 1.4, turn: 0.8, speed: 0.8, note: 'İki tur ceza' },
+          { mode: 'heading', h: 160, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: 70, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -20, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -110, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -200, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'heading', h: -290, dur: 0.9, turn: 0.9, speed: 0.5, note: 'İki tur ceza' },
+          { mode: 'closehauled', tack: 'starboard', dur: 8, turn: 1.0, note: 'Geride kaldı' }
+        ] };
+      const S2 =
+      { id: '2', name: 'Sancak tekne', color: '#b8c7d6', crowd: true,
+        start: { x: 880, y: 490, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 7.0, turn: 0 },
+          { mode: 'hold', h: 350, dur: 1.4, speed: 0.25, turn: 0.4, note: 'Kaçmak zorunda! Protesto!' },
+          { mode: 'closehauled', tack: 'starboard', dur: 15, turn: 1.2 }
+        ] };
+      return [D, S1, Y, S2];
+    })(),
+    steps: [
+      { t: 0, title: 'İki ayrı karşılaşma', text: 'Solda yeşil D, sağda turuncu Y iskele kontrada. İkisinin de önüne sancak kontrada gri bir tekne çıkıyor. Sancak tekne yol hakkına sahip.' },
+      { t: 4, title: 'Geçebilir miyim?', text: 'D ve Y sancak teknenin önünden geçemiyor. İki yol var. Arkasından dolanmak ya da önüne, rüzgaraltına tramola atmak.' },
+      { t: 4.6, title: 'D lee-bow yapıyor', text: 'D, sancak teknenin bir boy önünde ve rüzgaraltında tramola atıyor. Buna lee-bow denir. Gri teknenin rotasını değiştirmesi gerekmiyor.' },
+      { t: 6.8, title: 'Y çok yakın', text: 'Y tramolayı sancak teknenin burnunun dibinde attı. Gri tekne çarpmamak için orsalamak zorunda kaldı. Tramola atıp yol hakkı kazanan tekne, öbürüne kaçacak yer bırakmalı. Bu Kural 15.' },
+      { t: 8.5, title: 'Ters rüzgar', text: 'Solda, D\'nin yelkeninden kıvrılan rüzgar arkadaki gri teknenin yelkenine çarpıyor. Gri tekne yavaşladı.' },
+      { t: 10, title: 'Y ceza dönüyor', text: 'Sağdaki gri tekne protesto diye seslendi. Y iki tur ceza dönüyor ve geride kalıyor.' },
+      { t: 13, title: 'Lee-bow işe yaradı', text: 'Soldaki gri tekne yavaş kalmamak için tramola atıp gitti. D tek başına, temiz havada devam ediyor.' },
+      { t: 18, title: 'Özet', text: 'Lee-bow için tramolayı sancak teknenin önünde ve rüzgaraltında at. Arada bir boy kadar boşluk bırak. Çok yakında atarsan ceza alırsın. Çok geride atarsan onun pis havasında kalırsın.' }
+    ],
+    addBoat: { pin: { x: 300, y: 640 }, middle: { x: 560, y: 640 }, committee: { x: 880, y: 640 } }
+  });
+
+  // ---------- C4b: kapama (cover) — öndeki, arkadakinin tam rüzgarüstünde kalır ----------
+  S.push({
+    id: 'c4b-tight-cover',
+    category: 'Taktik', topic: 'Rüzgar ve orsa',
+    title: 'C4b · Kapama: rakibin her tramolasına tramolayla cevap ver',
+    summary: 'Öndeysen ve arkandaki tek rakibin seni geçmesin istiyorsan onun tam rüzgarüstünde kal. Yeşil Ö böyle yapar. Mor A pis havadan kaçmak için tramola atar, Ö de hemen tramola atıp yine onun rüzgarüstüne geçer. A her seferinde Ö\'nün pis havasında kalır ve yaklaşamaz.',
+    duration: 26,
+    baseSpeed: 20,
+    wind: 0,
+    shadowLen: 110,
+    rungs: { boat: 'Ö', from: 2 },
+    boats: (() => {
+      const O =
+      { id: 'Ö', name: 'Kapatan', role: 'dogru', color: '#2a9d8f',
+        start: { x: 560, y: 470, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 3.8, turn: 0, note: 'A\'nın rüzgarüstündeyim' },
+          { mode: 'closehauled', tack: 'port', dur: 7.6, turn: 1.4, note: 'Tramolasına tramolayla cevap' },
+          { mode: 'closehauled', tack: 'starboard', dur: 14, turn: 1.4, note: 'Yine tam rüzgarüstünde' }
+        ] };
+      const A =
+      { id: 'A', name: 'Kaçmaya çalışan', color: '#8e6bbf',
+        start: { x: 572, y: 545, h: 315 }, v0: 20,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 3, turn: 0, note: 'Pis havadayım' },
+          { mode: 'closehauled', tack: 'port', dur: 7.2, turn: 1.4, note: 'Temiz havaya kaçıyorum' },
+          { mode: 'closehauled', tack: 'starboard', dur: 7.8, turn: 1.4, note: 'Yine pis havada' },
+          { mode: 'closehauled', tack: 'starboard', dur: 8, turn: 0, note: 'Çok geride kaldı' }
+        ] };
+      return [O, A, ...fleetCopies(O, [{ dx: 260, dy: -60 }, { dx: 330, dy: 80 }, { dx: 250, dy: 190 }], 1).map(b => ({ ...b, segs: [{ mode: 'closehauled', tack: 'starboard', dur: 26, turn: 0 }] }))];
+    })(),
+    steps: [
+      { t: 0, title: 'Ö önde', text: 'Yeşil Ö önde. Mor A hemen arkasında ve Ö\'nün tam rüzgaraltında. A, Ö\'nün pis havasında, yavaş gidiyor.' },
+      { t: 3, title: 'A kaçıyor', text: 'A temiz havaya çıkmak için tramola atıyor.' },
+      { t: 3.8, title: 'Ö kapatıyor', text: 'Ö hemen tramola atıyor ve yine A\'nın tam rüzgarüstüne geçiyor. Buna kapama denir. İngilizcesi cover.' },
+      { t: 8, title: 'A yine pis havada', text: 'Ö\'nün gölgesi yine A\'nın yelkeninde. A kaçamadı.' },
+      { t: 10.2, title: 'İkinci deneme', text: 'A yeniden tramola atıyor. Ö de hemen ardından tramola atıp yine üstüne geçiyor.' },
+      { t: 16, title: 'Fark büyüyor', text: 'Kesikli çizgiye bak. A her tramolada biraz daha geride kaldı. Ö önde kalıyor.' },
+      { t: 22, title: 'Özet', text: 'Öndeysen rakibinle şamandıra arasında kal. Yakındaysa tam rüzgarüstüne geç, buna sıkı kapama denir. Çok öndeysen aynı kontrada kalman yeter, buna gevşek kapama denir. Filonun geri kalanını da unutma.' }
+    ],
+    addBoat: { pin: { x: 300, y: 620 }, middle: { x: 640, y: 640 }, committee: { x: 840, y: 620 } }
+  });
+
   // ---------- D3: pupada arkadan gölgeyle saldırı ----------
   S.push({
     id: 'd3-shadow-attack',
@@ -1923,11 +2087,14 @@
     ['a9-clear-air-tack',     'T7',  'Start sonrası', 'Pis havadan tramolayla çık', 'Öndekinin pis rüzgarındaysan omzuna bak, yol boşsa tramola at.'],
     ['a9b-foot-out',          'T8',  'Start sonrası', 'Tramola yolu kapalı: bordala, hızlan', 'Burnu biraz düşür, hızlan, rüzgaraltındaki boşluğa kay.'],
     ['c1-header-tack',        'T9',  'Rüzgar ve orsa', 'Rüzgar kapatınca tramola at', 'Rüzgar salınıyorsa kapatmada tramola at, açan kontrada kal.'],
-    ['d3-shadow-attack',      'T10', 'Pupa', 'Pupada gölgeyle saldır', 'Gölgeni öndeki teknenin yelkenine düşür, onu yavaşlat.'],
-    ['d3b-gybe-escape',       'T11', 'Pupa', 'Gölgeden kavançayla kaç', 'Arkandaki seni gölgelerse kavança at, temiz havaya çık.'],
-    ['d4-gate-choice',        'T12', 'Pupa', 'Pupa kapısı: boş şamandırayı seç', 'Herkes bir şamandıraya yığılırsa sen boş olanı dön.'],
-    ['e1-wide-in-tight-out',  'T13', 'Şamandıra', 'Pupa şamandırası: geniş gir, dar çık', 'Biraz dışarıdan gir, şamandırayı dibinden sıyırarak çık.'],
-    ['e2-windward-queue',     'T14', 'Şamandıra', 'Orsa şamandırası: sıraya erken gir', 'Sancak layline\'ına bölgeden önce gir; bölgede tramola atma.'],
+    ['c3-layline',            'T10', 'Rüzgar ve orsa', 'Layline: tam zamanında tramola at', 'Şamandıraya tek kontrada gidebileceğin yerde tramola at; fazla gitme.'],
+    ['c4-lee-bow',            'T11', 'Rüzgar ve orsa', 'Geçemiyorsan önüne tramola at', 'Sancak tekneyi geçemiyorsan bir boy önüne, rüzgaraltına tramola at.'],
+    ['c4b-tight-cover',       'T12', 'Rüzgar ve orsa', 'Kapama: rakibinin üstünde kal', 'Arkandaki rakip her tramola attığında sen de at, onun rüzgarüstünde kal.'],
+    ['d3-shadow-attack',      'T13', 'Pupa', 'Pupada gölgeyle saldır', 'Gölgeni öndeki teknenin yelkenine düşür, onu yavaşlat.'],
+    ['d3b-gybe-escape',       'T14', 'Pupa', 'Gölgeden kavançayla kaç', 'Arkandaki seni gölgelerse kavança at, temiz havaya çık.'],
+    ['d4-gate-choice',        'T15', 'Pupa', 'Pupa kapısı: boş şamandırayı seç', 'Herkes bir şamandıraya yığılırsa sen boş olanı dön.'],
+    ['e1-wide-in-tight-out',  'T16', 'Şamandıra', 'Pupa şamandırası: geniş gir, dar çık', 'Biraz dışarıdan gir, şamandırayı dibinden sıyırarak çık.'],
+    ['e2-windward-queue',     'T17', 'Şamandıra', 'Orsa şamandırası: sıraya erken gir', 'Sancak layline\'ına bölgeden önce gir; bölgede tramola atma.'],
     // İleri Taktik (hepsi start; hattın solundan sağına, sonra yer tutma)
     ['ia1-port-approach-pin', 'İT1',  'Pin ucu', 'Dışarıda bekle, alttan tramola', 'Kavganın dışında bekle, apaz gel, grubun altına tramola at.'],
     ['ia8-pin-chaos',         'İT2',  'Pin ucu', 'Pin kalabalık: layline\'ın üstünde kal', 'Pin layline\'ının üstünde yer tut; altında kalırsan pin\'i dönemezsin.'],

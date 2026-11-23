@@ -25,7 +25,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 | B3 | Kural 12 – Aynı kontra, bindirmesiz: arkadaki yol verir | Arkadan gelen tekne öndekine çarpamaz. | ⬜ |
 | B4 | Kural 13 – Tramola atarken yol ver | Tramola tamamlanana kadar hak yok. | ⬜ |
 | B5 | Kural 14 – Teması önleme | Hak sahibi tekne de son anda kaçınmak zorunda. | ⬜ |
-| B6 | Kural 15/16 – Yeni hak kazanınca yer ver, rota değiştirirken yer ver | Lee-bow tramola sonrası diğer tekneye kaçınma fırsatı. | ⬜ |
+| B6 | Kural 15/16 – Yeni hak kazanınca yer ver, rota değiştirirken yer ver | Lee-bow tramola sonrası diğer tekneye kaçınma fırsatı. | ✅ (C4 içinde) |
 | B7 | Kural 17 – Rüzgaraltından bindirme kuran teknenin orsa sınırı | "Uygun rota" üstüne çıkamaz. | ⬜ |
 | B8 | Kural 18 – Şamandıra yeri (zone, bindirme, 3 tekne boyu) | Zone'a girerken bindirme varsa içteki tekneye yer verilir. 2025-28 değişikliği: zone'a ilk giren tekne. | ✅ |
 | B9 | Kural 18.3 – Zone içinde tramola | Zone içinde tramola atan tekne şamandıra yeri isteyemez. (E2 içinde gösterildi.) | ✅ (E2) |
@@ -63,8 +63,8 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 |---|------|-----------------------------|-------|
 | C1 | Header / lift (rüzgar kapatması / açması) ve "header'da tramola" | Salınımlı rüzgar; kapatmada tramola atan tekne ile atmayan teknenin farkı, merdiven basamağı ile. | ✅ |
 | C2 | Salınımlı vs kalıcı dönüş (oscillating vs persistent shift) | Kalıcı dönüşte dönüşün geldiği tarafa gitmek. | 🔜 |
-| C3 | Layline ve "overstand" | Layline'ı erken alıp fazla gitmenin maliyeti; layline'da tramola. | 🔜 |
-| C4 | Rüzgar gölgesi, lee-bow, kapama (cover) | Önde giden teknenin tramola ile rakibi kapatması; "loose/tight cover". | ⬜ |
+| C3 | Layline ve "overstand" | Layline'ı erken alıp fazla gitmenin maliyeti; layline'da tramola. | ✅ |
+| C4 | Rüzgar gölgesi, lee-bow, kapama (cover) | Önde giden teknenin tramola ile rakibi kapatması; "loose/tight cover". | ✅ |
 | C5 | Sağ/sol tarafı seçme: sahil etkisi, akıntı, sağanak | Parkur yarısında daha fazla rüzgar olan taraf. | ⬜ |
 | C6 | Sağanak (gust) ve sakin bölgeler (lull) | Su rengine bakarak sağanağa gitme. | ⬜ |
 | C7 | Merdiven basamakları (ladder rungs) kavramı | Kim önde? Rüzgara dik çizgilerle gerçek önde olma. | ✅ (C1 ve A1 içinde) |
