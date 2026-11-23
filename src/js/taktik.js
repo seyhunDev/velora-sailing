@@ -23,11 +23,19 @@
   if (!doc) { doc = T.blank(); fresh = true; }
   if (qs.get('id') || qs.get('t')) history.replaceState(null, '', location.pathname + (doc && !fresh ? '?id=' + doc.id : ''));
   let sel = null;          // { kind: 'boat'|'mark'|'pin'|'cb', i }
+  // rota çizerken seyir: '' serbest (dokunduğun yer), orsa / apaz / genis / pupa (rüzgara göre açıya oturur)
+  const SAIL_KEY = 'ps.taktik.sail';
+  let sail = (() => { try { const v = localStorage.getItem(SAIL_KEY); return v === '' || T.SAILS[v] ? v : 'orsa'; } catch (e) { return 'orsa'; } })();
+  const undo = [];         // geri al: önceki hâller (JSON)
+  let last = JSON.stringify(doc);
   let prev = null;         // önizleme (hesaplanan yollar)
 
   // ---------- Kayıt (kendiliğinden) ----------
   let saveTimer = 0;
   function changed(opts) {
+    const now = JSON.stringify(doc);
+    if (now !== last && !(opts && opts.noUndo)) { undo.push(last); if (undo.length > 60) undo.shift(); }
+    last = now;
     prev = null; render();
     clearTimeout(saveTimer);
     if (!doc.boats.length) { $('tkSaved').textContent = ''; return; }
@@ -112,6 +120,13 @@
         const line = [b, ...b.route].map(p => `${p.x},${p.y}`).join(' ');
         el('polyline', { points: line, fill: 'none', stroke: '#fff', 'stroke-width': 1.5, 'stroke-dasharray': '5 6', opacity: .55 }, g);
       }
+      // seçili teknede seyirli bacakların adı (Orsa, Apaz …) bacağın ortasında
+      if (on) b.route.forEach((p, k) => {
+        if (!T.SAILS[p.m]) return;
+        const a = k ? b.route[k - 1] : b, mx = (a.x + p.x) / 2, my = (a.y + p.y) / 2, lbl = T.SAILS[p.m].label, w = lbl.length * 6.6 + 12;
+        el('rect', { x: mx - w / 2, y: my - 9, width: w, height: 18, rx: 9, fill: 'rgba(255,255,255,.92)', 'pointer-events': 'none' }, g);
+        el('text', { x: mx, y: my + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#0b1a33' }, g).textContent = lbl;
+      });
       b.route.forEach((p, k) => {
         const pg = el('g', { 'data-k': 'pt', 'data-i': i, 'data-j': k, class: 'tk-drag' }, h);
         el('circle', { cx: p.x, cy: p.y, r: 18 * ui, fill: 'transparent' }, pg);
@@ -148,6 +163,7 @@
     $('tkLine').setAttribute('aria-pressed', !!doc.line); $('tkLine').classList.toggle('on', !!doc.line);
     $('tkAddBoat').disabled = doc.boats.length >= T.MAX_BOATS;
     $('tkAddMark').disabled = doc.marks.length >= T.MAX_MARKS;
+    $('tkUndo').disabled = !undo.length;
     $('tkPlay').disabled = !doc.boats.some(b => b.route.length);
     if (document.activeElement !== $('tkTitle')) $('tkTitle').value = doc.title;
   }
@@ -164,7 +180,11 @@
           <input class="tk-name" id="tkBoatName" maxlength="20" value="${esc(b.name || '')}" placeholder="Tekne ${esc(b.id)}" aria-label="Teknenin adı">
           <button class="tk-ic sm" data-a="close" title="Bitti" aria-label="Bitti"><svg><use href="#i-close"/></svg></button></div>
         <div class="tk-colors">${T.COLORS.map(col => `<button class="tk-col${col === b.color ? ' on' : ''}" data-col="${col}" style="background:${col}" aria-label="Renk"></button>`).join('')}</div>
-        <p class="tk-sel-p">${n ? `Rota: <b>${n}</b> nokta. Suya dokun, yeni nokta ekle. Noktayı sürükle, yerini değiştir.` : '<b>Suya dokun:</b> teknenin gideceği yere nokta koy.'}</p>
+        <div class="tk-lbl">Seyir</div>
+        <div class="tk-seg" role="group" aria-label="Seyir">${[['', 'Serbest'], ...Object.entries(T.SAILS).map(([k, v]) => [k, v.label])].map(([k, l]) => `<button data-sail="${k}" class="${k === sail ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <p class="tk-sel-p">${n ? `<b>${n}</b> nokta. ` : ''}<b>Suya dokun:</b> ${sail ? `tekne ${T.SAILS[sail].label.toLocaleLowerCase('tr')} açısıyla gider.` : 'tekne oraya gider.'}${n ? ' İnce ayar için noktayı sürükle.' : ''}</p>
+        <div class="tk-lbl">Rolü</div>
+        <div class="tk-seg" role="group" aria-label="Rolü">${[['', 'Yok'], ['hak', 'Hak sahibi'], ['yol', 'Yol verir']].map(([k, l]) => `<button data-role="${k}" class="${(b.role || '') === k ? 'on' : ''}">${l}</button>`).join('')}</div>
         <div class="tk-sel-a">
           <button class="tb" data-a="undo" ${n ? '' : 'disabled'}><svg><use href="#i-undo"/></svg>Son nokta</button>
           <button class="tb" data-a="clear" ${n ? '' : 'disabled'}>Rotayı sil</button>
@@ -181,6 +201,10 @@
     }
   }
   $('tkSel').addEventListener('click', e => {
+    const sb = e.target.closest('[data-sail]');
+    if (sb) { sail = sb.dataset.sail; try { localStorage.setItem(SAIL_KEY, sail); } catch (er) { /* yok */ } drawSel(); render(); return; }
+    const rb = e.target.closest('[data-role]');
+    if (rb && sel && sel.kind === 'boat') { doc.boats[sel.i].role = rb.dataset.role; changed(); return; }
     const col = e.target.closest('[data-col]');
     if (col && sel && sel.kind === 'boat') { doc.boats[sel.i].color = col.dataset.col; changed(); return; }
     const a = e.target.closest('[data-a]'); if (!a || !sel) return;
@@ -240,13 +264,20 @@
     if (sel && (sel.kind === 'pin' || sel.kind === 'cb')) sel = null;
     changed();
   };
+  function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); }
+  $('tkUndo').onclick = () => {
+    if (!undo.length) return;
+    const d = JSON.parse(undo.pop()); last = JSON.stringify(d);
+    doc = d; if (sel && ((sel.kind === 'boat' && !doc.boats[sel.i]) || (sel.kind === 'mark' && !doc.marks[sel.i]))) sel = null;
+    changed({ noUndo: true });
+  };
   $('tkNew').onclick = () => {
     if (doc.boats.length && !confirmNew()) return;
-    persist(); doc = T.blank(); sel = null; history.replaceState(null, '', location.pathname); changed();
+    persist(); setDoc(T.blank()); history.replaceState(null, '', location.pathname); changed();
   };
   function confirmNew() { return true; }   // taslak zaten kayıtlı: yeni sahne açmak bir şey kaybettirmez
 
-  const rotWind = d => { doc.wind = E.norm360(doc.wind + d); changed(); };
+  const rotWind = d => { doc.wind = E.norm360(doc.wind + d); doc.boats.forEach(b => T.resnap(b, doc.wind)); changed(); };
   $('tkWindL').onclick = () => rotWind(-10);
   $('tkWindR').onclick = () => rotWind(10);
 
@@ -270,9 +301,9 @@
     drag.moved = true;
     if (!drag.o) return;
     const p = toSvg(e), x = clampX(drag.o.x + p.x - drag.p0.x), y = clampY(drag.o.y + p.y - drag.p0.y);
-    if (drag.k === 'boat') { const b = doc.boats[drag.i]; b.x = x; b.y = y; if (!sel || sel.i !== drag.i || sel.kind !== 'boat') sel = { kind: 'boat', i: drag.i }; }
+    if (drag.k === 'boat') { const b = doc.boats[drag.i]; b.x = x; b.y = y; T.resnap(b, doc.wind); if (!sel || sel.i !== drag.i || sel.kind !== 'boat') sel = { kind: 'boat', i: drag.i }; }
     else if (drag.k === 'mark') { doc.marks[drag.i].x = x; doc.marks[drag.i].y = y; }
-    else if (drag.k === 'pt') { const q = doc.boats[drag.i].route[drag.j]; q.x = x; q.y = y; }
+    else if (drag.k === 'pt') { const b = doc.boats[drag.i], q = b.route[drag.j]; q.x = x; q.y = y; delete q.m; delete q.s; T.resnap(b, doc.wind); }
     else if (drag.k === 'pin') doc.line.pin = { x, y };
     else if (drag.k === 'cb') doc.line.boat = { x, y };
     prev = null; render();
@@ -293,7 +324,11 @@
   function addPoint(p) {
     const b = doc.boats[sel.i];
     if (b.route.length >= T.MAX_PTS) { toast(`Bir teknede en çok ${T.MAX_PTS} nokta olur.`); return; }
-    b.route.push({ x: clampX(p.x), y: clampY(p.y) });
+    const from = b.route.length ? b.route[b.route.length - 1] : b;
+    let q = { x: p.x, y: p.y };
+    if (sail) q = T.snap(from, p, doc.wind, sail);
+    q.x = Math.round(clampX(q.x)); q.y = Math.round(clampY(q.y));
+    b.route.push(q);
     changed();
   }
   svg.addEventListener('pointerup', endDrag);
@@ -334,12 +369,12 @@
       b.onclick = e => {
         const a = e.target.closest('[data-a]'), row = e.target.closest('[data-id]'); if (!a || !row) return;
         const id = row.dataset.id;
-        if (a.dataset.a === 'open') { const d = T.get(id); if (d) { doc = d; sel = null; history.replaceState(null, '', location.pathname + '?id=' + id); closeDlg(); changed(); } }
+        if (a.dataset.a === 'open') { const d = T.get(id); if (d) { setDoc(d); history.replaceState(null, '', location.pathname + '?id=' + id); closeDlg(); changed(); } }
         else if (a.dataset.a === 'play') location.href = './#u-' + id;
         else if (a.dataset.a === 'del') {
           if (a.dataset.sure !== '1') { a.dataset.sure = '1'; a.innerHTML = 'Silinsin mi?'; return; }
           T.remove(id);
-          if (id === doc.id) { doc = T.blank(); sel = null; history.replaceState(null, '', location.pathname); changed(); }
+          if (id === doc.id) { setDoc(T.blank()); history.replaceState(null, '', location.pathname); changed(); }
           $('tkMine').onclick();
         }
       };

@@ -14,6 +14,29 @@
   const LETTERS = 'ABCDEF';
   const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12;
   const r1 = v => Math.round(v);
+  // seyir seçenekleri: rüzgara göre açı (TWA). Rota noktası bu açıyla bir önceki noktaya oturur.
+  const SAILS = { orsa: { a: 45, label: 'Orsa' }, apaz: { a: 90, label: 'Apaz' }, genis: { a: 135, label: 'Geniş apaz' }, pupa: { a: 180, label: 'Pupa' } };
+  const ROLES = ['hak', 'yol', 'dogru', 'hata'];
+  // m seyrindeki bacak: from'dan çıkan, rüzgara göre s yanında (−1 sancak, +1 iskele kontra) rota
+  const sailHeading = (w, m, s) => E.norm360(w + (s < 0 ? -1 : 1) * SAILS[m].a);
+  // dokunulan noktayı seyre oturt: iki kontradan dokunulan yöne yakın olanı seç, mesafe aynı kalır
+  function snap(from, to, w, m) {
+    const d = Math.hypot(to.x - from.x, to.y - from.y), b = E.norm360(Math.atan2(to.x - from.x, -(to.y - from.y)) / E.DEG);
+    let s = E.norm180(b - w) < 0 ? -1 : 1;
+    if (m === 'pupa') s = 1;
+    const f = E.fwd(sailHeading(w, m, s));
+    return { x: from.x + f.x * d, y: from.y + f.y * d, m, s };
+  }
+  // rüzgar değişince seyirli noktaları yeniden oturt (mesafe ve kontra korunur, sonraki serbest noktalar yerinde kalır)
+  function resnap(b, w) {
+    let prev = { x: b.x, y: b.y };
+    b.route = b.route.map(p => {
+      if (!SAILS[p.m]) { prev = p; return p; }
+      const d = Math.hypot(p.x - prev.x, p.y - prev.y), f = E.fwd(sailHeading(w, p.m, p.s));
+      const q = { x: Math.round(prev.x + f.x * d), y: Math.round(prev.y + f.y * d), m: p.m, s: p.s };
+      prev = q; return q;
+    });
+  }
 
   const uid = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
   function blank() {
@@ -46,7 +69,8 @@
       line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat) } : null,
       boats: (d.boats || []).slice(0, MAX_BOATS).map((b, i) => ({
         id: String(b.id || LETTERS[i]).slice(0, 2), name: String(b.name || '').slice(0, 20), color: /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : COLORS[i % COLORS.length],
-        ...pt(b), route: (b.route || []).slice(0, MAX_PTS).map(pt)
+        ...pt(b), role: ROLES.includes(b.role) ? b.role : '',
+        route: (b.route || []).slice(0, MAX_PTS).map(p => SAILS[p.m] ? { ...pt(p), m: p.m, s: p.s < 0 ? -1 : 1 } : pt(p))
       })),
       updated: d.updated || 0
     };
@@ -125,7 +149,7 @@
       const lg = legs(b, w), h = startHeading(b, w, lg);
       tackPts.push(...lg.tacks.map(p => ({ ...p, color: b.color })));
       const segs = lg.pts.length ? lg.pts.map(p => ({ mode: 'goto', x: p.x, y: p.y })) : [{ mode: 'hold', h, dur: 1, speed: 0 }];
-      return { id: b.id || LETTERS[i], name: b.name || `Tekne ${b.id || LETTERS[i]}`, color: b.color, start: { x: b.x, y: b.y, h }, v0: lg.pts.length ? BASE * 0.9 : 0, segs };
+      return { id: b.id || LETTERS[i], name: b.name || `Tekne ${b.id || LETTERS[i]}`, color: b.color, role: b.role || undefined, start: { x: b.x, y: b.y, h }, v0: lg.pts.length ? BASE * 0.9 : 0, segs };
     });
     // süre: en son varan tekne + 2 sn; erken varanlar son rotasıyla yavaşça devam eder
     let end = 0;
@@ -165,5 +189,5 @@
     return S;
   }
 
-  global.SailTaktik = { KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
+  global.SailTaktik = { SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
 })(typeof window !== 'undefined' ? window : globalThis);

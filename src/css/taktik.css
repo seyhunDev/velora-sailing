@@ -44,7 +44,7 @@ body.taktik { background: var(--bg); }
 .tk-btn:hover:not(:disabled) { background: var(--hover); }
 .tk-btn:disabled { opacity: .35; cursor: default; }
 .tk-btn.on { background: var(--accent-soft); color: var(--accent); }
-.tk-btn + .tk-btn#tkNew { box-shadow: -1px 0 0 var(--border); border-radius: 0 12px 12px 0; }
+.tk-btn + .tk-btn#tkUndo { box-shadow: -1px 0 0 var(--border); }
 
 .tk-hint { left: 50%; top: 12px; transform: translateX(-50%); max-width: min(520px, calc(100% - 260px)); padding: 10px 14px; font-size: 13.5px; line-height: 1.4; text-align: center; }
 .tk-hint b { color: var(--accent); }
@@ -134,3 +134,20 @@ body.taktik { background: var(--bg); }
 .tk-top .tk-title { flex-shrink: 1; }
 @media (max-width: 640px), (max-height: 460px) { .tk-top .tk-play { width: auto; padding: 0 12px 0 10px; } }
 @media (max-width: 480px) { .tk-top .tool { width: 36px; min-width: 36px; padding: 0; } .tk-top .tk-play { width: 44px; padding: 0; } .tk-top .acc-chip { width: 34px; height: 34px; } }
+
+/* seyir ve rol seçimi (seçili tekne kartı) */
+.tk-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: -4px; }
+.tk-seg { display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; background: var(--raised); border-radius: 11px; }
+.tk-seg button { flex: 1 1 auto; height: 30px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--text2); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.tk-seg button:hover { color: var(--text); }
+.tk-seg button.on { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 800; }
+@media (max-width: 640px), (max-height: 460px) { .tk-seg button { height: 26px; padding: 0 6px; font-size: 11.5px; } .tk-lbl { font-size: 10px; } }
+/* yatay telefon: kart sahneye sığsın (alt çubuğun üstünde biter, gerekirse kendi içinde kayar) */
+@media (max-height: 460px) {
+  .tk-sel { width: 250px; max-height: calc(100% - 72px - var(--sab)); overflow-y: auto; overscroll-behavior: contain; gap: 5px; }
+  .tk-seg { flex-wrap: nowrap; gap: 1px; padding: 2px; }
+  .tk-seg button { padding: 0 4px; font-size: 11px; }
+  .tk-sel-a { flex-wrap: nowrap; }
+  .taktik .tb { padding: 0 7px; }
+  .tk-name { height: 30px; font-size: 14px; }
+}
