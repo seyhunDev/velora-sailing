@@ -275,6 +275,11 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+
+### 2026-11-23 · Ayarlar 3D Optimist: gövde, dümen, bumba ipleri (kullanıcının Winner/ELOC fotoğraflarına göre)
+- Gövde kesiti: düz dışa açık borda + yuvarlatılmış kine + hafif bombeli taban, 64 istasyon, köşe açısına göre yumuşak normal (`smoothNormals`, aynalar keskin). Eski 5 noktalı kesit baş altında köşeli yüzler veriyordu.
+- Dümen: gerçek Optimist palası (ön kenar düz, alt uç yuvarlak, ExtrudeGeometry), alüminyum dümen kafası (iki yanak, cıvata), iğne-yuva, kırmızı emniyet mandalı.
+- Bumba: alt yaka bağları (8 halka), ana iskota kıç köprüsü (bridle) makarası → bumba arka makarası → orta cırcır makara → taban makarası → el; gırcala ipi (snotter) ve kamasi. Yelken biraz yarı saydam (0,86) ve gölge alır: gırcala öbür yandan da görünür.
 ### 2026-11-23 · Ders yol haritası + A9 / A9b start sonrası temiz hava
 - Kullanıcı: yapılan ders/animasyon listesi ve yapılabileceklerin sıralı listesi (Claude Docs: "Velora Sailing: ders yol haritası"). Sonra 1. madde (A9) için kalabalık ve gelişmiş özellikli iki senaryo.
 - Yapılan: A9 (tramolayla temiz havaya), A9b (bordala-hızlan vs sıkıştırma), `shadowLen` motor alanı, KONULAR A9 ✅, README. `npm run check` temiz. Görüntüler: proje dosyaları `start-sonrasi/`.
