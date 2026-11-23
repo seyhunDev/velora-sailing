@@ -763,18 +763,6 @@ body:not(.home-on) .scn-only { display: inline-flex; }
 .home-scroll > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
 
 /* bölüm girişleri: üç beyaz kart (simge · ad · kısa alt yazı · ›), hepsi aynı boy */
-.home-go { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.go-tile { display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 12px 14px 12px 14px; border-radius: 16px;
-  background: var(--panel-solid); color: var(--text); text-decoration: none; box-shadow: 0 0 0 1px rgba(0,0,0,.05);
-  transition: transform .12s, background-color .12s; }
-.go-tile:hover { background: #fafafc; }
-.go-tile:active { transform: scale(.98); }
-.go-ic { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 13px; flex: 0 0 auto; background: var(--accent-soft); color: var(--accent); }
-.go-ic svg { width: 24px; height: 24px; }
-.go-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.go-t b { font-size: 16px; font-weight: 650; }
-.go-t small { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.go-ar { width: 18px; height: 18px; color: var(--muted); flex: 0 0 auto; }
 
 /* senaryolar: başlık + arama tek satırda, altında kategori çipleri, sonra konu konu kartlar */
 .home-head { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
@@ -834,10 +822,6 @@ body:not(.home-on) .scn-only { display: inline-flex; }
 .view-settings .pop-foot { border: 0; margin: 10px 0 0; padding: 0 4px; font-size: 12px; color: var(--muted); }
 
 /* iPad dikey / dar masaüstü */
-@media (max-width: 900px) {
-  .go-t small { display: none; }
-  .go-tile { min-height: 64px; gap: 12px; }
-}
 /* telefon dikey */
 @media (max-width: 640px) {
   .home .home-top { padding: calc(8px + var(--sat)) 14px 4px; }
@@ -847,10 +831,6 @@ body:not(.home-on) .scn-only { display: inline-flex; }
   .home .set-btn { width: var(--tap); padding: 0; }
   .home .set-btn .lbl { display: none; }
   .home-scroll { padding: 8px 14px calc(24px + var(--sab)); }
-  .home-go { grid-template-columns: 1fr; gap: 8px; }
-  .go-tile { min-height: 60px; padding: 8px 12px; }
-  .go-t small { display: block; }
-  .go-ic { width: 40px; height: 40px; border-radius: 11px; }
   .home-head { margin-top: 22px; }
   .home-search { flex-basis: 150px; }
   .home-list .picker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
@@ -863,9 +843,6 @@ body:not(.home-on) .scn-only { display: inline-flex; }
   .home .home-top { padding-top: calc(6px + var(--sat)); padding-bottom: 2px; }
   .home-brand { font-size: 16px; } .home-brand svg { width: 28px; height: 28px; }
   .home-scroll { padding-top: 6px; }
-  .go-tile { min-height: 54px; padding: 6px 10px; }
-  .go-ic { width: 36px; height: 36px; }
-  .go-t b { font-size: 15px; }
   .home-head { margin-top: 16px; }
   .home-list .picker-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .scn-top .home-back { width: 40px; height: 40px; }
@@ -874,13 +851,6 @@ body:not(.home-on) .scn-only { display: inline-flex; }
 /* kart küçük resmi deniz (koyu) kalır: kod rozeti koyu zeminde beyaz */
 .home-list .card .thumb .code-badge { color: #fff; background: rgba(7, 18, 30, .62); border-color: rgba(255,255,255,.22); }
 /* telefon dikey: üç bölüm yan yana küçük kare (simge üstte, ad altta) */
-@media (max-width: 640px) {
-  .home-go { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .go-tile { flex-direction: column; justify-content: center; gap: 6px; min-height: 92px; padding: 10px 6px; text-align: center; }
-  .go-t { align-items: center; flex: 0 0 auto; }
-  .go-t b { font-size: 14px; }
-  .go-t small, .go-ar { display: none !important; }
-}
 /* telefon dikey, senaryo çubuğu: tam ekran ve hesap ana sayfada; önceki/sonraki seçicide → senaryo adına yer kalır */
 @media (max-width: 640px) {
   .scn-top :is(.fs-btn, .acc-chip, .report-btn) { display: none; }
@@ -913,26 +883,9 @@ html.is-embedded .ver-badge { bottom: 1px; }
 .home .tool .lbl, .home .set-btn .lbl { display: none; }
 .home .tool svg { width: 22px; height: 22px; }
 .home .acc-chip { width: 34px; height: 34px; margin-left: 4px; font-size: 14px; }
-
-.home-go { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; background: var(--panel-solid); border-radius: 14px; overflow: hidden; }
-.go-tile, .go-tile:hover { flex-direction: row; justify-content: flex-start; text-align: left; gap: 12px; min-height: 56px; padding: 0 14px;
-  border-radius: 0; box-shadow: none; background: transparent; }
-.go-tile + .go-tile { box-shadow: inset 1px 0 0 var(--border); }
-.go-tile:active { transform: none; background: rgba(0,0,0,.04); }
-.go-ic { width: auto; height: auto; background: none; border-radius: 0; }
-.go-ic svg { width: 22px; height: 22px; }
-.go-t { align-items: flex-start; flex: 1; }
-.go-t b { font-size: 15px; font-weight: 600; }
-.go-t small { display: none !important; }
-.go-ar { display: block !important; width: 16px; height: 16px; color: var(--muted2, #aeaeb2); }
 @media (max-width: 640px) {
   .home .home-top { padding: calc(6px + var(--sat)) 12px 4px; }
-  .home-go { grid-template-columns: 1fr; }
-  .go-tile { min-height: 50px; padding: 0 14px; flex-direction: row; text-align: left; }
-  .go-tile + .go-tile { box-shadow: inset 50px 0 0 var(--panel-solid), inset 0 1px 0 var(--border); }
-  .go-t { align-items: flex-start; }
 }
-@media (max-height: 500px) { .go-tile { min-height: 48px; } }
 /* geniş ekranda üst çubuk içerikle aynı hizada (içerik en çok 1180 px) */
 @media (min-width: 641px) { .home .home-top { padding-left: max(20px, calc((100% - 1180px) / 2)); padding-right: max(20px, calc((100% - 1180px) / 2)); } }
 
@@ -945,3 +898,26 @@ html.is-embedded .ver-badge { bottom: 1px; }
 .narr-row { display: flex; gap: 8px; align-items: center; margin: 4px 0 6px; }
 .narr-row select { flex: 1 1 auto; min-width: 0; }
 .narr-note { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.4; }
+
+/* ---------- Ana sayfa bölüm kartları v3 (kullanıcı 2026-11-23: "diğer bölümler de senaryolar gibi ön gösterimli") ----------
+   Kart = ön izleme görseli (16:10, köşesi yuvarlak, gölgesiz) + altında ad ve tek satır ne işe yaradığı. Senaryo kartıyla aynı dil. */
+.home-go { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+.sec-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: var(--text); text-decoration: none; }
+.sec-img { position: relative; display: block; aspect-ratio: 16 / 10; border-radius: 14px; overflow: hidden; background: #0b2a46;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.06); transition: transform .12s; }
+.sec-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.sec-card:hover .sec-img { transform: translateY(-2px); }
+.sec-card:active .sec-img { transform: scale(.98); }
+.sec-chip { position: absolute; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 8px; border-radius: 7px;
+  font-size: 12px; font-weight: 600; color: #fff; background: rgba(7, 18, 30, .62); }
+.sec-chip i { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+.sec-t { display: flex; flex-direction: column; gap: 2px; padding: 0 2px; min-width: 0; }
+.sec-t b { font-size: 15px; font-weight: 600; }
+.sec-t small { font-size: 13px; color: var(--muted); line-height: 1.35; }
+
+@media (max-width: 640px) {
+  .home-go { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .sec-t b { font-size: 14px; }
+  .sec-t small { font-size: 12px; }
+}
+@media (max-height: 500px) { .sec-t small { display: none; } .home-go { gap: 12px 10px; } }

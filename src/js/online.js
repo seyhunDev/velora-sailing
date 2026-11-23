@@ -785,8 +785,8 @@
     if (meta.state === 'open') { N.view = 'room'; show(true); }
     return true;
   }
-  const kick0 = () => { if (qCode) openDlg(qCode); };
-  if (sess) resume().then(ok => { if (!ok) kick0(); }); else if (qCode) {
+  const kick0 = () => { if (qCode) openDlg(qCode); else if (q.has('online')) openDlg(); };   // ?online: ana sayfadaki Online yarış kartı
+  if (sess) resume().then(ok => { if (!ok) kick0(); }); else if (qCode || q.has('online')) {
     // giriş ekranı (access.js) önce gelsin: hesap hazır olunca aç
     if (window.SailAccess && SailAccess.account()) setTimeout(kick0, 300);
     else document.addEventListener('sail-access', () => setTimeout(kick0, 300), { once: true });
