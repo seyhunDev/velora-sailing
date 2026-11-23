@@ -415,7 +415,7 @@
         if (o === b || o.crowd) continue;      // gri filoya rozet yok (kalabalık)
         const so = E.sampleTrack(o.track, state.t);
         const up = E.fwd(w);
-        const gain = ((so.x - s.x) * up.x + (so.y - s.y) * up.y) / HULL;
+        const gain = ((so.x - s.x) * up.x + (so.y - s.y) * up.y) / HULL * (scn.rungs.down ? -1 : 1);   // pupada önde olan rüzgaraltındadır
         // kutulu rozet olarak not sistemine (drawNotes) gider: tekne etiketi, pin ve diğer notlarla çakışmaz
         if (Math.abs(gain) > 0.3) state.rungNotes.push({ x: so.x, y: so.y, kind: 'rung', color: o.color, text: `${gain > 0 ? '+' : ''}${gain.toFixed(1)} tekne boyu` });
       }

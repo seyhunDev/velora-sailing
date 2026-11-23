@@ -124,7 +124,7 @@ Segment modları: `goto` (`x, y` noktasına git; Taktik oluştur rotaları, bkz.
 İsteğe bağlı görsel katmanlar (hepsi `from`/`to` sn aralığında görünür): `sightline` (pin'den hakem botuna transit),
 `sag` (filonun burunlarından geçen hat yayı eğrisi; `label` içinde `{d}` = en derin nokta, boy),
 `gaps: {from, to, items: [{a, b, label, color}]}` (filodaki iki tekne arasındaki boşluğu hattın hemen üstünde köşeli parantezle işaretler; `a`/`b` = `crowd` sırası, 0'dan; uçlar teknelerin o anki konumundan),
-`shadows` (pis rüzgar artık **her senaryoda otomatik**: her teknenin kıçından ~1 boy uzanan koni çizilir, içine giren tekne gerçekten yavaşlar ve senaryo teknesinde "Pis rüzgar · hız −%" rozeti çıkar. Ayar `engine.js` → `SHADOW`. `shadows: false` senaryoda kapatır, `shadows: {from, to}` yalnızca çizimi o aralığa sınırlar; `boats[].noShadow: true` o teknenin yavaşlamasını kapatır. `shadowLen` (px, varsayılan 72 ≈ 1,5 boy) senaryoda koninin boyunu uzatır: kalabalık ön sıranın arkasındaki bozuk hava (A9'da 150). Katmanlar menüsünde "Pis rüzgar (gölge)" anahtarı).
+`shadows` (pis rüzgar artık **her senaryoda otomatik**: her teknenin kıçından ~1 boy uzanan koni çizilir, içine giren tekne gerçekten yavaşlar ve senaryo teknesinde "Pis rüzgar · hız −%" rozeti çıkar. Ayar `engine.js` → `SHADOW`. `shadows: false` senaryoda kapatır, `shadows: {from, to}` yalnızca çizimi o aralığa sınırlar; `boats[].noShadow: true` o teknenin yavaşlamasını kapatır. `rungs.down: true` pupada merdiven rozetini ters çevirir (önde olan rüzgaraltındadır). `shadowLen` (px, varsayılan 72 ≈ 1,5 boy) senaryoda koninin boyunu uzatır: kalabalık ön sıranın arkasındaki bozuk hava (A9'da 150). Katmanlar menüsünde "Pis rüzgar (gölge)" anahtarı).
 
 ## Yol haritası
 

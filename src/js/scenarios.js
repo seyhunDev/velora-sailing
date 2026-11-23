@@ -816,6 +816,92 @@
     addBoat: { pin: { x: 440, y: 650 }, middle: { x: 620, y: 650 }, committee: { x: 760, y: 650 } }
   });
 
+  // ---------- D3: pupada arkadan gölgeyle saldırı ----------
+  S.push({
+    id: 'd3-shadow-attack',
+    category: 'Taktik', topic: 'Pupa',
+    title: 'D3 · Pupada saldır: gölgeni öndeki teknenin yelkenine düşür',
+    summary: 'Pupada rüzgar arkadan gelir. Arkadaki tekne öndekinin rüzgarını keser. Yeşil A, öndeki teknenin tam rüzgarüstüne geçer. Gölgesi öndekinin yelkenine düşer ve öndeki yavaşlar. A bir boydan fazla yaklaşır.',
+    duration: 30,
+    baseSpeed: 20,
+    wind: 0,
+    shadowLen: 110,   // pupada yelkenin gölgesi rüzgaraltına 3 boy kadar uzanır
+    rungs: { boat: 'A', from: 4, down: true },
+    marks: [{ x: 330, y: 640, label: 'Pupa şamandırası' }],
+    boats: (() => {
+      const O =
+      { id: 'Ö', name: 'Öndeki: savunmuyor', role: 'hata', color: '#e76f51',
+        start: { x: 640, y: 150, h: 210 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', dur: 30, turn: 0, note: '' }] };
+      const A =
+      { id: 'A', name: 'Gölgeyle saldırıyor', role: 'dogru', color: '#2a9d8f',
+        start: { x: 690, y: 60, h: 210 }, v0: 20,
+        segs: [
+          { mode: 'run', tack: 'starboard', dur: 1, turn: 0 },
+          { mode: 'heading', h: 245, dur: 4.6, turn: 0.8, note: 'Öndekinin rüzgarüstüne geç' },
+          { mode: 'run', tack: 'starboard', angle: 156, dur: 24.4, turn: 0.8, note: 'Gölgem onun yelkeninde' }
+        ] };
+      return [A, O, ...fleetCopies(O, [{ dx: -150, dy: 10 }, { dx: -260, dy: -90 }, { dx: 140, dy: -150 }, { dx: -90, dy: -170 }], 1)];
+    })(),
+    steps: [
+      { t: 0, title: 'Pupada rüzgar arkadan', text: 'Herkes pupada, şamandıraya iniyor. Rüzgar arkadan esiyor. Her yelken arkasında, rüzgaraltında bir gölge bırakır. Pupada bu gölge öne, aşağıya düşer.' },
+      { t: 2, title: 'A hedefini seçiyor', text: 'Yeşil A, öndeki turuncu Ö\'ye bakıyor. Ö\'nün tam rüzgarüstüne, yani arkasına geçmek için biraz daha pupaya dönüyor.' },
+      { t: 6, title: 'Gölge yelkende', text: 'A tam rüzgarüstünde. A\'nın gölgesi Ö\'nün yelkenine düşüyor. Ö\'nün rüzgarı azaldı, yavaşlıyor. A ise temiz havada, tam hızda.' },
+      { t: 12, title: 'Fark kapanıyor', text: 'Kesikli çizgi kimin önde olduğunu gösterir. A her saniye biraz yaklaşıyor. Ö hiçbir şey yapmıyor, gölgede kalıyor.' },
+      { t: 20, title: 'A yaklaştı', text: 'A bir boydan fazla yaklaştı. Ö hâlâ gölgede. Arkadaki tekne öndekine çarpmamalı. Bu Kural 12. Şamandıraya kadar yan yana gelirse içte olan yer kazanır.' },
+      { t: 26, title: 'Özet', text: 'Pupada arkadaysan bu senin silahın. Öndekinin tam rüzgarüstüne geç, gölgeni yelkenine düşür. Öndeysen arkana bak. Bir sonraki derste nasıl kaçacağını göreceksin.' }
+    ],
+    addBoat: { pin: { x: 560, y: 60 }, middle: { x: 660, y: 40 }, committee: { x: 800, y: 80 } },
+    addBoatLabels: { pin: 'Önde', middle: 'Ortada', committee: 'Arkada' }
+  });
+
+  // ---------- D3b: pupada gölgeden kavançayla kaç ----------
+  S.push({
+    id: 'd3b-gybe-escape',
+    category: 'Taktik', topic: 'Pupa',
+    title: 'D3b · Pupada gölge üstündeyse: kavança at, temiz havaya kaç',
+    summary: 'Pupada arkandaki tekne gölgesini senin yelkenine düşürürse yavaşlarsın. Çözüm kavança. Yeşil K kavança atar, gölgeden çıkar ve temiz havada tam hızla gider. Turuncu O aynı durumda devam eder, gölgede kalır ve geride kalır.',
+    duration: 28,
+    baseSpeed: 20,
+    wind: 0,
+    shadowLen: 140,   // pupada yelkenin gölgesi rüzgaraltına 3 boy kadar uzanır
+    rungs: { boat: 'K', from: 8, down: true },
+    marks: [{ x: 420, y: 660, label: 'Pupa şamandırası' }],
+    boats: [
+      { id: 'K', name: 'Kavançayla kaçıyor', role: 'dogru', color: '#2a9d8f',
+        start: { x: 430, y: 175, h: 210 }, v0: 20,
+        segs: [
+          { mode: 'run', tack: 'starboard', dur: 4, turn: 0, note: 'Gölge üstümde' },
+          { mode: 'run', tack: 'port', dur: 9, turn: 1.4, note: 'Kavança: gölgeden çık' },
+          { mode: 'run', tack: 'starboard', dur: 15, turn: 1.4, note: 'Temiz havada' }
+        ] },
+      { id: 'O', name: 'Gölgede devam', role: 'hata', color: '#e76f51',
+        start: { x: 760, y: 175, h: 210 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', dur: 28, turn: 0, note: 'HATA: gölgede devam' }] },
+      // saldıranlar (gri filo): tam rüzgarüstünden gölgelerini düşürürler
+      { id: '1', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 434, y: 66, h: 206 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', angle: 154, dur: 28, turn: 0 }] },
+      { id: '2', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 764, y: 66, h: 206 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', angle: 154, dur: 18, turn: 0 }, { mode: 'heading', h: 235, dur: 4.5, turn: 1 },
+          { mode: 'run', tack: 'starboard', dur: 5.5, turn: 1 }] },
+      { id: '3', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 320, y: 10, h: 210 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', dur: 28, turn: 0 }] },
+      { id: '4', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 920, y: 30, h: 210 }, v0: 20,
+        segs: [{ mode: 'run', tack: 'starboard', dur: 28, turn: 0 }] }
+    ],
+    steps: [
+      { t: 0, title: 'Arkanda biri var', text: 'Yeşil K ve turuncu O pupada iniyor. İkisinin de tam arkasında, rüzgarüstünde bir tekne var. O teknelerin gölgesi K ve O\'nun yelkenine düşüyor. İkisi de yavaşlıyor.' },
+      { t: 3, title: 'Arkana bak', text: 'Pupada sık sık arkana bak. Arkadaki tekne seninle rüzgar arasına girdiyse rüzgarını kesiyor demektir.' },
+      { t: 4.5, title: 'K kavança atıyor', text: 'K kavança atıp öbür kontraya geçiyor. Bumba karşı tarafa geçer, dikkatli ol. Bir iki saniyede gölgeden çıkıyor.' },
+      { t: 9, title: 'K temiz havada', text: 'K artık temiz havada, tam hızda. O hâlâ gölgede. Arkadaki tekne O\'ya yaklaşıyor.' },
+      { t: 13.5, title: 'K tekrar kavança', text: 'K şamandıraya dönmek için yine kavança atıyor. Pupada kavança ucuzdur, az hız kaybettirir.' },
+      { t: 20, title: 'Kim önde?', text: 'Kesikli çizgi kimin önde olduğunu gösterir. K, O\'nun önüne geçti. O hiçbir şey yapmadığı için geride kaldı.' },
+      { t: 25, title: 'Özet', text: 'Pupada gölge üstündeyse bekleme. Kavança at ve temiz havaya kaç. Kavança atarken başka bir teknenin önünü kesme. İskele kontradaki tekne yol verir. Bu Kural 10.' }
+    ],
+    addBoat: { pin: { x: 560, y: 60 }, middle: { x: 660, y: 40 }, committee: { x: 840, y: 80 } },
+    addBoatLabels: { pin: 'Önde', middle: 'Ortada', committee: 'Arkada' }
+  });
+
   // ---------- B8: Kural 18 ----------
   S.push({
     id: 'b8-rule18',

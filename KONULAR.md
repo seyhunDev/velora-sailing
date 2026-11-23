@@ -75,7 +75,7 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 |---|------|-----------------------------|-------|
 | D1 | VMG: tam pupa yerine açılarla gitmek | Açı–hız dengesi. | ⬜ |
 | D2 | Pupada kavança kararı: lift'te kavança | Salınımlı rüzgarda pupa "yanlış" tarafı. | ⬜ |
-| D3 | Rüzgar gölgesiyle saldırı / savunma | Arkadaki tekne öndekini gölgeler. | ⬜ |
+| D3 | Rüzgar gölgesiyle saldırı / savunma | Arkadaki tekne öndekini gölgeler. D3: A tam rüzgarüstüne geçip gölgesini Ö'nün yelkenine düşürür, 1 boydan fazla yaklaşır. D3b: gölge altındaki K kavançayla kaçar, O devam eder ve geride kalır. | ✅ (D3 + D3b) |
 | D4 | Kural 18 pupa şamandırasında bindirme | İçteki bindirmeli tekne; "wide in – tight out" ile birlikte. | ⬜ |
 
 ## E. Şamandıra Dönüşleri ve Finiş
