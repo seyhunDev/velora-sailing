@@ -1133,63 +1133,57 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 
 
 /* ==========================================================================
-   ANA SAYFA v8 · A KOKPİT (kullanıcı 2026-11-23 kartta "A · Kokpit" seçti; Velora "lacivert kokpit", sesliasistan velora-tasarim)
-   Üstte lacivert (#0b1a33) alan: çubuk (logo, Ayarlar, Tam ekran, Hesap) · büyük başlık · üç ana iş (Antrenman yarışı = mavi Ana,
-   Canlı yarış, Taktik oluştur = lacivert kart). Altında açık zemin yuvarlak köşeyle başlar: Senaryolar başlığı + arama, grup sekmeleri, liste.
-   Bütün sayfa tek parça kayar.
+   ANA SAYFA v9 · AÇIK (kullanıcı 2026-11-23: "Antrenman yarışı neden seçilmiş gibi farklı renkte… hepsi aynı renkte olsun, yanlarına ok;
+   sesliasistan ana sayfasının renk skalası ve yazı tipleri"). Velora ana sayfası (main.iph.acik) gibi: Apple beyazı zemin #f5f5f7, beyaz kartlar
+   (gölge yerine çok ince çerçeve), yazı #1d1d1f / #6e6e73, tek vurgu mavi #2563eb. Yazı Inter; başlık 28px/600, kart başlığı 16px/600.
+   Üç ana iş aynı görünür (hiçbiri seçili değil), sağda ok (›). Bütün sayfa tek parça kayar.
    ========================================================================== */
-.home-page { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-.ck { background: #0b1a33; color: #fff; padding-bottom: 46px; }
-.home .ck .topbar.home-top.acik { background: transparent; border: 0 !important; }
-.home .ck .home-brand { color: #fff; }
-.home .ck .home-brand em { color: #8fb3ff; }
-.home .ck .topbar.acik .tool { color: #cfd8e8; }
-.home .ck .topbar.acik .tool:hover { background: rgba(255,255,255,.08); color: #fff; }
-.home .ck .topbar.acik .acc-chip { background: rgba(255,255,255,.12); color: #fff; }
-.home .ck .topbar.acik .velora-back { background: rgba(255,255,255,.12); color: #fff; }
+.home-page { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; background: var(--bg); }
+.ck { background: var(--bg); color: var(--text); }
+.home .ck .topbar.home-top.acik { background: var(--bg); border: 0 !important; }
 .ck-h1, .ck-acts { max-width: 1180px; margin-left: auto; margin-right: auto; padding-left: calc(20px + var(--sal)); padding-right: calc(20px + var(--sar)); }
-.ck-h1 { margin-top: 10px; margin-bottom: 18px; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+.ck-h1 { margin-top: 8px; margin-bottom: 16px; font-size: 28px; font-weight: 600; letter-spacing: -.02em; color: var(--text); }
 .ck-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.ck-act { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 88px; padding: 16px 18px; border-radius: 18px; text-align: left;
-  background: #13243f; border: 1px solid #24375a; color: #fff; text-decoration: none; font: inherit; cursor: pointer; transition: transform .12s, background .12s; }
-.ck-act:hover { background: #182c4c; }
-.ck-act:active { transform: scale(.98); }
-.ck-act b { font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
-.ck-act small { font-size: 13.5px; color: #9fb0cc; font-weight: 500; }
-.ck-act.main { background: #3d7bff; border-color: #3d7bff; }
-.ck-act.main:hover { background: #336ff0; }
-.ck-act.main small { color: #dbe6ff; }
-.ck-body { position: relative; margin-top: -26px; border-radius: 28px 28px 0 0; background: var(--bg);
-  padding: 24px calc(20px + var(--sar)) calc(32px + var(--sab)) calc(20px + var(--sal)); }
+.ck-act { display: flex; align-items: center; gap: 12px; min-height: 76px; padding: 14px 14px 14px 18px; border: 0; border-radius: 18px; text-align: left;
+  background: #fff; color: var(--text); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
+  text-decoration: none; font: inherit; cursor: pointer; transition: transform .12s, background .12s; }
+.ck-act:hover { background: #fbfbfd; }
+.ck-act:active { transform: scale(.98); background: #f2f2f5; }
+.ck-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ck-act b { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.ck-act small { font-size: 13px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ck-chev { flex: none; width: 20px; height: 20px; fill: none; stroke: #aeaeb2; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ck-body { position: relative; background: var(--bg);
+  padding: 28px calc(20px + var(--sar)) calc(32px + var(--sab)) calc(20px + var(--sal)); }
 .ck-body > * { max-width: 1140px; margin-left: auto; margin-right: auto; }
-.ck-body .home-head { display: flex; align-items: center; gap: 12px; margin-top: 0; margin-bottom: 14px; }
-.ck-body .home-h2 { flex: 1; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -.015em; color: var(--text); }
+.ck-body .home-head { display: flex; align-items: center; gap: 12px; margin-top: 0; margin-bottom: 12px; }
+.ck-body .home-h2 { flex: 1; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.015em; color: var(--text); }
 .ck-body .home-search { flex: 0 1 280px; max-width: 280px; margin: 0; height: 40px; }
 .ck-body .home-tabs { display: flex; width: 100%; }
-.ck-body .home-tabs button { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 8px; }
-.ck-body .home-list .ls-head { margin: 22px 4px 8px; }
+.ck-body .home-tabs button { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 8px; font-weight: 600; }
+.ck-body .home-list .ls-head { margin: 22px 4px 8px; text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 650; color: var(--text2); }
+.ck-body .home-list .ls-head span { color: var(--muted); font-weight: 500; }
 .ck-body .row-list { grid-template-columns: minmax(0, 1fr); }
 .ck-body .row-list > .scn-row:nth-child(2) { box-shadow: inset 0 1px 0 var(--border); }
 .ck-body .row-list > .scn-row:first-child { box-shadow: none; }
+.ck-body .scn-row .row-t b { font-weight: 600; }
 
-/* yatay telefon: kokpit kısa */
+/* yatay telefon: başlık gizli, işler kısa */
 @media (max-height: 500px) and (min-width: 641px) {
-  .ck { padding-bottom: 38px; }
   .ck-h1 { display: none; }
-  .ck-acts { gap: 8px; }
-  .ck-act { min-height: 0; padding: 10px 14px; border-radius: 14px; }
+  .ck-acts { gap: 8px; margin-top: 4px; }
+  .ck-act { min-height: 0; padding: 10px 10px 10px 14px; border-radius: 14px; }
   .ck-act b { font-size: 15px; } .ck-act small { font-size: 12px; }
   .ck-body { padding-top: 18px; }
-  .ck-body .home-h2 { font-size: 19px; }
+  .ck-body .home-h2 { font-size: 18px; }
   .ck-body .home-tabs button { height: 30px; font-size: 13px; }
 }
-/* dikey telefon: üç iş alt alta, satır */
+/* dikey telefon: üç iş alt alta */
 @media (max-width: 640px) {
-  .ck-h1 { font-size: 24px; margin-top: 4px; margin-bottom: 14px; padding-left: 14px; padding-right: 14px; }
+  .ck-h1 { font-size: 24px; margin-top: 4px; margin-bottom: 12px; padding-left: 14px; padding-right: 14px; }
   .ck-acts { grid-template-columns: minmax(0, 1fr); gap: 8px; padding-left: 14px; padding-right: 14px; }
-  .ck-act { flex-direction: row; align-items: baseline; gap: 10px; min-height: 0; padding: 13px 16px; border-radius: 14px; }
-  .ck-act b { font-size: 16px; white-space: nowrap; } .ck-act small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ck-body { padding: 20px 12px calc(28px + var(--sab)); }
+  .ck-act { min-height: 0; padding: 12px 12px 12px 16px; border-radius: 14px; }
+  .ck-body { padding: 22px 12px calc(28px + var(--sab)); }
   .ck-body .home-head { flex-wrap: wrap; }
   .ck-body .home-h2 { flex: 1 0 100%; }
   .ck-body .home-search { flex: 1 1 auto; max-width: none; }
@@ -1198,7 +1192,8 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 }
 
 /* Canlı yarış penceresi (js/lobby.js) */
-.live-body .ls-head { margin: 4px 4px 8px; }
+.live-body .ls-head { margin: 4px 4px 8px; letter-spacing: 0; font-size: 14px; font-weight: 650; color: var(--text2); }
+.live-body .ls-head span { color: var(--muted); font-weight: 500; }
 .live-body .ls-head ~ .ls-head { margin-top: 22px; }
 .live-rooms { grid-template-columns: minmax(0, 1fr); }
 .live-room { gap: 10px; min-height: 64px; }
@@ -1214,7 +1209,6 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 .live-go { height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; }
 .live-link { display: inline-block; margin: 12px 4px 2px; color: var(--accent); font-size: 14px; font-weight: 600; text-decoration: none; }
 @media (max-width: 640px) {
-  .ck-act { justify-content: flex-start; }
   .ck-body .home-head { flex-direction: row; align-items: center; }
   .ck-body .home-h2 { text-align: left; }
   .ck-body .home-search { flex: 1 1 100%; }

@@ -919,7 +919,7 @@
       const inGroup = items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname);
       if (rows) {
         const h = document.createElement('div'); h.className = 'ls-head';
-        h.innerHTML = `${esc(gname.toLocaleUpperCase('tr'))}<span>${inGroup.length}</span>`; list.appendChild(h);
+        h.innerHTML = `${esc(gname)}<span>${inGroup.length}</span>`; list.appendChild(h);
         const box = document.createElement('div'); box.className = 'row-list'; list.appendChild(box);
         if (mine && gname === groups[0]) {
           const a = document.createElement('a'); a.className = 'scn-row new-row'; a.href = 'taktik.html';

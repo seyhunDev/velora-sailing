@@ -13,6 +13,9 @@
   <title>Velora Sailing · Taktik Animasyonları</title>
   <link rel="icon" href="img/velora-mark.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="img/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app-shell.js"></script>
   <script src="js/datause.js"></script>
@@ -66,9 +69,9 @@
       </header>
         <h1 class="ck-h1">Bugün ne yapalım?</h1>
         <div class="ck-acts">
-          <a class="ck-act main" id="lnkSim" href="sim.html"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></a>
-          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></button>
-          <a class="ck-act" id="lnkTaktik" href="taktik.html"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></a>
+          <a class="ck-act" id="lnkSim" href="sim.html"><span class="ck-tx"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><span class="ck-tx"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+          <a class="ck-act" id="lnkTaktik" href="taktik.html"><span class="ck-tx"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
       </div>
       <div class="ck-body">
@@ -87,10 +90,10 @@
     <div class="set-panel acik">
       <div class="set-head"><h2>Canlı yarış</h2><button id="btnLiveClose" class="btn-round" title="Kapat (Esc)" aria-label="Kapat"><svg><use href="#i-close"/></svg></button></div>
       <div class="set-body live-body">
-        <div class="ls-head">AÇIK ODALAR<span id="liveN"></span></div>
+        <div class="ls-head">Açık odalar<span id="liveN"></span></div>
         <div class="row-list live-rooms" id="liveRooms"><p class="live-empty">Bakılıyor…</p></div>
         <a class="live-host hidden" id="liveHost" href="sim.html?online">+ Oda aç</a>
-        <div class="ls-head">ANTRENÖR YARIŞI</div>
+        <div class="ls-head">Antrenör yarışı</div>
         <form class="live-code" id="liveCode"><input id="liveCodeIn" maxlength="6" autocomplete="off" spellcheck="false" placeholder="Yarış kodu" aria-label="Yarış kodu"><button class="live-go" type="submit">Aç</button></form>
         <a class="live-link" href="havuz.html">Antrenör yarışları sayfası ›</a>
       </div>
