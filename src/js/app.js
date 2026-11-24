@@ -979,7 +979,7 @@
     art.classList.add('nx-art'); s.appendChild(art);
     s.insertAdjacentHTML('beforeend', `<div class="nx-shade"></div><div class="nx-info">
       <span class="nx-kick">${esc(x.category)}${x.topic ? ' · ' + esc(x.topic) : ''}</span>
-      <h2 class="nx-title"><span class="nx-code">${esc(code)}</span>${esc(ttl)}</h2>
+      <h2 class="nx-title">${esc(ttl)}</h2>
       <p class="nx-sum">${esc(x.short || firstSentence(x.summary))}</p>
       <div class="nx-btns"><button class="nx-play" type="button"><svg><use href="#i-play"/></svg>İzle</button><span class="nx-dur">${durTxt(x)}</span></div></div>
       <div class="nx-dots">${Array.from({ length: n }, (_, k) => `<button type="button" aria-label="${k + 1}. öne çıkan" class="${k === i ? 'on' : ''}" data-k="${k}"></button>`).join('')}</div>`);
