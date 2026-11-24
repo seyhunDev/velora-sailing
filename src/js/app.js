@@ -1077,7 +1077,7 @@
   // Kokpitteki "Taktik oluştur" düğmesinde kayıtlı taktik sayısı
   function mineSub() {
     const n = window.SailTaktik ? SCENARIOS.filter(x => x.category === SailTaktik.CAT).length : 0;
-    if ($('mineSub')) $('mineSub').textContent = n ? `${n} taktiğin` : 'Tekne koy, rota çiz, oynat';
+    if ($('mineSub')) $('mineSub').textContent = n ? `Tekneleri koy, rotayı çiz, oynat · ${n} taktiğin var` : 'Tekneleri koy, rotayı çiz, oynat';
   }
   function setHome(on) {
     if (on === homeOn) return;

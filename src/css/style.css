@@ -1174,8 +1174,34 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 .nx-dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 99px; background: rgba(255,255,255,.35); cursor: pointer; transition: width .3s, background .3s; }
 .nx-dots button.on { width: 22px; background: #fff; }
 
-/* üç iş */
-.nx-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+/* üç iş: Taktik oluştur önde (geniş ekranda sol yarı, sağda iki iş alt alta; dikeyde üstte tam genişlik) */
+.nx-acts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 14px; }
+.nx-side { display: grid; grid-template-rows: 1fr 1fr; gap: 12px; min-width: 0; }
+.nx-make { position: relative; display: flex; align-items: stretch; min-height: 152px; border-radius: 20px; overflow: hidden; text-decoration: none; color: var(--text);
+  background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03); transition: transform .15s, box-shadow .2s; }
+.nx-make:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03), 0 14px 30px -16px rgba(11,26,51,.45); }
+.nx-make:active { transform: scale(.985); }
+.nx-make-tx { position: relative; z-index: 1; flex: 0 0 auto; width: 46%; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 16px 8px 16px 20px; }
+.nx-make-kick { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--accent); }
+.nx-make-kick svg { width: 15px; height: 15px; }
+.nx-make b { font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; }
+.nx-make small { font-size: 13.5px; color: var(--muted); line-height: 1.35; }
+.nx-make-go { align-self: flex-start; display: inline-flex; align-items: center; gap: 2px; margin-top: 8px; height: 36px; padding: 0 10px 0 14px; border-radius: 11px;
+  background: var(--accent); color: #fff; font-size: 14px; font-weight: 600; transition: background .15s; }
+.nx-make:hover .nx-make-go { background: #1d4fd8; }
+.nx-make-go svg { width: 18px; height: 18px; }
+.nx-make-art { flex: 1 1 auto; min-width: 0; height: calc(100% - 16px); align-self: center; margin: 8px 8px 8px 0; border-radius: 14px; display: block;
+  background: radial-gradient(90% 120% at 60% 35%, #14406b 0%, #0d2a4c 60%, #0b1a33 100%); }
+.nx-guide { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1.6; stroke-dasharray: 4 5; }
+.nx-route { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: nxdraw 7s linear infinite; }
+.nx-route.r1 { stroke: #ffb199; }
+.nx-route.r2 { stroke: #8fe3d2; animation-name: nxdraw2; }
+@keyframes nxdraw { 0%, 8% { stroke-dashoffset: 1; opacity: 1; } 72% { stroke-dashoffset: 0; opacity: 1; } 92% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes nxdraw2 { 0%, 18% { stroke-dashoffset: 1; opacity: 1; } 82% { stroke-dashoffset: 0; opacity: 1; } 94% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+.nx-wind { animation: nxwind 3s ease-in-out infinite alternate; }
+@keyframes nxwind { from { transform: translate(34px, 24px); } to { transform: translate(34px, 29px); } }
+@media (prefers-reduced-motion: reduce) { .nx-route, .nx-wind { animation: none; stroke-dashoffset: 0; } }
+.nx-side .ck-act { min-height: 0; }
 .ck-act { display: flex; align-items: center; gap: 12px; min-height: 70px; padding: 12px 12px 12px 14px; border: 0; border-radius: 18px; text-align: left;
   background: #fff; color: var(--text); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
   text-decoration: none; font: inherit; cursor: pointer; transition: transform .15s, box-shadow .15s; }
@@ -1259,8 +1285,10 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 /* iPad dikey ve dar masaüstü */
 @media (max-width: 900px) {
   .nx-card { --cw: 208px; }
-  .nx-acts { gap: 10px; }
-  .ck-ic { display: none; }
+  .nx-acts { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .nx-side { grid-template-rows: none; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .nx-make { min-height: 0; height: 150px; }
+  .nx-make-tx { width: 42%; }
 }
 /* yatay telefon: öne çıkan alçak */
 @media (max-height: 500px) and (min-width: 641px) {
@@ -1270,6 +1298,14 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
   .nx-title { font-size: 22px; } .nx-sum { font-size: 14px; }
   .nx-play { height: 38px; font-size: 15px; }
   .nx-acts { gap: 8px; margin-top: 10px; }
+  .nx-side { gap: 8px; }
+  .nx-acts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .nx-side { grid-template-columns: none; grid-template-rows: 1fr 1fr; }
+  .nx-make { min-height: 0; height: auto; border-radius: 16px; }
+  .nx-make small { display: none; }
+  .nx-make b { font-size: 19px; } .nx-make small { font-size: 12.5px; }
+  .nx-make-go { height: 32px; margin-top: 4px; font-size: 13px; }
+  .nx-make-tx { padding: 10px 6px 10px 16px; gap: 2px; }
   .ck-act { min-height: 0; padding: 10px 10px 10px 14px; border-radius: 14px; }
   .ck-act b { font-size: 15px; } .ck-act small { font-size: 12px; }
   .nx-card { --cw: 190px; }
@@ -1288,6 +1324,10 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
   .nx-title { font-size: 23px; } .nx-sum { font-size: 14px; }
   .nx-dots { left: 18px; bottom: 16px; }
   .nx-acts { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nx-side { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nx-make { min-height: 150px; height: auto; }
+  .nx-make-tx { width: 52%; padding-left: 16px; }
+  .nx-make b { font-size: 20px; }
   .ck-act { min-height: 0; padding: 10px 12px; border-radius: 14px; }
   .ck-ic { display: grid; width: 36px; height: 36px; border-radius: 10px; }
   .nx-card { --cw: 168px; }

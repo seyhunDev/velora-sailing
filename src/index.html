@@ -70,10 +70,33 @@
       </header>
       <div class="nx" id="nxMain">
         <section class="nx-hero" id="nxHero" aria-label="Öne çıkan senaryo"></section>
+        <!-- üç iş: Taktik oluştur önde ve büyük (kullanıcı 2026-11-24 "ilk sıraya koy, önemli olsun, ince uzun"); yatayda alan ikiye bölünür:
+             solda Taktik oluştur, sağda Antrenman yarışı ve Canlı yarış alt alta. Dikeyde Taktik oluştur tam genişlik üstte. -->
         <div class="nx-acts">
-          <a class="ck-act" id="lnkSim" href="sim.html"><span class="ck-ic"><svg><use href="#i-flag"/></svg></span><span class="ck-tx"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
-          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><span class="ck-ic"><svg><use href="#i-boat"/></svg></span><span class="ck-tx"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-          <a class="ck-act" id="lnkTaktik" href="taktik.html"><span class="ck-ic"><svg><use href="#i-pen"/></svg></span><span class="ck-tx"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a class="nx-make" id="lnkTaktik" href="taktik.html">
+            <span class="nx-make-tx">
+              <span class="nx-make-kick"><svg><use href="#i-pen"/></svg>Kendi taktiğini kur</span>
+              <b>Taktik oluştur</b>
+              <small id="mineSub">Tekneleri koy, rotayı çiz, oynat</small>
+              <span class="nx-make-go">Yeni taktik<svg><use href="#i-next"/></svg></span>
+            </span>
+            <svg class="nx-make-art" viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <g class="nx-wind" transform="translate(34 26)"><path d="M0 -12v22M-6 4l6 7 6-7" fill="none" stroke="#8fb3ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+              <circle cx="276" cy="30" r="7" fill="#ff8c42" stroke="#fff" stroke-width="2"/>
+              <path class="nx-guide" d="M42 124 C 92 118, 112 78, 158 76 S 236 46, 262 36"/>
+              <path class="nx-guide" d="M70 70 C 116 84, 140 116, 190 118 S 262 104, 296 120"/>
+              <path class="nx-route r1" pathLength="1" d="M42 124 C 92 118, 112 78, 158 76 S 236 46, 262 36"/>
+              <path class="nx-route r2" pathLength="1" d="M70 70 C 116 84, 140 116, 190 118 S 262 104, 296 120"/>
+              <g class="nx-mboat"><path d="M15 0C11-5.5-2-6.5-11-5.5V5.5C-2 6.5 11 5.5 15 0Z" fill="#ef5b3a" stroke="#fff" stroke-width="1.6"/>
+                <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" keyPoints="0;0;1;1" keyTimes="0;.08;.72;1" calcMode="linear" path="M42 124 C 92 118, 112 78, 158 76 S 236 46, 262 36"/></g>
+              <g class="nx-mboat"><path d="M15 0C11-5.5-2-6.5-11-5.5V5.5C-2 6.5 11 5.5 15 0Z" fill="#2bb39a" stroke="#fff" stroke-width="1.6"/>
+                <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" keyPoints="0;0;1;1" keyTimes="0;.18;.82;1" calcMode="linear" path="M70 70 C 116 84, 140 116, 190 118 S 262 104, 296 120"/></g>
+            </svg>
+          </a>
+          <div class="nx-side">
+            <a class="ck-act" id="lnkSim" href="sim.html"><span class="ck-ic"><svg><use href="#i-flag"/></svg></span><span class="ck-tx"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+            <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><span class="ck-ic"><svg><use href="#i-boat"/></svg></span><span class="ck-tx"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+          </div>
         </div>
         <div id="nxRows"></div>
       </div>
