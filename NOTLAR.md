@@ -149,6 +149,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-24 · **Anlatım akıcı olsun** (kullanıcı: "seslendirme hiç akıcı değil", 8-14 yaş): ses motoru Gemini-TTS (Cloud TTS `gemini-2.5-flash-tts`, ses Aoede, "çocuklara anlatan sıcak antrenör" yönergesiyle; olmazsa Chirp 3 HD, `scripts/tts.mjs`), `SailNarr` ENGINE='g1' dosya adına girer. Adım metinleri artık kısa-kesik değil: 2-3 cümle, "ve, çünkü, bu yüzden" ile bağlı, sohbet dili; işaret yok.
 - 2026-11-24: Sailing'e giriş yalnız Velora hesabıyla (kayıt Velora'da yapılır, sonra geldiği sayfaya dönülür). Misafir seçeneği kapalı (`GUEST`), `?izle` tek senaryo girişsiz. Gerekçe: kullanıcı sporculara link gönderip Velora'ya kaydettirmek istiyor.
 - 2026-11-24: Ana sayfa vitrin (Netflix tarzı satırlar + öne çıkan alan). İzlenenler önerilerde ve satırlarda sona iner, ayrı satırda durur, sıfırlanabilir. Hava şartı verisi (hava/maxKn) kullanıcı sonra girecek.
 - 2026-11-23: Ana sayfa renk ve yazı ölçüsü sesliasistan ana sayfasıyla aynı (açık tema, Inter). Ana işler eşit görünür, seçili gibi renk yok; tıklanan kartta sağda ok.

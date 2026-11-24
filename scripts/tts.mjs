@@ -20,13 +20,18 @@ const texts = new Set([N.SAMPLE]);
 for (const s of globalThis.SCENARIOS.filter(x => x.narration !== false))
   for (const st of s.steps) texts.add(N.speechText(st.title, st.text));
 
-async function synth(voice, text) {
-  const name = `tr-TR-Chirp3-HD-${voice}`;
-  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 30000);
+// Önce Gemini-TTS (Cloud Text-to-Speech, aynı anahtar): anlatıcı yönergesiyle doğal, akıcı okur.
+// Model kabul edilmezse (yetki / bölge / API kapalı) bir kez uyarı yazar, gerisi Chirp 3 HD ile üretilir.
+const GEMINI_MODEL = process.env.TTS_GEMINI_MODEL || 'gemini-2.5-flash-tts';
+const STYLE = 'Sekiz ile on dört yaş arası yelkenci çocuklara ders anlatan sıcak, sakin ve neşeli bir antrenör gibi oku. ' +
+  'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma.';
+let geminiOff = process.env.TTS_ENGINE === 'chirp';
+const used = { gemini: 0, chirp: 0 };
+async function call(body) {
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 60000);
   try {
     const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(KEY)}`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal,
-      body: JSON.stringify({ input: { text }, voice: { languageCode: 'tr-TR', name }, audioConfig: { audioEncoding: 'MP3' } })
+      method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal, body: JSON.stringify(body)
     });
     const raw = await res.text();
     if (!res.ok) throw new Error(`${res.status} ${raw.slice(0, 200)}`);
@@ -34,6 +39,23 @@ async function synth(voice, text) {
     if (!b64) throw new Error('ses verisi yok');
     return Buffer.from(b64, 'base64');
   } finally { clearTimeout(timer); }
+}
+async function synth(voice, text) {
+  if (!geminiOff) {
+    for (let tryN = 0; tryN < 4; tryN++) {
+      try {
+        const mp3 = await call({ input: { prompt: STYLE, text }, voice: { languageCode: 'tr-TR', name: voice, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } });
+        used.gemini++; return mp3;
+      } catch (e) {
+        if (/^(400|401|403|404)/.test(e.message)) { geminiOff = true; console.log(`  ⚠ Gemini-TTS kullanılamadı, Chirp 3 HD'ye geçildi: ${String(e.message).slice(0, 200)}`); break; }
+        // 429 / 5xx / zaman aşımı: bekleyip yeniden dene; olmazsa bu dosya Chirp ile
+        if (tryN < 3) await new Promise(r => setTimeout(r, 4000 * (tryN + 1)));
+        else console.log(`  ⚠ Gemini-TTS bu metinde olmadı, Chirp: ${String(e.message).slice(0, 120)}`);
+      }
+    }
+  }
+  const mp3 = await call({ input: { text }, voice: { languageCode: 'tr-TR', name: `tr-TR-Chirp3-HD-${voice}` }, audioConfig: { audioEncoding: 'MP3' } });
+  used.chirp++; return mp3;
 }
 
 const index = { voices: {} };
@@ -44,7 +66,7 @@ for (const v of N.VOICES) {
   const cdir = join(CACHE, v.id), odir = join(OUT, v.id);
   mkdirSync(cdir, { recursive: true }); mkdirSync(odir, { recursive: true });
   const keys = [];
-  await pool([...texts], 6, async text => {
+  await pool([...texts], 4, async text => {
     const k = N.key(v.id, text), cf = join(cdir, k + '.mp3');
     if (!existsSync(cf)) {
       if (!KEY || only || stopped) return;
@@ -57,5 +79,5 @@ for (const v of N.VOICES) {
 }
 mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, 'index.json'), JSON.stringify(index));
-console.log(`Sesli anlatım: ${texts.size} metin × ${N.VOICES.length} ses · yeni ${made} (${chars} harf), önbellekten ${cached}, hata ${failed}` +
+console.log(`Sesli anlatım: ${texts.size} metin × ${N.VOICES.length} ses · yeni ${made} (${chars} harf), önbellekten ${cached}, hata ${failed} · Gemini ${used.gemini}, Chirp ${used.chirp}` +
   (KEY ? '' : ' · GOOGLE_TTS_KEY yok: cihaz sesi kullanılacak'));

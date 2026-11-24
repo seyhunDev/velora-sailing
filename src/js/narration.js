@@ -13,6 +13,9 @@
     { id: 'Aoede', label: 'Kadın · sıcak' }
   ];
   const DEFAULT_VOICE = 'Aoede';
+  // Ses motoru sürümü (dosya adına girer; değişince bütün sesler yeniden üretilir). 'g1': Gemini-TTS, anlatıcı yönergesiyle
+  // (kullanıcı 2026-11-24: "hiç akıcı değil"), olmazsa Chirp 3 HD (scripts/tts.mjs).
+  const ENGINE = 'g1';
   const SAMPLE = 'Merhaba! Bu dersi ben anlatacağım. Rüzgar üç yüz elli dereceden esiyor; pin hafif avantajlı.';
 
   // Ekranda okunan metni konuşmaya uygun hale getirir (kısaltmalar, simgeler, BÜYÜK harfle vurgu)
@@ -54,7 +57,7 @@
   // FNV-1a, iki tohum → 16 hane (metin + ses değişince dosya adı değişir)
   function fnv(str, h) { for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
   function key(voice, text) {
-    const s = voice + '|' + text;
+    const s = voice + '|' + ENGINE + '|' + text;
     return fnv(s, 2166136261).toString(16).padStart(8, '0') + fnv(s, 0x9747b28c).toString(16).padStart(8, '0');
   }
   const api = { VOICES, DEFAULT_VOICE, SAMPLE, speechText, key };
