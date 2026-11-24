@@ -1044,6 +1044,13 @@
     $('nxHero').innerHTML = ''; showHero(heroIdx);
     const rows = $('nxRows'); rows.innerHTML = '';
     seenSet = new Set(recentIds());
+    // Taktiklerim: kullanıcı taktik oluşturduysa satırların en üstünde, Taktik oluştur kartının hemen altında (kullanıcı 2026-11-24)
+    if (window.SailTaktik) {
+      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
+      const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
+      add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
+      if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
+    }
     // hava süzgeci: yalnız en az bir senaryoda hava verisi varsa
     const hasHava = SCENARIOS.some(x => havaOf(x).length);
     if (hasHava) {
@@ -1063,12 +1070,6 @@
     }
     const rec = recentIds().map(id => SCENARIOS.find(x => x.id === id)).filter(x => x && !x.user);
     if (rec.length) rows.appendChild(nxRow('İzlenenler', rec, null, null, ['Sıfırla', () => { clearRecent(); buildHome(); }]));
-    if (window.SailTaktik) {
-      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
-      const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
-      add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
-      if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
-    }
     rows.querySelectorAll('.nx-row').forEach((r, i) => r.style.setProperty('--d', `${Math.min(i, 6) * 60}ms`));
   }
   $('nxHero').addEventListener('pointerenter', () => { heroPaused = true; });
