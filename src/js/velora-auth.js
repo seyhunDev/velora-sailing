@@ -40,7 +40,7 @@ async function start() {
     } catch (e) { /* yok */ }
     try {
       const d = (await fs.getDoc(fs.doc(fs.getFirestore(app), 'users', user.uid))).data() || {};
-      const owner = (d.role || 'owner') === 'owner' && (d.orgId || user.uid) === user.uid;
+      const owner = (d.role || 'owner') === 'owner' && (d.orgId || user.uid) === user.uid && d.via !== 'sailing';   // Sailing bağlantısından kaydolan sporcu sahip değil
       return { role: owner ? 'sahip' : 'kayitli', name: d.name || '' };
     } catch (e) { return { role: 'kayitli', name: '' }; }
   }

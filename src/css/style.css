@@ -467,6 +467,7 @@ html.is-fs.is-ios.is-tablet .fs-btn { display: none; }
 .gate-btn span { font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 4px; }
 .gate-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .gate-btn.primary:hover { filter: brightness(1.07); background: var(--accent); }
+.gate-btn.primary span { color: inherit; opacity: .72; }
 .gate-btn.ghost { background: none; border-color: transparent; color: var(--text2); font-weight: 500; }
 .gate-btn.velora { display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: #0b1a33; border-color: rgba(255,255,255,.16); color: #fff; }
 .gate-btn.velora:hover { background: #12274a; }
@@ -476,6 +477,8 @@ html.is-fs.is-ios.is-tablet .fs-btn { display: none; }
 .gate-hint { text-wrap: balance; margin: 12px 0 0; text-align: center; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 .gate-link { background: none; border: 0; padding: 0; color: var(--muted); font-size: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .gate-link:hover { color: var(--text2); }
+.gate-alt { margin: 12px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
+.gate-alt .gate-link { min-height: 32px; }
 .gate-owner { display: block; margin: 8px auto 0; font-size: 12px; min-height: 32px; text-decoration: none; opacity: .8; }
 .gate-back { display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; padding: 0 6px 0 0; margin: -12px 0 8px -4px; min-height: 36px;
   color: var(--muted); font-size: 14px; }
