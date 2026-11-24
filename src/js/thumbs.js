@@ -45,7 +45,7 @@
 
   function draw(th) {
     const scn = th.scn, p = prep(scn), k = p.side / 160;     // k: ekranda ~1 px'e karşılık gelen SVG birimi
-    const svg = el('svg', { viewBox: p.vb, preserveAspectRatio: 'xMidYMid slice', 'aria-hidden': 'true' });
+    const svg = el('svg', { viewBox: p.vb, preserveAspectRatio: th.meet ? 'xMidYMid meet' : 'xMidYMid slice', 'aria-hidden': 'true' });
     if (scn.line) {
       const { pin, boat } = scn.line;
       el('line', { x1: pin.x, y1: pin.y, x2: boat.x, y2: boat.y, stroke: '#ffd166', 'stroke-width': 1.6 * k, 'stroke-dasharray': `${5 * k} ${4 * k}`, opacity: .85 }, svg);
@@ -100,10 +100,11 @@
 
   window.SailThumbs = {
     // senaryonun küçük resim kutusu (boş başlar, görününce çizilir)
+    // opts.meet: kare ön izleme kutuya sığar, kesilmez (ana sayfa öne çıkan alanı)
     // opts.still: durağan kare (ana sayfa listesi); üstüne gelince / basılıyken oynar (hot)
     make(scn, opts) {
       const box = document.createElement('div'); box.className = 'thumb';
-      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), hot: false };
+      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), meet: !!(opts && opts.meet), hot: false };
       if (th.still) {
         const on = v => () => { th.hot = v; if (!v && th.drawn) pose(th, scn.duration * 0.6); kick(); };
         const host = () => box.closest('button, a') || box;

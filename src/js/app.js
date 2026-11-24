@@ -945,17 +945,135 @@
   }
 
   // ---------- Ana sayfa (açılış): adreste senaryo yoksa görünür ----------
-  const HOME_CAT = 'ps.home.cat';
-  let homeCat = (() => { try { const c = localStorage.getItem(HOME_CAT); return CATS.includes(c) ? c : 'Start'; } catch (e) { return 'Start'; } })();
-  let homeQuery = '', homeOn = null, fromHome = false;
+  // v10 vitrin (kullanıcı 2026-11-24 "Netflix gibi, abartısız"): öne çıkan senaryo (canlı oynar, 8 sn'de bir değişir) ·
+  // üç iş · "Kaldığın yerden" + konu konu yatay kayan satırlar. Arama ya da "Tümü" → liste görünümü (buildList, satırlar)
+  const RECENT = 'ps.recent.v1';
+  const recentIds = () => { try { return (JSON.parse(localStorage.getItem(RECENT)) || []).filter(id => SCENARIOS.some(x => x.id === id)); } catch (e) { return []; } };
+  const pushRecent = id => { try { localStorage.setItem(RECENT, JSON.stringify([id, ...recentIds().filter(i => i !== id)].slice(0, 60))); } catch (e) { /* yok */ } };
+  const clearRecent = () => { try { localStorage.removeItem(RECENT); } catch (e) { /* yok */ } };
+  // Hava şartı (ileride senaryo verisine girilecek): x.hava = 'hafif' | 'orta' | 'sert' (birkaç tane olabilir: dizi), x.maxKn = en çok rüzgar (knot).
+  // Hiçbir senaryoda veri yoksa süzgeç çipleri görünmez.
+  const HAVA = [['hafif', 'Hafif'], ['orta', 'Orta'], ['sert', 'Sert']];
+  const havaOf = x => [].concat(x.hava || []);
+  const havaTxt = x => { const h = havaOf(x).map(k => (HAVA.find(a => a[0] === k) || [k, k])[1]).join(' / '); return x.maxKn ? `${h ? h + ' · ' : ''}≤${x.maxKn} kn` : h; };
+  let homeHava = '';
+  const havaOk = x => !homeHava || havaOf(x).includes(homeHava);
+  let homeCat = 'Start', homeQuery = '', homeAll = null, homeOn = null, fromHome = false;
+  let heroIdx = 0, heroTimer = 0, heroPaused = false;
+  const openScn = x => { if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; } pushRecent(x.id); location.hash = x.id; openPicker(false); };
+  const durTxt = x => `${Math.floor(x.duration / 60)}:${String(Math.round(x.duration % 60)).padStart(2, '0')}`;
+  // öneriler: izlenmemiş, açık senaryolar; her gruptan sırayla (grup içinde katalog sırası), izlenenler en sonda
+  function suggestions(n) {
+    const seen = new Set(recentIds());
+    const per = CATS.filter(c => !(window.SailTaktik && c === SailTaktik.CAT))
+      .map(c => SCENARIOS.filter(x => x.category === c && !x.user && !lockedScn(x) && !seen.has(x.id) && havaOk(x)));
+    const out = [];
+    for (let i = 0; out.length < n && per.some(a => a[i]); i++) for (const a of per) if (a[i] && out.length < n) out.push(a[i]);
+    return out;
+  }
+  const heroList = () => { const s = suggestions(6); return s.length ? s : SCENARIOS.filter(x => !x.user && !lockedScn(x)).slice(0, 6); };
+  function heroSlide(x, n, i) {
+    const [code, ttl] = splitTitle(x.title);
+    const s = document.createElement('div'); s.className = 'nx-slide';
+    const art = window.SailThumbs ? SailThumbs.make(x, { meet: true }) : document.createElement('div');
+    art.classList.add('nx-art'); s.appendChild(art);
+    s.insertAdjacentHTML('beforeend', `<div class="nx-shade"></div><div class="nx-info">
+      <span class="nx-kick">${esc(x.category)}${x.topic ? ' · ' + esc(x.topic) : ''}</span>
+      <h2 class="nx-title"><span class="nx-code">${esc(code)}</span>${esc(ttl)}</h2>
+      <p class="nx-sum">${esc(x.short || firstSentence(x.summary))}</p>
+      <div class="nx-btns"><button class="nx-play" type="button"><svg><use href="#i-play"/></svg>İzle</button><span class="nx-dur">${durTxt(x)}</span></div></div>
+      <div class="nx-dots">${Array.from({ length: n }, (_, k) => `<button type="button" aria-label="${k + 1}. öne çıkan" class="${k === i ? 'on' : ''}" data-k="${k}"></button>`).join('')}</div>`);
+    s.querySelector('.nx-play').onclick = () => openScn(x);
+    art.onclick = () => openScn(x);
+    s.querySelector('.nx-dots').onclick = e => { const b = e.target.closest('button'); if (b) showHero(+b.dataset.k); };
+    return s;
+  }
+  function showHero(i) {
+    const box = $('nxHero'), list = heroList(); if (!list.length) return;
+    heroIdx = (i + list.length) % list.length;
+    const old = box.querySelector('.nx-slide:not(.out)');
+    const s = heroSlide(list[heroIdx], list.length, heroIdx); box.appendChild(s);
+    requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('in')));
+    if (old) { old.classList.add('out'); setTimeout(() => old.remove(), 700); }
+    clearTimeout(heroTimer);
+    heroTimer = setTimeout(function tick() {
+      if (!homeOn || homeAll) return;
+      if (heroPaused || document.hidden) { heroTimer = setTimeout(tick, 2000); return; }
+      showHero(heroIdx + 1);
+    }, 9000);
+  }
+  // senaryo kartı (satırlarda): 16:10 ön izleme (üstüne gelince oynar) + kod rozeti, altında ad ve konu
+  function nxCard(x) {
+    const [code, ttl] = splitTitle(x.title), locked = lockedScn(x);
+    const c = document.createElement('button'); c.type = 'button'; c.className = 'nx-card'; c.classList.toggle('locked', locked);
+    const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
+    th.classList.add('nx-thumb');
+    th.insertAdjacentHTML('beforeend', `<span class="nx-badge">${esc(code)}</span>${seenSet.has(x.id) ? '<span class="nx-seen">İzlendi</span>' : ''}${x.ileri ? '<span class="nx-lvl">İleri</span>' : ''}${locked ? '<span class="nx-lock">Kaydol</span>' : `<span class="nx-time">${durTxt(x)}</span>`}<span class="nx-hov"><svg><use href="#i-play"/></svg></span>`);
+    c.appendChild(th);
+    c.insertAdjacentHTML('beforeend', `<b>${esc(ttl)}</b><small>${esc(x.topic || x.category)}${havaTxt(x) ? ' · ' + esc(havaTxt(x)) : ''}</small>`);
+    c.title = x.short || firstSentence(x.summary);
+    c.onclick = () => openScn(x);
+    return c;
+  }
+  let seenSet = new Set();
+  function nxRow(title, items, allCat, extra, tool) {
+    const sec = document.createElement('section'); sec.className = 'nx-row';
+    sec.innerHTML = `<div class="nx-rh"><h3>${esc(title)}</h3><span class="nx-n">${items.length}</span>${allCat ? '<button class="nx-more" type="button">Tümü<svg><use href="#i-next"/></svg></button>' : ''}${tool ? `<button class="nx-more" type="button" data-tool>${esc(tool[0])}</button>` : ''}</div>
+      <div class="nx-track-wrap"><button class="nx-arr l" type="button" aria-label="Geri kaydır"><svg><use href="#i-prev"/></svg></button><div class="nx-track"></div><button class="nx-arr r" type="button" aria-label="İleri kaydır"><svg><use href="#i-next"/></svg></button></div>`;
+    const tr = sec.querySelector('.nx-track');
+    if (extra) tr.appendChild(extra);
+    for (const x of items) tr.appendChild(nxCard(x));
+    const arrows = () => { sec.classList.toggle('at-start', tr.scrollLeft < 8); sec.classList.toggle('at-end', tr.scrollLeft + tr.clientWidth > tr.scrollWidth - 8); };
+    tr.addEventListener('scroll', arrows, { passive: true }); setTimeout(arrows, 0);
+    sec.querySelector('.nx-arr.l').onclick = () => tr.scrollBy({ left: -tr.clientWidth * 0.85, behavior: 'smooth' });
+    sec.querySelector('.nx-arr.r').onclick = () => tr.scrollBy({ left: tr.clientWidth * 0.85, behavior: 'smooth' });
+    if (tool) sec.querySelector('[data-tool]').onclick = tool[1];
+    if (allCat) sec.querySelector('.nx-more').onclick = () => { homeAll = allCat; homeQuery = ''; $('homeSearch').value = ''; buildHome(); $('homePage').scrollTop = 0; };
+    return sec;
+  }
   function buildHome() {
     if (window.SailThumbs) SailThumbs.reset();
-    buildList($('homeTabs'), $('homeList'), homeCat, homeQuery, c => {
-      homeCat = c; homeQuery = ''; $('homeSearch').value = '';
-      try { localStorage.setItem(HOME_CAT, c); } catch (e) { /* yok */ }
-      buildHome();
-    }, true);
+    const listMode = !!(homeAll || homeQuery.trim());
+    $('nxMain').classList.toggle('hidden', listMode); $('nxAll').classList.toggle('hidden', !listMode);
+    if (listMode) {
+      clearTimeout(heroTimer);
+      $('nxAllTitle').textContent = homeQuery.trim() ? 'Arama sonuçları' : homeAll;
+      buildList($('homeTabs'), $('homeList'), homeAll || homeCat, homeQuery, c => { homeAll = c; buildHome(); }, true);
+      return;
+    }
+    $('nxHero').innerHTML = ''; showHero(heroIdx);
+    const rows = $('nxRows'); rows.innerHTML = '';
+    seenSet = new Set(recentIds());
+    // hava süzgeci: yalnız en az bir senaryoda hava verisi varsa
+    const hasHava = SCENARIOS.some(x => havaOf(x).length);
+    if (hasHava) {
+      const f = document.createElement('div'); f.className = 'nx-filter'; f.setAttribute('role', 'tablist'); f.setAttribute('aria-label', 'Hava');
+      f.innerHTML = [['', 'Her hava'], ...HAVA].map(([k, t]) => `<button type="button" data-k="${k}" aria-pressed="${k === homeHava}">${t}</button>`).join('');
+      f.onclick = e => { const b = e.target.closest('button'); if (!b) return; homeHava = b.dataset.k; buildHome(); };
+      rows.appendChild(f);
+    } else homeHava = '';
+    const sug = suggestions(12);
+    if (sug.length) rows.appendChild(nxRow('Senin için', sug, null));
+    // konu satırları: izlenenler sona
+    const groups = CATS.filter(c => c !== (window.SailTaktik && SailTaktik.CAT));
+    for (const c of groups) {
+      const xs = SCENARIOS.filter(x => x.category === c && havaOk(x));
+      xs.sort((a, b) => seenSet.has(a.id) - seenSet.has(b.id));
+      if (xs.length) rows.appendChild(nxRow(c, xs, c));
+    }
+    const rec = recentIds().map(id => SCENARIOS.find(x => x.id === id)).filter(x => x && !x.user);
+    if (rec.length) rows.appendChild(nxRow('İzlenenler', rec, null, null, ['Sıfırla', () => { clearRecent(); buildHome(); }]));
+    if (window.SailTaktik) {
+      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
+      const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
+      add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
+      if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
+    }
+    rows.querySelectorAll('.nx-row').forEach((r, i) => r.style.setProperty('--d', `${Math.min(i, 6) * 60}ms`));
   }
+  $('nxHero').addEventListener('pointerenter', () => { heroPaused = true; });
+  $('nxHero').addEventListener('pointerleave', () => { heroPaused = false; });
+  $('nxBack').onclick = () => { homeAll = null; homeQuery = ''; $('homeSearch').value = ''; buildHome(); };
   // Kokpitteki "Taktik oluştur" düğmesinde kayıtlı taktik sayısı
   function mineSub() {
     const n = window.SailTaktik ? SCENARIOS.filter(x => x.category === SailTaktik.CAT).length : 0;
@@ -974,10 +1092,10 @@
       state.playing = false; narrStop(); updatePlayButton(); openPicker(false);
       if (state.scn) homeCat = state.scn.category;
       buildHome(); mineSub();
-    } else { seenScn = true; if (window.SailThumbs) SailThumbs.reset(); }
+    } else { seenScn = true; clearTimeout(heroTimer); if (window.SailThumbs) SailThumbs.reset(); }
     document.title = on ? 'Velora Sailing' : `${state.scn ? state.scn.title + ' · ' : ''}Velora Sailing`;
   }
-  $('homeSearch').addEventListener('input', e => { homeQuery = e.target.value; buildHome(); });
+  $('homeSearch').addEventListener('input', e => { homeQuery = e.target.value; e.target.parentElement.classList.toggle('has-q', !!homeQuery); if (!homeQuery.trim()) homeAll = null; buildHome(); });
   // Ana sayfaya dön: senaryoya ana sayfadan gelindiyse tarayıcı geri (geçmiş temiz kalır), değilse adresi temizle
   $('btnHome').onclick = () => {
     if (fromHome) { history.back(); return; }
@@ -1080,6 +1198,7 @@
       SailAccess.guard('scn.ileri'); history.replaceState(null, '', location.pathname + location.search); return;
     }
     const s = fromHash(); if (s !== state.scn) loadScenario(s);
+    if (s && !s.user) pushRecent(s.id);
     if (homeOn) { fromHome = true; setHome(false); }
   });
   // giriş/kayıt sonrası kilitler değişir: seçici açıksa yenile, adresteki kilitli senaryoyu aç

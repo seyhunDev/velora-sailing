@@ -53,13 +53,14 @@
   <!-- ANA SAYFA (açılış): senaryolar + Simülatör / Yarışlar / Yelken ayarı; adreste senaryo (#id) yoksa görünür.
        Açık tema (Velora "açık": #f5f5f7 zemin, beyaz kart, tek vurgu mavi). js/app.js → setHome -->
   <section id="home" class="home acik" aria-label="Ana sayfa">
-    <!-- A · Kokpit (kullanıcı 2026-11-23 kartta seçti; Velora "lacivert kokpit"): üstte lacivert alan, büyük başlık ve üç ana iş;
-         altında açık zeminde senaryolar. Bütün sayfa tek parça kayar. js/app.js → buildHome, js/lobby.js → Canlı yarış penceresi -->
-    <div class="home-page">
-      <div class="ck">
+    <!-- Ana sayfa v10 · vitrin (kullanıcı 2026-11-24 "Netflix gibi, ama abartısız"): üstte öne çıkan senaryo canlı oynar ve
+         kendiliğinden değişir; altında üç iş; sonra konu konu yatay kayan satırlar (kartlar üstüne gelince oynar).
+         Arama ya da bir satırın "Tümü"sü liste görünümüne geçer. js/app.js → buildHome, js/lobby.js → Canlı yarış penceresi -->
+    <div class="home-page" id="homePage">
       <header class="topbar home-top acik">
         <div class="home-brand"><svg><use href="#i-logo"/></svg><span>Velora <em>Sailing</em></span></div>
         <div class="spacer"></div>
+        <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Ara" aria-label="Senaryo ara" autocomplete="off"></label>
         <!-- sağ düğmeler (Bildir, Bilgi, Ayarlar, Tam ekran, Hesap) tek grupta; senaryo açılınca senaryo çubuğuna taşınır -->
         <div class="tool-group" id="toolGroup">
           <button id="btnShare" class="tool scn-only share-btn" title="Bu senaryonun bağlantısını paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
@@ -67,18 +68,17 @@
           <button id="btnSettings" class="tool set-btn" title="Ayarlar" aria-haspopup="dialog"><svg><use href="#i-gear"/></svg><span class="lbl">Ayarlar</span></button>
         </div>
       </header>
-        <h1 class="ck-h1">Bugün ne yapalım?</h1>
-        <div class="ck-acts">
-          <a class="ck-act" id="lnkSim" href="sim.html"><span class="ck-tx"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
-          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><span class="ck-tx"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-          <a class="ck-act" id="lnkTaktik" href="taktik.html"><span class="ck-tx"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+      <div class="nx" id="nxMain">
+        <section class="nx-hero" id="nxHero" aria-label="Öne çıkan senaryo"></section>
+        <div class="nx-acts">
+          <a class="ck-act" id="lnkSim" href="sim.html"><span class="ck-ic"><svg><use href="#i-flag"/></svg></span><span class="ck-tx"><b>Antrenman yarışı</b><small>Tek başına, filoya karşı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+          <button class="ck-act" id="btnLive" type="button" aria-haspopup="dialog"><span class="ck-ic"><svg><use href="#i-boat"/></svg></span><span class="ck-tx"><b>Canlı yarış</b><small id="liveSub">Açık odalar, antrenör yarışı</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+          <a class="ck-act" id="lnkTaktik" href="taktik.html"><span class="ck-ic"><svg><use href="#i-pen"/></svg></span><span class="ck-tx"><b>Taktik oluştur</b><small id="mineSub">Tekne koy, rota çiz, oynat</small></span><svg class="ck-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
         </div>
+        <div id="nxRows"></div>
       </div>
-      <div class="ck-body">
-        <div class="home-head">
-          <h2 class="home-h2">Senaryolar</h2>
-          <label class="search home-search"><svg><use href="#i-search"/></svg><input id="homeSearch" type="search" placeholder="Senaryo ara" autocomplete="off"></label>
-        </div>
+      <div class="nx-all hidden" id="nxAll">
+        <div class="nx-all-head"><button class="nx-back" id="nxBack" type="button"><svg><use href="#i-prev"/></svg><span id="nxAllTitle">Senaryolar</span></button></div>
         <div class="home-tabs" id="homeTabs" role="tablist" aria-label="Senaryo grupları"></div>
         <div class="home-list" id="homeList"></div>
       </div>
