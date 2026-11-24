@@ -112,6 +112,8 @@ async function start() {
     return out;
   };
   document.dispatchEvent(new CustomEvent('velora-ready'));
+  // Modül yüklenmeden çıkış yapıldıysa Firebase oturumu şimdi kapanır (access.js logout)
+  try { if (localStorage.getItem('ps.fbSignOut') === '1') { localStorage.removeItem('ps.fbSignOut'); if (!pending) await au.signOut(auth).catch(() => {}); } } catch (e) { /* yok */ }
 
   if (pending) {
     try {

@@ -38,11 +38,22 @@
   let veloraWait = false;
   const role = () => (acc && acc.role) || 'misafir';
   const signedIn = () => !!acc && (GUEST || acc.role !== 'misafir');
+  // Çıkış: bu sitedeki hesap + Velora (Firebase) oturumu kapanır. Sonraki "Velora'ya kaydol / gir" Velora'ya &cikis=1 ile gider,
+  // Velora da tarayıcıdaki oturumunu kapatır; yoksa Velora eski hesabı tanıyıp kişiyi o hesapla geri gönderirdi (kullanıcı 2026-11-24).
+  const OUT = 'ps.loggedOut';
+  function logout() {
+    T.log('logout', {});
+    if (window.VeloraAuth) window.VeloraAuth.signOut();
+    else try { localStorage.setItem('ps.fbSignOut', '1'); } catch (e) { /* yok */ }   // modül yüklenince kapatır (velora-auth.js)
+    try { localStorage.setItem(OUT, '1'); } catch (e) { /* yok */ }
+    setAccount(null, 'çıkış'); openGate('home');
+  }
   function toVelora(page) {
     const back = location.pathname + location.search + location.hash;
+    let out = false; try { out = localStorage.getItem(OUT) === '1'; } catch (e) { /* yok */ }
     T.log('velora', { go: page });
     applyConsent();
-    location.assign(`${VELORA}/${page}?sailing=${encodeURIComponent(back)}`);
+    location.assign(`${VELORA}/${page}?sailing=${encodeURIComponent(back)}${out ? '&cikis=1' : ''}`);
   }
   const can = f => { const x = FEATURES[f]; return !x || x.roles.includes(role()); };
   function syncWho() { T.setWho({ role: acc ? acc.role : null, uid: acc && acc.uid, name: (acc && acc.name) || '' }); document.documentElement.dataset.role = role(); }
@@ -57,6 +68,7 @@
 
   function setAccount(a, how) {
     acc = a; put(a); syncWho(); chipUpdate();
+    if (a && a.role !== 'misafir') try { localStorage.removeItem('ps.loggedOut'); } catch (e) { /* yok */ }
     setTimeout(askConsent, 400);
     document.dispatchEvent(new CustomEvent('sail-access', { detail: { role: role(), how } }));
   }
@@ -117,12 +129,10 @@
           <button class="gate-btn velora" id="gateVelora"><i class="gate-vmark">${LOGO}</i>Velora hesabımla gir</button>
           ${GUEST ? '<button class="gate-btn ghost" id="gateGuest">Misafir olarak devam et</button>' : ''}
         </div>
-        <p class="gate-hint">Velora Sailing, Velora hesabınla açılır. Kaydolunca bu sayfaya geri dönersin.</p>
-        <button class="gate-link gate-owner" id="gateOwner">Site sahibi girişi</button>`;
+        <p class="gate-hint">Velora Sailing, Velora hesabınla açılır. Kaydolunca bu sayfaya geri dönersin.</p>`;
       const gg = body.querySelector('#gateGuest');
       if (gg) gg.onclick = () => chooseGuest();
       body.querySelector('#gateSignup').onclick = () => toVelora('register');
-      body.querySelector('#gateOwner').onclick = () => { gateMode = 'owner'; renderGate(); };
       // Velora modülü yüklendiyse giriş burada (e-posta + şifre), yüklenmediyse Velora'nın giriş sayfasına gidilir
       body.querySelector('#gateVelora').onclick = () => { if (window.VeloraAuth) { gateMode = 'velora'; renderGate(); } else toVelora('login'); };
     } else if (gateMode === 'velora') {
@@ -292,7 +302,7 @@
       else if (a === 'owner') openGate('owner');
       else if (a === 'privacy') openPrivacy();
       else if (a === 'data') window.VeloraData.open();
-      else if (a === 'logout') { T.log('logout', {}); if (acc && acc.via === 'velora' && window.VeloraAuth) window.VeloraAuth.signOut(); setAccount(null, 'çıkış'); openGate('home'); }
+      else if (a === 'logout') logout();
     });
     menu.classList.remove('hidden'); chip.classList.add('on');
   }
