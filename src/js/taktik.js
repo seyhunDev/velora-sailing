@@ -246,19 +246,54 @@
         <div class="tk-sel-a"><button class="tb danger" data-a="del"><svg><use href="#i-trash"/></svg>Şamandırayı sil</button></div>`;
       $('tkZone').onchange = e => { m.zone = e.target.checked; changed(); };
     }
+    c.insertAdjacentHTML('afterbegin', '<div class="tk-grip" title="Sürükleyip taşı" aria-hidden="true"><i></i></div>');
+    placeSel();
   }
+  // kart sürüklenip taşınabilir (tutamak ya da başlığın boş yeri); yeri bu cihazda hatırlanır
+  const SELPOS_KEY = 'ps.taktik.selpos';
+  let selPos = (() => { try { const v = JSON.parse(localStorage.getItem(SELPOS_KEY) || 'null'); return v && isFinite(v.x) && isFinite(v.y) ? v : null; } catch (e) { return null; } })();
+  function placeSel() {
+    const c = $('tkSel'); if (!selPos || c.classList.contains('hidden')) return;
+    const st = $('tkStage').getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
+    const x = Math.max(4, Math.min(st.width - w - 4, selPos.x)), y = Math.max(4, Math.min(st.height - h - 4, selPos.y));
+    Object.assign(c.style, { left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto' });
+  }
+  (() => {
+    const c = $('tkSel'); let d = null;
+    c.addEventListener('pointerdown', e => {
+      const grip = e.target.closest('.tk-grip') || (e.target.closest('.tk-sel-h') && !e.target.closest('input, button'));
+      if (!grip || e.button > 0) return;
+      const r = c.getBoundingClientRect(), st = $('tkStage').getBoundingClientRect();
+      d = { id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, st };
+      c.classList.add('moving');
+      try { c.setPointerCapture(e.pointerId); } catch (er) { /* yok */ }
+      e.preventDefault();
+    });
+    c.addEventListener('pointermove', e => {
+      if (!d || e.pointerId !== d.id) return;
+      selPos = { x: e.clientX - d.st.left - d.dx, y: e.clientY - d.st.top - d.dy }; placeSel();
+    });
+    const end = e => {
+      if (!d || e.pointerId !== d.id) return;
+      d = null; c.classList.remove('moving');
+      try { localStorage.setItem(SELPOS_KEY, JSON.stringify(selPos)); } catch (er) { /* yok */ }
+    };
+    c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+  })();
   $('tkSel').addEventListener('click', e => {
-    const sb = e.target.closest('[data-sail]');
+    // yalnız kartın içindeki öğeler (sayfa kökünde data-role gibi öznitelikler var: html[data-role="sahip"])
+    const box = e.currentTarget, near = q => { const n = e.target.closest(q); return n && box.contains(n) ? n : null; };
+    const sb = near('[data-sail]');
     if (sb) { sail = sb.dataset.sail; try { localStorage.setItem(SAIL_KEY, sail); } catch (er) { /* yok */ } drawSel(); render(); return; }
-    const pb = e.target.closest('[data-pinb]');
+    const pb = near('[data-pinb]');
     if (pb && doc.line) { if (pb.dataset.pinb) doc.line.pinBoat = true; else delete doc.line.pinBoat; changed(); return; }
-    const gr = e.target.closest('[data-gr]');
+    const gr = near('[data-gr]');
     if (gr && sel && sel.kind === 'gust') { doc.gusts[sel.i].r = +gr.dataset.gr; changed(); return; }
-    const rb = e.target.closest('[data-role]');
+    const rb = near('[data-role]');
     if (rb && sel && sel.kind === 'boat') { doc.boats[sel.i].role = rb.dataset.role; changed(); return; }
-    const col = e.target.closest('[data-col]');
+    const col = near('[data-col]');
     if (col && sel && sel.kind === 'boat') { doc.boats[sel.i].color = col.dataset.col; changed(); return; }
-    const a = e.target.closest('[data-a]'); if (!a || !sel) return;
+    const a = near('[data-a]'); if (!a || !sel) return;
     const act = a.dataset.a;
     if (act === 'close') { sel = null; render(); return; }
     if (sel.kind === 'boat') {
@@ -594,7 +629,7 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), 2600);
   }
 
-  window.addEventListener('resize', () => render());
+  window.addEventListener('resize', () => { render(); placeSel(); });
   if (window.SailReport) SailReport.source('taktik', () => ({ ozet: `taktik ${doc.id} · ${doc.boats.length} tekne · rüzgar ${doc.wind}°`, doc: T.clean(doc) }));
   if (window.SailTrack) SailTrack.log('taktik', { id: doc.id });
   render();
