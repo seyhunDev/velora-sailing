@@ -1031,6 +1031,18 @@
     if (allCat) sec.querySelector('.nx-more').onclick = () => { homeAll = allCat; homeQuery = ''; $('homeSearch').value = ''; buildHome(); $('homePage').scrollTop = 0; };
     return sec;
   }
+  // Taktik oluştur kartının ön izlemesi: gerçek motorla hesaplanan bir taktik (kullanıcı 2026-11-24 "uydurma animasyon olmasın").
+  // Kendi taktiği varsa en yenisi, yoksa kurucunun "Şamandıra dönüşü" hazır sahnesi; teknelerin yolu kesik çizgiyle görünür
+  function makeArt() {
+    const box = $('nxMakeArt'); if (!box || !window.SailTaktik || !window.SailThumbs) return;
+    box.innerHTML = '';
+    let scn = null;
+    try {
+      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT && x.boats && x.boats.length >= 2);
+      scn = mine[0] || SailTaktik.compile(SailTaktik.fromTemplate('samandira'), { id: 'ornek-samandira' });
+    } catch (e) { return; }
+    const th = SailThumbs.make(scn, { meet: true, trails: true }); th.classList.add('nx-make-thumb'); box.appendChild(th);
+  }
   function buildHome() {
     if (window.SailThumbs) SailThumbs.reset();
     const listMode = !!(homeAll || homeQuery.trim());
@@ -1041,7 +1053,7 @@
       buildList($('homeTabs'), $('homeList'), homeAll || homeCat, homeQuery, c => { homeAll = c; buildHome(); }, true);
       return;
     }
-    $('nxHero').innerHTML = ''; showHero(heroIdx);
+    $('nxHero').innerHTML = ''; showHero(heroIdx); makeArt();
     const rows = $('nxRows'); rows.innerHTML = '';
     seenSet = new Set(recentIds());
     // Taktiklerim: kullanıcı taktik oluşturduysa satırların en üstünde, Taktik oluştur kartının hemen altında (kullanıcı 2026-11-24)

@@ -54,6 +54,11 @@
       cb.setAttribute('transform', E.committeeBoatTransform(boat.x, boat.y, E.windAt(scn.wind, 0)));
     }
     for (const m of scn.marks || []) el('circle', { cx: m.x, cy: m.y, r: 4 * k, fill: '#ff8c42', stroke: '#fff', 'stroke-width': k }, svg);
+    // opts.trails: anlatılan teknelerin hesaplanan yolu ince kesik çizgi (Taktik oluştur kartı: "rotayı çiz")
+    if (th.trails) for (const bt of p.boats) if (!bt.crowd) {
+      const pts = []; for (let t = 0; t <= scn.duration; t += 0.25) { const q = E.sampleTrack(bt.track, t); pts.push(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); }
+      el('polyline', { points: pts.join(' '), fill: 'none', stroke: bt.color, 'stroke-width': 1.6 * k, 'stroke-dasharray': `${4 * k} ${4 * k}`, opacity: .7, 'stroke-linecap': 'round' }, svg);
+    }
     th.nodes = p.boats.map(bt => {
       const g = el('g', {}, svg);
       el('path', { d: BoatDraw.hullPath(BoatDraw.pref()), transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
@@ -104,7 +109,7 @@
     // opts.still: durağan kare (ana sayfa listesi); üstüne gelince / basılıyken oynar (hot)
     make(scn, opts) {
       const box = document.createElement('div'); box.className = 'thumb';
-      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), meet: !!(opts && opts.meet), hot: false };
+      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), meet: !!(opts && opts.meet), trails: !!(opts && opts.trails), hot: false };
       if (th.still) {
         const on = v => () => { th.hot = v; if (!v && th.drawn) pose(th, scn.duration * 0.6); kick(); };
         const host = () => box.closest('button, a') || box;

@@ -1197,15 +1197,9 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
 .nx-make-go svg { width: 18px; height: 18px; }
 .nx-make-art { flex: 1 1 auto; min-width: 0; height: calc(100% - 16px); align-self: center; margin: 8px 8px 8px 0; border-radius: 14px; display: block;
   background: radial-gradient(90% 120% at 60% 35%, #14406b 0%, #0d2a4c 60%, #0b1a33 100%); }
-.nx-guide { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1.6; stroke-dasharray: 4 5; }
-.nx-route { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: nxdraw 7s linear infinite; }
-.nx-route.r1 { stroke: #ffb199; }
-.nx-route.r2 { stroke: #8fe3d2; animation-name: nxdraw2; }
-@keyframes nxdraw { 0%, 8% { stroke-dashoffset: 1; opacity: 1; } 72% { stroke-dashoffset: 0; opacity: 1; } 92% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
-@keyframes nxdraw2 { 0%, 18% { stroke-dashoffset: 1; opacity: 1; } 82% { stroke-dashoffset: 0; opacity: 1; } 94% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
-.nx-wind { animation: nxwind 3s ease-in-out infinite alternate; }
-@keyframes nxwind { from { transform: translate(34px, 24px); } to { transform: translate(34px, 29px); } }
-@media (prefers-reduced-motion: reduce) { .nx-route, .nx-wind { animation: none; stroke-dashoffset: 0; } }
+.nx-make-art { position: relative; overflow: hidden; min-height: 112px; }
+.nx-make-thumb { position: absolute !important; inset: 0; background: none !important; border: 0 !important; }
+.nx-make-thumb svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .nx-side .ck-act { min-height: 0; }
 .ck-act { display: flex; align-items: center; gap: 12px; min-height: 70px; padding: 12px 12px 12px 14px; border: 0; border-radius: 18px; text-align: left;
   background: #fff; color: var(--text); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.03);
