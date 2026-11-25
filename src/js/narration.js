@@ -13,9 +13,9 @@
     { id: 'Aoede', label: 'Kadın · sıcak' }
   ];
   const DEFAULT_VOICE = 'Aoede';
-  // Ses motoru sürümü (dosya adına girer; değişince bütün sesler yeniden üretilir). 'g1': Gemini-TTS, anlatıcı yönergesiyle
-  // (kullanıcı 2026-11-24: "hiç akıcı değil"), olmazsa Chirp 3 HD (scripts/tts.mjs).
-  const ENGINE = 'g1';
+  // Ses motoru sürümü (dosya adına girer; değişince bütün sesler yeniden üretilir). 'g2': Gemini-TTS, anlatıcı yönergesiyle
+  // (kullanıcı 2026-11-24: "hiç akıcı değil"; Vertex AI API 2026-11-25 açıldı), olmazsa Chirp 3 HD (scripts/tts.mjs).
+  const ENGINE = 'g2';
   const SAMPLE = 'Merhaba! Bu dersi ben anlatacağım. Rüzgar üç yüz elli dereceden esiyor; pin hafif avantajlı.';
 
   // Ekranda okunan metni konuşmaya uygun hale getirir (kısaltmalar, simgeler, BÜYÜK harfle vurgu)

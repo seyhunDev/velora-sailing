@@ -153,6 +153,7 @@
 
 ## Kararlar
 - 2026-11-24 · **Anlatım akıcı olsun** (kullanıcı: "seslendirme hiç akıcı değil", 8-14 yaş): ses motoru Gemini-TTS (Cloud TTS `gemini-2.5-flash-tts`, ses Aoede, "çocuklara anlatan sıcak antrenör" yönergesiyle; olmazsa Chirp 3 HD, `scripts/tts.mjs`), `SailNarr` ENGINE='g1' dosya adına girer. Adım metinleri artık kısa-kesik değil: 2-3 cümle, "ve, çünkü, bu yüzden" ile bağlı, sohbet dili; işaret yok.
+- 2026-11-25 · Vertex AI API açıldı (kullanıcı) → ENGINE='g2', bütün sesler Gemini ile yeniden. Gemini olmadığında üretilen Chirp sesi önbellekte `<key>.chirp.mp3` olur, sonraki yayında Gemini yeniden denenir. Değişmeyen metin önbellekten (ücretsiz); tam üretim ~55 bin harf, yaklaşık 1 dolar.
 - 2026-11-24: Sailing'e giriş yalnız Velora hesabıyla (kayıt Velora'da yapılır, sonra geldiği sayfaya dönülür). Misafir seçeneği kapalı (`GUEST`), `?izle` tek senaryo girişsiz. Gerekçe: kullanıcı sporculara link gönderip Velora'ya kaydettirmek istiyor.
 - 2026-11-24: Ana sayfa vitrin (Netflix tarzı satırlar + öne çıkan alan). İzlenenler önerilerde ve satırlarda sona iner, ayrı satırda durur, sıfırlanabilir. Hava şartı verisi (hava/maxKn) kullanıcı sonra girecek.
 - 2026-11-23: Ana sayfa renk ve yazı ölçüsü sesliasistan ana sayfasıyla aynı (açık tema, Inter). Ana işler eşit görünür, seçili gibi renk yok; tıklanan kartta sağda ok.
@@ -320,6 +321,10 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+
+### 2026-11-25 · Gemini sesi açıldı
+- Kullanıcı Vertex AI API'yi açtı; ENGINE g2 ile tüm anlatım Gemini-TTS ile yeniden üretildi. Chirp yedekleri ayrı saklanıyor, Gemini sonraki yayında yeniden denenir.
+- Sonraki sohbete: yayın günlüğünde "Gemini N, Chirp 0" görülmeli.
 ### 2026-11-24 · Velora kaydıyla Sailing bağlantısı
 - Yapılan: Güncel durum'daki "Giriş = Velora hesabı"; duman testinde canlı yarış kod formu (sayfadan çıkıyor) rastgele tıklamadan çıkarıldı. Velora PR'ı (sesliasistan) ayrı.
 - Düzeltme: "Site sahibi girişi" kalktı; çıkışta hesap kendiliğinden geri açılmıyor (Firebase + Velora oturumu kapanır).

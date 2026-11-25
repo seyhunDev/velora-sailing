@@ -45,7 +45,7 @@ async function synth(voice, text) {
     for (let tryN = 0; tryN < 4; tryN++) {
       try {
         const mp3 = await call({ input: { prompt: STYLE, text }, voice: { languageCode: 'tr-TR', name: voice, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } });
-        used.gemini++; return mp3;
+        used.gemini++; return { mp3, gemini: true };
       } catch (e) {
         if (/^(400|401|403|404)/.test(e.message)) { geminiOff = true; console.log(`  ⚠ Gemini-TTS kullanılamadı, Chirp 3 HD'ye geçildi: ${String(e.message).slice(0, 200)}`); break; }
         // 429 / 5xx / zaman aşımı: bekleyip yeniden dene; olmazsa bu dosya Chirp ile
@@ -55,7 +55,7 @@ async function synth(voice, text) {
     }
   }
   const mp3 = await call({ input: { text }, voice: { languageCode: 'tr-TR', name: `tr-TR-Chirp3-HD-${voice}` }, audioConfig: { audioEncoding: 'MP3' } });
-  used.chirp++; return mp3;
+  used.chirp++; return { mp3, gemini: false };
 }
 
 const index = { voices: {} };
@@ -67,12 +67,22 @@ for (const v of N.VOICES) {
   mkdirSync(cdir, { recursive: true }); mkdirSync(odir, { recursive: true });
   const keys = [];
   await pool([...texts], 4, async text => {
-    const k = N.key(v.id, text), cf = join(cdir, k + '.mp3');
-    if (!existsSync(cf)) {
+    // Gemini sesi <key>.mp3 olarak saklanır; Gemini olmayınca üretilen Chirp sesi <key>.chirp.mp3 olur ve
+    // bir sonraki yayında Gemini yeniden denenir (Gemini kapalıysa Chirp dosyası önbellekten kullanılır).
+    const k = N.key(v.id, text), gf = join(cdir, k + '.mp3'), chf = join(cdir, k + '.chirp.mp3');
+    let cf = gf;
+    if (existsSync(gf)) cached++;
+    else if (existsSync(chf) && (!KEY || only || stopped || geminiOff)) { cf = chf; cached++; }
+    else {
       if (!KEY || only || stopped) return;
-      try { writeFileSync(cf, await synth(v.id, text)); made++; chars += text.length; }
-      catch (e) { failed++; console.log(`  ⚠ ${v.id}: ${String(e.message).slice(0, 200)}`); if (/^(401|403)/.test(e.message)) stopped = true; return; }
-    } else cached++;
+      try {
+        const r = await synth(v.id, text);
+        cf = r.gemini ? gf : chf; writeFileSync(cf, r.mp3); made++; chars += text.length;
+      } catch (e) {
+        if (existsSync(chf)) cf = chf;
+        else { failed++; console.log(`  ⚠ ${v.id}: ${String(e.message).slice(0, 200)}`); if (/^(401|403)/.test(e.message)) stopped = true; return; }
+      }
+    }
     copyFileSync(cf, join(odir, k + '.mp3')); keys.push(k);
   });
   if (keys.length) index.voices[v.id] = keys;
