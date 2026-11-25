@@ -14,6 +14,8 @@ const N = globalThis.SailNarr;
 
 const CACHE = '.tts-cache', OUT = join('dist', 'ses');
 const KEY = process.env.GOOGLE_TTS_KEY || '';
+// Gemini-TTS kimlik ister (aiplatform.endpoints.predict): servis hesabına bağlı ayrı anahtar GEMINI_TTS_KEY; yoksa KEY denenir
+const GKEY = process.env.GEMINI_TTS_KEY || KEY;
 const only = process.argv.includes('--cache-only');   // yerelde: yalnız önbellekte olanı kopyala
 
 const texts = new Set([N.SAMPLE]);
@@ -27,10 +29,10 @@ const STYLE = 'Sekiz ile on dört yaş arası yelkenci çocuklara ders anlatan s
   'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma.';
 let geminiOff = process.env.TTS_ENGINE === 'chirp';
 const used = { gemini: 0, chirp: 0 };
-async function call(body) {
+async function call(body, key = KEY) {
   const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 60000);
   try {
-    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(KEY)}`, {
+    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal, body: JSON.stringify(body)
     });
     const raw = await res.text();
@@ -44,7 +46,7 @@ async function synth(voice, text) {
   if (!geminiOff) {
     for (let tryN = 0; tryN < 4; tryN++) {
       try {
-        const mp3 = await call({ input: { prompt: STYLE, text }, voice: { languageCode: 'tr-TR', name: voice, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } });
+        const mp3 = await call({ input: { prompt: STYLE, text }, voice: { languageCode: 'tr-TR', name: voice, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } }, GKEY);
         used.gemini++; return { mp3, gemini: true };
       } catch (e) {
         if (/^(400|401|403|404)/.test(e.message)) { geminiOff = true; console.log(`  ⚠ Gemini-TTS kullanılamadı, Chirp 3 HD'ye geçildi: ${String(e.message).slice(0, 200)}`); break; }

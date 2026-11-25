@@ -38,6 +38,7 @@ jobs:
         run: node scripts/tts.mjs
         env:
           GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}
+          GEMINI_TTS_KEY: ${{ secrets.GEMINI_TTS_KEY }}
       # Netlify'a yayın (derleme burada yapılır, Netlify yalnız dist'i alır; Netlify derleme dakikası harcanmaz).
       # Gizli anahtarlar: Settings → Secrets and variables → Actions → NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID
       - name: Netlify'a yayınla
