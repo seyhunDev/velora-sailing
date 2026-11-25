@@ -34,7 +34,10 @@ jobs:
           path: .tts-cache
           key: tts-${{ github.run_id }}
           restore-keys: tts-
+      - name: ffmpeg (Gemini sesini MP3'e çevirmek için)
+        run: command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
       - name: Sesli anlatım
+        timeout-minutes: 40
         run: node scripts/tts.mjs
         env:
           GOOGLE_TTS_KEY: ${{ secrets.GOOGLE_TTS_KEY }}

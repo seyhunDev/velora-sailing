@@ -32,6 +32,13 @@ const PROJECT = process.env.TTS_PROJECT || '828345188662';   // sesli asistanın
 const STYLE = 'Sekiz ile on dört yaş arası yelkenci çocuklara ders anlatan sıcak, sakin ve neşeli bir antrenör gibi oku. ' +
   'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma.';
 const used = { gemini: 0, chirp: 0 };
+const HAS_FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0;
+// Vertex kotası düşük (dakikada birkaç istek): istekler sıraya girer. Bütçe dolunca kalan metinler Chirp ile çıkar,
+// sonraki yayında Gemini yeniden denenir (Chirp dosyaları ayrı saklanıyor).
+const RPM = +(process.env.TTS_GEMINI_RPM || 8), BUDGET = +(process.env.TTS_GEMINI_MINUTES || 25) * 60000, T0 = Date.now();
+let nextAt = 0;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function gate() { const now = Date.now(), at = Math.max(now, nextAt); nextAt = at + 60000 / RPM; if (at > now) await sleep(at - now); }
 async function post(url, body) {
   const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 90000);
   try {
@@ -53,6 +60,8 @@ function pcmToMp3(pcm, rate) {
   return r.stdout;
 }
 async function vertex(model, voice, text) {
+  if (!HAS_FFMPEG) throw new Error('400 ffmpeg yok');
+  await gate();
   const url = `https://aiplatform.googleapis.com/v1/projects/${PROJECT}/locations/global/publishers/google/models/${model}:generateContent?key=${encodeURIComponent(GKEY)}`;
   const j = await post(url, {
     contents: [{ role: 'user', parts: [{ text: STYLE + ' Şu metni oku:\n' + text }] }],
@@ -71,23 +80,28 @@ const ROUTES = [
 let route = process.env.TTS_ENGINE === 'chirp' ? ROUTES.length : 0;
 let geminiOff = route >= ROUTES.length;
 const geminiVia = {};
+let budgetMsg = false;
 async function synth(voice, text) {
   while (route < ROUTES.length) {
     const r = route, R = ROUTES[r];
     let hard = false;
     for (let tryN = 0; tryN < 4; tryN++) {
+      if (Date.now() - T0 > BUDGET) { if (!budgetMsg) { budgetMsg = true; console.log('  ⚠ Gemini süresi doldu, kalan metinler bu yayında Chirp ile'); } break; }
       try {
         const mp3 = await R.run(voice, text);
         used.gemini++; geminiVia[R.id] = (geminiVia[R.id] || 0) + 1; return { mp3, gemini: true };
       } catch (e) {
-        if (/^(400|401|403|404)/.test(e.message)) {
+        const m = String(e.message);
+        if (/^(400|401|403|404)/.test(m)) {
           hard = true;
-          if (route === r) { route++; console.log(`  ⚠ Gemini yolu olmadı (${R.id}): ${String(e.message).slice(0, 260)}`); }
+          if (route === r) { route++; console.log(`  ⚠ Gemini yolu olmadı (${R.id}): ${m.slice(0, 260)}`); }
           break;
         }
-        // 429 / 5xx / zaman aşımı: bekleyip yeniden dene; olmazsa bu dosya Chirp ile (sonraki yayında yeniden denenir)
-        if (tryN < 3) await new Promise(res => setTimeout(res, 4000 * (tryN + 1)));
-        else console.log(`  ⚠ Gemini bu metinde olmadı, Chirp: ${String(e.message).slice(0, 120)}`);
+        if (/^ffmpeg/.test(m)) { console.log('  ⚠ ' + m.slice(0, 160)); break; }   // ses geldi ama çevrilemedi: yeniden isteme
+        // 429 kota / 5xx / zaman aşımı: kuyruğu yavaşlat, bekle, yeniden dene; olmazsa bu dosya Chirp ile
+        if (/^429/.test(m)) nextAt = Math.max(nextAt, Date.now()) + 20000;
+        if (tryN < 3) await sleep(5000 * (tryN + 1));
+        else console.log(`  ⚠ Gemini bu metinde olmadı, Chirp: ${m.slice(0, 120)}`);
       }
     }
     if (!hard) break;
