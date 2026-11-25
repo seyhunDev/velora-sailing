@@ -22,41 +22,78 @@ const texts = new Set([N.SAMPLE]);
 for (const s of globalThis.SCENARIOS.filter(x => x.narration !== false))
   for (const st of s.steps) texts.add(N.speechText(st.title, st.text));
 
-// Önce Gemini-TTS (Cloud Text-to-Speech, aynı anahtar): anlatıcı yönergesiyle doğal, akıcı okur.
-// Model kabul edilmezse (yetki / bölge / API kapalı) bir kez uyarı yazar, gerisi Chirp 3 HD ile üretilir.
+// Önce Gemini sesi (anlatıcı yönergesiyle doğal, akıcı okur), sırayla şu yollar denenir:
+//  1) Cloud Text-to-Speech + Gemini modeli (düz API anahtarı kimlik taşımadığı için 2026-11-25'te reddedildi)
+//  2) Vertex AI generateContent (servis hesabına bağlı GEMINI_TTS_KEY ile), PCM döner → ffmpeg ile MP3
+// Bir yol 4xx verirse bir kez uyarı yazar, sıradakine geçer; hepsi kapanırsa Chirp 3 HD.
+import { spawnSync } from 'node:child_process';
 const GEMINI_MODEL = process.env.TTS_GEMINI_MODEL || 'gemini-2.5-flash-tts';
+const PROJECT = process.env.TTS_PROJECT || '828345188662';   // sesli asistanın Google Cloud projesi (numarası gizli değil)
 const STYLE = 'Sekiz ile on dört yaş arası yelkenci çocuklara ders anlatan sıcak, sakin ve neşeli bir antrenör gibi oku. ' +
   'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma.';
-let geminiOff = process.env.TTS_ENGINE === 'chirp';
 const used = { gemini: 0, chirp: 0 };
-async function call(body, key = KEY) {
-  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 60000);
+async function post(url, body) {
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 90000);
   try {
-    const res = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal, body: JSON.stringify(body)
-    });
+    const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, signal: ctrl.signal, body: JSON.stringify(body) });
     const raw = await res.text();
-    if (!res.ok) throw new Error(`${res.status} ${raw.slice(0, 200)}`);
-    const b64 = JSON.parse(raw).audioContent;
-    if (!b64) throw new Error('ses verisi yok');
-    return Buffer.from(b64, 'base64');
+    if (!res.ok) throw new Error(`${res.status} ${raw.slice(0, 300)}`);
+    return JSON.parse(raw);
   } finally { clearTimeout(timer); }
 }
+async function cloudTts(body, key) {
+  const j = await post(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(key)}`, body);
+  if (!j.audioContent) throw new Error('ses verisi yok');
+  return Buffer.from(j.audioContent, 'base64');
+}
+function pcmToMp3(pcm, rate) {
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', String(rate), '-ac', '1', '-i', 'pipe:0',
+    '-codec:a', 'libmp3lame', '-b:a', '64k', '-f', 'mp3', 'pipe:1'], { input: pcm, maxBuffer: 64 << 20 });
+  if (r.status !== 0 || !r.stdout?.length) throw new Error('ffmpeg: ' + String(r.stderr || r.error || '').slice(0, 200));
+  return r.stdout;
+}
+async function vertex(model, voice, text) {
+  const url = `https://aiplatform.googleapis.com/v1/projects/${PROJECT}/locations/global/publishers/google/models/${model}:generateContent?key=${encodeURIComponent(GKEY)}`;
+  const j = await post(url, {
+    contents: [{ role: 'user', parts: [{ text: STYLE + ' Şu metni oku:\n' + text }] }],
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } }
+  });
+  const part = j.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data);
+  if (!part) throw new Error('ses verisi yok');
+  const rate = +(/rate=(\d+)/.exec(part.inlineData.mimeType || '')?.[1] || 24000);
+  return pcmToMp3(Buffer.from(part.inlineData.data, 'base64'), rate);
+}
+const ROUTES = [
+  { id: 'Cloud TTS ' + GEMINI_MODEL, run: (v, t) => cloudTts({ input: { prompt: STYLE, text: t }, voice: { languageCode: 'tr-TR', name: v, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } }, GKEY) },
+  { id: 'Vertex ' + GEMINI_MODEL, run: (v, t) => vertex(GEMINI_MODEL, v, t) },
+  { id: 'Vertex gemini-2.5-flash-preview-tts', run: (v, t) => vertex('gemini-2.5-flash-preview-tts', v, t) }
+];
+let route = process.env.TTS_ENGINE === 'chirp' ? ROUTES.length : 0;
+let geminiOff = route >= ROUTES.length;
+const geminiVia = {};
 async function synth(voice, text) {
-  if (!geminiOff) {
+  while (route < ROUTES.length) {
+    const r = route, R = ROUTES[r];
+    let hard = false;
     for (let tryN = 0; tryN < 4; tryN++) {
       try {
-        const mp3 = await call({ input: { prompt: STYLE, text }, voice: { languageCode: 'tr-TR', name: voice, modelName: GEMINI_MODEL }, audioConfig: { audioEncoding: 'MP3' } }, GKEY);
-        used.gemini++; return { mp3, gemini: true };
+        const mp3 = await R.run(voice, text);
+        used.gemini++; geminiVia[R.id] = (geminiVia[R.id] || 0) + 1; return { mp3, gemini: true };
       } catch (e) {
-        if (/^(400|401|403|404)/.test(e.message)) { geminiOff = true; console.log(`  ⚠ Gemini-TTS kullanılamadı, Chirp 3 HD'ye geçildi: ${String(e.message).slice(0, 200)}`); break; }
-        // 429 / 5xx / zaman aşımı: bekleyip yeniden dene; olmazsa bu dosya Chirp ile
-        if (tryN < 3) await new Promise(r => setTimeout(r, 4000 * (tryN + 1)));
-        else console.log(`  ⚠ Gemini-TTS bu metinde olmadı, Chirp: ${String(e.message).slice(0, 120)}`);
+        if (/^(400|401|403|404)/.test(e.message)) {
+          hard = true;
+          if (route === r) { route++; console.log(`  ⚠ Gemini yolu olmadı (${R.id}): ${String(e.message).slice(0, 260)}`); }
+          break;
+        }
+        // 429 / 5xx / zaman aşımı: bekleyip yeniden dene; olmazsa bu dosya Chirp ile (sonraki yayında yeniden denenir)
+        if (tryN < 3) await new Promise(res => setTimeout(res, 4000 * (tryN + 1)));
+        else console.log(`  ⚠ Gemini bu metinde olmadı, Chirp: ${String(e.message).slice(0, 120)}`);
       }
     }
+    if (!hard) break;
   }
-  const mp3 = await call({ input: { text }, voice: { languageCode: 'tr-TR', name: `tr-TR-Chirp3-HD-${voice}` }, audioConfig: { audioEncoding: 'MP3' } });
+  if (route >= ROUTES.length) geminiOff = true;
+  const mp3 = await cloudTts({ input: { text }, voice: { languageCode: 'tr-TR', name: `tr-TR-Chirp3-HD-${voice}` }, audioConfig: { audioEncoding: 'MP3' } }, KEY);
   used.chirp++; return { mp3, gemini: false };
 }
 
@@ -91,5 +128,5 @@ for (const v of N.VOICES) {
 }
 mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, 'index.json'), JSON.stringify(index));
-console.log(`Sesli anlatım: ${texts.size} metin × ${N.VOICES.length} ses · yeni ${made} (${chars} harf), önbellekten ${cached}, hata ${failed} · Gemini ${used.gemini}, Chirp ${used.chirp}` +
+console.log(`Sesli anlatım: ${texts.size} metin × ${N.VOICES.length} ses · yeni ${made} (${chars} harf), önbellekten ${cached}, hata ${failed} · Gemini ${used.gemini} ${JSON.stringify(geminiVia)}, Chirp ${used.chirp}` +
   (KEY ? '' : ' · GOOGLE_TTS_KEY yok: cihaz sesi kullanılacak'));
