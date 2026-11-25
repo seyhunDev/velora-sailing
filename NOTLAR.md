@@ -323,6 +323,7 @@
 ## Oturum günlüğü (en yeni üstte)
 
 ### 2026-11-25 · Gemini sesi açıldı
+- v1.234: Gemini sesi Vertex AI generateContent yolundan çalışıyor (Cloud TTS yolu API anahtarı kabul etmiyor). Anahtar GEMINI_TTS_KEY (servis hesabına bağlı). PCM, yayında kurulan ffmpeg ile MP3'e çevriliyor. Kota düşük: dakikada 8 istek, 25 dakika sınırı. 295 adımın hepsi Gemini (iki yayında).
 - Kullanıcı Vertex AI API'yi açtı; ENGINE g2 ile tüm anlatım Gemini-TTS ile yeniden üretildi. Chirp yedekleri ayrı saklanıyor, Gemini sonraki yayında yeniden denenir.
 - Sonraki sohbete: yayın günlüğünde "Gemini N, Chirp 0" görülmeli.
 ### 2026-11-24 · Velora kaydıyla Sailing bağlantısı
