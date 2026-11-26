@@ -322,6 +322,10 @@
 
 ## Oturum günlüğü (en yeni üstte)
 
+### 2026-11-26 · Simülatör 3D: gerçekçi Optimist (kullanıcı: "tekne olmamış, dümen, salma, yelken, ipler bağlı değil")
+- Yeni `js/optimist3d.js` (`optimistFactory(THREE).make(renk)` → `pose({beta, tack, flutter, time, tiller})`): Ayarlar modelinin ölçüleriyle gövde, iç düzen, salma + tutamak, Optimist dümeni + yeke + uzatma, direk, bumba, gırcala, gırcala yelkeni (sınıf ölçüleriyle tepe köşesi hesaplanır), direk ve alt yaka bağları, palanga, gırcala ipi, mandar, köşe gergisi, ana iskota (kıç köprüsü → bumba → orta makara → taban → el). Geometri/malzeme teknelerde paylaşılır. `sim3d.js` Optimist için bunu, ILCA için eski basit modeli kullanır; bumba en çok 70°. sim.html import map'ine `optimist3d` eklendi.
+- İnternetteki hazır 3D modeller kullanılmadı: lisansları belirsiz/ticari, GLTF yükleyici + ağır dosya telefonda yük; model kod içinde sınıf ölçülerinden kuruldu.
+
 ### 2026-11-25 · Gemini sesi açıldı
 - v1.234: Gemini sesi Vertex AI generateContent yolundan çalışıyor (Cloud TTS yolu API anahtarı kabul etmiyor). Anahtar GEMINI_TTS_KEY (servis hesabına bağlı). PCM, yayında kurulan ffmpeg ile MP3'e çevriliyor. Kota düşük: dakikada 8 istek, 25 dakika sınırı. 295 adımın hepsi Gemini (iki yayında).
 - Kullanıcı Vertex AI API'yi açtı; ENGINE g2 ile tüm anlatım Gemini-TTS ile yeniden üretildi. Chirp yedekleri ayrı saklanıyor, Gemini sonraki yayında yeniden denenir.
