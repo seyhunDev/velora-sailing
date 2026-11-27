@@ -353,6 +353,8 @@
 8. Filo `row`/`back` teknenin ROTASI boyunca geri koyar. Hat avantajı büyükse (ör. rüzgar 335°, yatay hat) orsa rotası hatta neredeyse paraleldir ve ikinci sıra yana kayar: ikinci sırayı `pos` ile hattın ~1 boy altına ver.
 9. Senaryo teknesinin hemen önündeki (aynı kontra, yakın) filo teknesi pis rüzgarda yavaşlayınca senaryo teknesi onun kıçına biner (K11 uyarısı): o filo teknesini kaldır ya da aralığı ~110 px yap.
 10. Senaryodaki gri tekneler (`crowd: true` olan ders tekneleri) ile kural filosu aynı numaraları almasın: filo 1..N numaralanır, gri senaryo teknesine N'den büyük id ver (S25'te iki "1" ve iki "2" vardı).
+14. `fleetCopies` kopyaları `goto` hedefini AYNEN alır (mutlak nokta) ve dönüşten sonra aynı pupa rotasıyla gider: sonda üst üste binerler. Kopyaların son ayağına farklı yön ver (ör. +15° adım).
+15. Arka plan teknesi eklerken iskele/sancak kesişmesi yaratma (kural ihlali gibi görünür); yalnızca aynı kontrada, ders çiftlerinden uzakta.
 11. Hata teknesinin kritik anı (burun çizgide, çarpma, yetişememe) o adımın zamanında sahnede gerçekten görünsün; sayıyla doğrula (S22'de burun çizgiye hiç varmıyordu).
 12. Yazı çakışması: hakem botu yazısı (`committeeLabel`) bekleyen teknelerin ve bayrak yazısının üstüne binmesin; gerekirse bekleyenleri biraz uzağa al.
 13. Ders teknesinin rengi gri filoyla karışmasın (gri yerine mor `#c77dff`).
@@ -381,7 +383,9 @@
 | S24 | `a9-clear-air-tack` | ✅ | Filo sık (12 tekne); dokunulmadı. |
 | S25 | `a9b-foot-out` | ✅ | Gri senaryo teknelerinin numarası filoyla çakışıyordu (1, 2 → 10, 11); Kural 11 cümlesi düzeldi. |
 | P1 | `c1-header-tack` | ✅ | Terimler: rüzgar açınca tramola at, çeken kontrada kal. |
-| P2-P6 | C3, C4, C4b, D3, D3b | ✅ | 2026-11-23'te filoyla yapılmıştı; ekran görüntüsünde sorun yok. "lee-bow" ve "barging" okunuşu eklendi. Fikir: P2'de layline'da daha çok tekne. |
+| P2 | `c3-layline` | ✅ | 2. tur (kullanıcı "devam edelim"): layline sırasında önde 2 tekne daha (`ahead`, pupa rotaları 210°/225°, aynı rotada üst üste biniyorlardı). |
+| P3 | `c4-lee-bow` | ✅ | 2. tur: etrafta seyreden 4 gri tekne (`G(id,x,y,tack)`), çiftler artık boş denizde değil. |
+| P4-P6 | C4b, D3, D3b | ✅ | 2026-11-23'te filoyla yapılmıştı; ekran görüntüsünde sorun yok. "lee-bow" ve "barging" okunuşu eklendi. |
 | Ş1-Ş3 | E2, E1, D4 | ✅ | Filo var, sorun yok. Not: Ş1'de şamandıra yazısını tekneler örtüyor (motor yazısı, dokunulmadı). |
 | K1 | `b1-rule10` | ✅ | Tekneler alt kenardaydı, 45 px yukarı. İki teknelik temel kural dersi olarak kaldı. |
 | K2 | `b8-rule18` | ✅ | Şamandıra ve bölge üst çubuğun altında kalıyordu, sahne 82 px aşağı. |

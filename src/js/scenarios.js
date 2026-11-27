@@ -871,7 +871,9 @@
           { mode: 'goto', x: 452, y: 170, dur: 40, rate: 90, note: 'Üçüncü tramola' },
           ...round
         ] };
-      return [D, F, E, ...fleetCopies(D, [{ dx: 60, dy: -100 }, { dx: 80, dy: -180 }], 1)];
+      // layline'da sıra: önde iki tekne daha (dönüşten sonra biraz farklı pupa rotasıyla, sıra üst üste binmesin)
+      const ahead = fleetCopies(D, [{ dx: 110, dy: -300 }, { dx: 150, dy: -390 }], 3).map((b, i) => ({ ...b, segs: b.segs.map((sg, j) => j === b.segs.length - 1 ? { ...sg, h: 210 + i * 15 } : sg) }));
+      return [D, F, E, ...fleetCopies(D, [{ dx: 60, dy: -100 }, { dx: 80, dy: -180 }], 1), ...ahead];
     })(),
     steps: [
       { t: 0, title: 'Üç tekne aynı hizada', text: 'Üç tekne de iskele kontrada orsa gidiyor ve kesikli çizgiye göre hepsi aynı basamakta. Bakalım şamandıraya kim önce varacak.' },
@@ -935,7 +937,10 @@
           { mode: 'hold', h: 350, dur: 1.4, speed: 0.25, turn: 0.4, note: 'Kaçmak zorunda! Protesto!' },
           { mode: 'closehauled', tack: 'starboard', dur: 15, turn: 1.2 }
         ] };
-      return [D, S1, Y, S2];
+      // arka plandaki filo (2026-11-27): orsa ayağında tek başına iki çift değil, etrafta seyreden tekneler
+      const G = (id, x, y, tack) => ({ id, name: 'Filo', color: '#b8c7d6', crowd: true, start: { x, y, h: tack === 'port' ? 45 : 315 }, v0: 20,
+        segs: [{ mode: 'closehauled', tack, dur: 22, turn: 0 }] });
+      return [D, S1, Y, S2, G('3', 560, 640, 'starboard'), G('4', 1000, 560, 'starboard'), G('5', 250, 690, 'starboard'), G('6', 330, 660, 'starboard')];
     })(),
     steps: [
       { t: 0, title: 'İki ayrı karşılaşma', text: 'Solda yeşil D, sağda turuncu Y iskele kontrada gidiyor ve ikisinin de önüne sancak kontrada gri bir tekne çıkıyor. Yol hakkı sancak teknede.' },
