@@ -1,17 +1,18 @@
 // Giriş ara ekranı, roller ve erişim (SailAccess).
 //
-// ÖNEMLİ: Bu katman tamamen tarayıcıda çalışır, GERÇEK GÜVENLİK DEĞİLDİR. Kodu bilen biri kilitleri
-// tarayıcı konsolundan açabilir. Amaç şimdilik ziyaretçiyi yönlendirmek ve kayıt toplamaktır.
-// Gerçek kısıtlama Firebase Auth + Firestore güvenlik kurallarıyla gelecek; o zaman `signup`/`ownerLogin`
-// Firebase çağrılarına bağlanır, rol sunucudan okunur, FEATURES tablosu aynen kalır.
+// Bu katman tarayıcıda çalışır ve yalnız arayüzü yönlendirir (kilitler, menü). Kimin hangi veriyi okuyup yazabileceğini
+// Firebase Auth + Firestore kuralları belirler (Velora: firestore.rules → Velora Sailing bölümü).
 //
-// Roller: 'sahip' (sınırsız) · 'kayitli' (kaydolmuş) · 'misafir'. Hesap localStorage 'ps.account.v1'.
-// Sahip girişi: anahtarın kendisi kodda YOK, yalnızca SHA-256 özeti var. Giriş ekranında "Sahip girişi"
-// ya da adres çubuğunda ?sahip=ANAHTAR. Anahtar değişecekse OWNER_HASH yeniden hesaplanır:
-//   node -e "console.log(require('crypto').createHash('sha256').update('ps-owner-v1:'+process.argv[1]).digest('hex'))" YENI-ANAHTAR
+// Roller: 'sahip' (site sahibi / admin) · 'kayitli' (Velora hesabıyla giren herkes) · 'misafir'. Hesap localStorage 'ps.account.v1'.
+// Sahip YALNIZ Seyhun'un Velora hesabıdır (kullanıcı 2026-11-27): uid OWNER_UID ya da e-posta OWNER_MAIL. Velora'daki işletme
+// sahipliği, anahtarla giriş (eski ?sahip=) ya da cihazda saklı eski rol sahip yapmaz. Veriye erişimi asıl Firestore kuralları
+// belirler (sailUsers/{uid}, sailChallenges: herkes yalnız kendi verisi; sahip hepsini okur).
 (function () {
   const ACC = 'ps.account.v1';
-  const OWNER_HASH = '8be3211987e7c28a67b091e52e657e21ae03992b361fbd159f4e44599a2e1a06';
+  const OWNER_UID = 'wIfcw0kHBVVu2DVMiyg1fcSA85F3', OWNER_MAIL = 'seyhunyildiz@gmail.com';
+  const isOwnerAcc = a => !!a && a.via === 'velora' && (a.uid === OWNER_UID || String(a.email || '').trim().toLowerCase() === OWNER_MAIL);
+  // rol cihazdan değil hesaptan gelir: Velora hesabı → sahip / kayıtlı, Velora'sız eski hesap → misafir (yeniden giriş ekranı)
+  const fixRole = a => { if (!a) return a; const r = a.via === 'velora' ? (isOwnerAcc(a) ? 'sahip' : 'kayitli') : 'misafir'; return r === a.role ? a : { ...a, role: r }; };
   const ROLE_NAMES = { sahip: 'Sahip', kayitli: 'Kayıtlı', misafir: 'Misafir' };
 
   // Hangi rol neye erişir. Değiştirmek için yalnız bu tabloyu düzenle.
@@ -35,6 +36,7 @@
   const rid = () => (crypto.randomUUID ? crypto.randomUUID() : 'u' + Math.random().toString(36).slice(2) + Date.now().toString(36));
 
   let acc = get();
+  { const f = fixRole(acc); if (f !== acc) { acc = f; put(acc); } }
   let veloraWait = false;
   const role = () => (acc && acc.role) || 'misafir';
   const signedIn = () => !!acc && (GUEST || acc.role !== 'misafir');
@@ -58,13 +60,6 @@
   const can = f => { const x = FEATURES[f]; return !x || x.roles.includes(role()); };
   function syncWho() { T.setWho({ role: acc ? acc.role : null, uid: acc && acc.uid, name: (acc && acc.name) || '' }); document.documentElement.dataset.role = role(); }
   syncWho();
-
-  async function sha256(text) {
-    if (!(crypto.subtle && crypto.subtle.digest)) return '';
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  async function isOwnerKey(key) { return !!key && (await sha256('ps-owner-v1:' + key.trim())) === OWNER_HASH; }
 
   function setAccount(a, how) {
     acc = a; put(a); syncWho(); chipUpdate();
@@ -176,22 +171,6 @@
       body.querySelector('#gateSignup').onclick = () => toVelora('register');
       body.querySelector('#gateVelora').onclick = () => { if (window.VeloraAuth) { gateMode = 'velora'; renderGate(); } else toVelora('login'); };
       body.querySelector('#gateBack').onclick = () => { T.log('locked', { feature: lockedFeature, answer: 'vazgeç' }); closeGate('vazgeç'); };
-    } else if (gateMode === 'owner') {
-      body.innerHTML = `
-        <button class="gate-back" id="goBack">${BACK}Geri</button>
-        <h2 id="gateTitle" class="gate-h">Site sahibi girişi</h2>
-        <form class="gate-form" id="gateOwnerForm">
-          <input id="goKey" type="password" autocomplete="current-password" required placeholder="Sahip anahtarı" aria-label="Sahip anahtarı">
-          <div class="gate-err" id="goErr"></div>
-          <button class="gate-btn primary" id="goGo">Giriş</button>
-        </form>`;
-      body.querySelector('#goBack').onclick = back;
-      body.querySelector('#gateOwnerForm').onsubmit = async e => {
-        e.preventDefault();
-        const ok = await ownerLogin(body.querySelector('#goKey').value);
-        if (!ok) { body.querySelector('#goErr').textContent = 'Anahtar doğru değil.'; T.log('owner', { ok: false }); }
-      };
-      setTimeout(() => body.querySelector('#goKey')?.focus(), 30);   // hızlı dokunuşta ekran değişmiş olabilir (rastgele tıklama testi buldu)
     }
   }
 
@@ -217,23 +196,12 @@
     T.log('gate', { choice: 'misafir' });
     gate.classList.add('hidden'); document.documentElement.classList.remove('gate-open');
   }
-  async function ownerLogin(key) {
-    if (!(await isOwnerKey(key))) return false;
-    applyConsent();
-    const prev = acc || {};
-    setAccount({ ...prev, role: 'sahip', uid: prev.uid || rid(), name: prev.name || 'Site sahibi', since: prev.since || new Date().toISOString() }, 'sahip');
-    T.log('owner', { ok: true });
-    if (gate) { gate.classList.add('hidden'); document.documentElement.classList.remove('gate-open'); }
-    toast('Sahip girişi yapıldı: her şey açık.');
-    return true;
-  }
-
   // Velora hesabıyla giriş (js/velora-auth.js çağırır): rol Velora'dan gelir, hesap bu cihazda da saklanır
   let veloraMsg = '';
   function veloraLogin(u, how) {
     applyConsent();
     const prev = acc || {};
-    const role = u.role === 'sahip' || prev.role === 'sahip' ? 'sahip' : 'kayitli';
+    const role = isOwnerAcc({ via: 'velora', uid: u.uid, email: u.email }) ? 'sahip' : 'kayitli';
     const same = prev.via === 'velora' && prev.uid === u.uid;
     setAccount({ role, uid: u.uid, name: u.name, email: u.email, via: 'velora', since: same && prev.since ? prev.since : new Date().toISOString() }, how);
     T.log('velora', { ok: true, how, role });
@@ -293,14 +261,13 @@
       ${can('visits') ? '<a class="acc-item" href="ziyaret.html" data-a="visits">Ziyaret kayıtları</a>' : ''}
       ${window.VeloraData ? `<button class="acc-item" data-a="data">Veri kullanımı <small>bugün ${VeloraData.fmt(VeloraData.stats().today)}</small></button>` : ''}
       <button class="acc-item" data-a="privacy">Gizlilik ve verilerim <small>${c === false ? 'kayıt kapalı' : 'kayıt açık'}</small></button>
-      ${r !== 'misafir' ? '<button class="acc-item" data-a="logout">Çıkış yap</button>' : '<button class="acc-item" data-a="owner">Site sahibi girişi</button>'}`;
+      ${r !== 'misafir' ? '<button class="acc-item" data-a="logout">Çıkış yap</button>' : ''}`;
     // sayfanın kendi ayarları (ör. ana sayfada görünüm anahtarları, #pageSettings) menünün altına
     extra = extra || document.getElementById('pageSettings');      // ilk açılışta bulunur; sonra menüye taşınmış olarak saklanır
     if (extra) { menu.appendChild(extra); extra.hidden = false; }
     menu.querySelectorAll('[data-a]').forEach(x => x.onclick = () => {
       const a = x.dataset.a; menu.classList.add('hidden');
       if (a === 'signup') openGate('home');
-      else if (a === 'owner') openGate('owner');
       else if (a === 'privacy') openPrivacy();
       else if (a === 'data') window.VeloraData.open();
       else if (a === 'logout') logout();
@@ -359,19 +326,16 @@
     return false;
   }
 
-  window.SailAccess = { FEATURES, role, can, guard, account: () => acc, open: openGate, ownerLogin, veloraLogin, veloraFail, ROLE_NAMES, closeMenu: () => menu && toggleMenu(false) };
+  window.SailAccess = { FEATURES, role, can, guard, account: () => acc, open: openGate, isOwner: () => role() === 'sahip', OWNER_UID, veloraLogin, veloraFail, ROLE_NAMES, closeMenu: () => menu && toggleMenu(false) };
 
   // ---------- açılış ----------
   if (T.newSession) T.log('visit', T.context());
   T.log('page', { title: document.title.slice(0, 80) });
   buildChip();
-  // ?sahip=ANAHTAR: sahip girişi, sonra adresten temizle
+  // eski ?sahip=ANAHTAR bağlantısı artık bir şey açmaz (sahip = Seyhun'un Velora hesabı); adresten temizlenir
   const q = new URLSearchParams(location.search);
-  if (q.has('sahip')) {
-    const key = q.get('sahip'); q.delete('sahip');
-    history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
-    ownerLogin(key).then(ok => { if (!ok && !acc) openGate('owner'); });
-  } else if (window.__veloraToken) {
+  if (q.has('sahip')) { q.delete('sahip'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
+  if (window.__veloraToken) {
     // Velora'dan anahtarla gelindi: giriş ekranı gösterilmeden velora-auth.js oturumu açar; 12 sn'de olmazsa ekran açılır
     veloraWait = true;
     setTimeout(() => { if (veloraWait && !signedIn()) openGate('home'); veloraWait = false; }, 12000);

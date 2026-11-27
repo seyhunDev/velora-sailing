@@ -276,14 +276,14 @@
   const rulesText = D.rulesText;
   function setupHtml() {
     const uid = be && be.uid();
-    if (!uid || !isCoach()) return `<p class="net-empty">Antrenör yarışları henüz açılmadı (site sahibinin Firebase'de bir kez kurulum yapması gerekiyor).${beErr ? ` <small>(${esc(beErr)})</small>` : ''}</p>`;
+    if (!uid || !(window.SailAccess && SailAccess.role() === 'sahip')) return `<p class="net-empty">Antrenör yarışları şu an açılamıyor (site sahibinin Firebase kurallarını güncellemesi gerekiyor).${beErr ? ` <small>(${esc(beErr)})</small>` : ''}</p>`;
     return `<div class="net-setup"><ol>
-        <li><a href="https://console.firebase.google.com/project/${PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore kurallarını aç</a>. Mevcut kuralları <b>silme</b>; aşağıdaki bloğu <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır → <b>Yayınla</b>.</li>
-        <li><a href="https://console.firebase.google.com/project/${PROJECT}/authentication/providers" target="_blank" rel="noopener">Authentication → Sign-in method</a> → <b>Anonymous</b> (Anonim) → <b>Etkinleştir</b> → Kaydet. Hesabı olmayan sporcular yarışını adıyla bununla gönderir.</li>
+        <li>Kurallar Velora deposunda: <code>firestore.rules</code> (Velora Sailing bölümü). Orada <code>pbcopy &lt; firestore.rules</code>, sonra <a href="https://console.firebase.google.com/project/${PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore kuralları</a>: hepsini seç, yapıştır → <b>Yayınla</b>.</li>
+        <li><a href="https://console.firebase.google.com/project/${PROJECT}/authentication/providers" target="_blank" rel="noopener">Authentication → Sign-in method</a> → <b>Anonymous</b> açık olmalı (hesabı olmayan sporcular yarışını adıyla gönderir).</li>
         <li>Bu sayfayı yenile, <b>Yarışlar</b>'a yeniden dokun.</li></ol>
-      <div class="net-rules-h"><span>Firestore kuralı (yarış oluşturma yetkisi: senin hesabın)</span><button class="tb" data-act="copyRules">Kopyala</button></div>
-      <pre class="net-rules" id="taskRules">${esc(rulesText(uid))}</pre>
-      <p class="dlg-note">Başka antrenörlere yetki: Firestore'da <code>sailCoaches/{uid}</code> belgesi oluştur (içi boş olabilir). ${beErr ? `Hata: ${esc(beErr)}` : ''}</p></div>
+      <div class="net-rules-h"><span>Velora Sailing bölümü (kontrol için)</span><button class="tb" data-act="copyRules">Kopyala</button></div>
+      <pre class="net-rules" id="taskRules">${esc(rulesText())}</pre>
+      ${beErr ? `<p class="dlg-note">Hata: ${esc(beErr)}</p>` : ''}</div>
       <div class="dlg-actions"><button class="tb" data-act="home">Geri</button></div>`;
   }
 

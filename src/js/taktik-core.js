@@ -3,16 +3,24 @@
                    boats:[{id, name, color, x, y, route:[{x,y}]}], updated }
    Rota noktaları motorda 'goto' segmentine çevrilir; rüzgara 45°'den yakın bir bacakta tek tramola noktası
    kendiliğinden eklenir (tekne orsada zikzak çizer). Rotası olmayan tekne yerinde bekler.
-   Kayıt bu cihazda (localStorage 'ps.taktik.v1'); paylaşım bağlantısı taslağı adreste taşır (?t=...).
+   Kayıt hesaba bağlı (js/user-data.js: cihazda '<ps.taktik.v1>@uid', bulutta sailUsers/{uid}/sailTactics); paylaşım bağlantısı taslağı adreste taşır (?t=...).
    Ana sayfa / oynatıcı: kayıtlı ve paylaşılan taktikler SCENARIOS'a 'Taktiklerim' kategorisiyle eklenir. */
 (function (global) {
   const E = global.SailEngine;
   const KEY = 'ps.taktik.v1';
   const CAT = 'Taktiklerim';
   const BASE = 50;                       // taban hız (px/sn), senaryolarla aynı
-  const COLORS = ['#e63946', '#2a9d8f', '#f4a261', '#4361ee', '#9b5de5', '#ffd166'];
-  const LETTERS = 'ABCDEF';
-  const MAX_BOATS = 6, MAX_MARKS = 4, MAX_PTS = 12, MAX_NOTES = 10, MAX_GUSTS = 3;
+  const COLORS = ['#e63946', '#2a9d8f', '#f4a261', '#4361ee', '#9b5de5', '#ffd166', '#06d6a0', '#ef476f', '#118ab2', '#fb8500', '#8338ec', '#adb5bd'];
+  const LETTERS = 'ABCDEFGHJKLM';
+  // Sınırlar (kullanıcı 2026-11-27): sporcular ve diğer kullanıcılar LIMITS; site sahibi (Seyhun) sınırsız, yalnız çizimin taşıyabildiği
+  // üst sınır HARD (12 tekne harfi/rengi var). Kayıtlı taktik sayısı: kullanıcı başına 10 (ileride paketlere bağlanabilir);
+  // bu sayı Firestore kuralında da zorlanır (sailUsers/{uid}.tac listesi en çok 10). Paylaşılan taslaklar HARD'a göre temizlenir
+  // (sahibin 12 tekneli taktiği sporcuda da eksiksiz oynar), ekleme düğmeleri role göre LIMITS.
+  const HARD = { boats: 12, marks: 8, pts: 30, notes: 30, gusts: 8 };
+  const LIMITS = { boats: 6, marks: 4, pts: 12, notes: 10, gusts: 3, tactics: 10 };
+  const isOwner = () => !!(global.SailAccess && global.SailAccess.role && global.SailAccess.role() === 'sahip');
+  const lim = k => (isOwner() ? (k === 'tactics' ? Infinity : HARD[k]) : LIMITS[k]);
+  const MAX_BOATS = HARD.boats, MAX_MARKS = HARD.marks, MAX_PTS = HARD.pts, MAX_NOTES = HARD.notes, MAX_GUSTS = HARD.gusts;
   const r1 = v => Math.round(v);
   // seyir seçenekleri: rüzgara göre açı (TWA). Rota noktası bu açıyla bir önceki noktaya oturur.
   const SAILS = { orsa: { a: 45, label: 'Orsa' }, apaz: { a: 90, label: 'Apaz' }, genis: { a: 135, label: 'Geniş apaz' }, pupa: { a: 180, label: 'Pupa' } };
@@ -80,18 +88,28 @@
   function fromTemplate(id) { const t = TEMPLATES.find(x => x.id === id) || TEMPLATES[0]; return Object.assign(blank(), t.make()); }
 
   // ---------- Kayıt ----------
+  // Hesaba bağlı (js/user-data.js, kullanıcı 2026-11-27): her kullanıcı yalnız kendi taktiklerini görür; bulutta sailUsers/{uid}/sailTactics.
+  // user-data.js yüklü değilse (node betikleri) eski cihaz anahtarı.
+  const UD = () => global.SailUserData || null;
+  const okDoc = d => d && d.id && Array.isArray(d.boats);
   function list() {
-    try { const a = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(a) ? a.filter(d => d && d.id && Array.isArray(d.boats)) : []; }
+    if (UD()) return UD().list('tactics').filter(okDoc);
+    try { const a = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(a) ? a.filter(okDoc) : []; }
     catch (e) { return []; }
   }
   function get(id) { return list().find(d => d.id === id) || null; }
+  // yeni bir taktik daha kaydedilebilir mi (sınır: lim('tactics'))
+  const canAdd = id => isOwner() || list().some(d => d.id === id) || list().length < lim('tactics');
   function save(doc) {
-    const a = list().filter(d => d.id !== doc.id);
+    if (!canAdd(doc.id)) return 'limit';
     doc.updated = Date.now();
+    if (UD()) { try { UD().put('tactics', clean(doc)); return true; } catch (e) { return false; } }
+    const a = list().filter(d => d.id !== doc.id);
     a.unshift(clean(doc));
     try { localStorage.setItem(KEY, JSON.stringify(a)); return true; } catch (e) { return false; }
   }
   function remove(id) {
+    if (UD()) { UD().remove('tactics', id); return; }
     try { localStorage.setItem(KEY, JSON.stringify(list().filter(d => d.id !== id))); } catch (e) { /* yok */ }
   }
 
@@ -333,6 +351,18 @@
   function inject(S) {
     const mine = list();
     mine.slice().reverse().forEach((d, i) => S.push(compile(d, { code: `B${i + 1}` })));
+    injectShared(S, mine);
+    return S;
+  }
+  // hesap değişti ya da buluttan yeni taktik geldi: kayıtlı taktikleri (u-…) yenile, paylaşılan (s-…) kalır
+  function reinject(S) {
+    for (let i = S.length - 1; i >= 0; i--) if (S[i].category === CAT && String(S[i].id).startsWith('u-')) S.splice(i, 1);
+    const mine = list(), at = S.findIndex(x => x.category === CAT);
+    const add = mine.slice().reverse().map((d, i) => compile(d, { code: `B${i + 1}` }));
+    if (at >= 0) S.splice(at, 0, ...add); else S.push(...add);
+    return S;
+  }
+  function injectShared(S, mine) {
     let shared = null;
     try { const q = new URLSearchParams(location.search).get('t'); if (q) shared = decode(q); } catch (e) { /* yok */ }
     if (shared && !mine.some(d => d.id === shared.id)) {
@@ -375,6 +405,7 @@
       const d = clean(JSON.parse(t.setup));
       const old = list().find(x => x.src === code);
       d.id = old ? old.id : uid(); d.src = code;
+      if (!canAdd(d.id)) throw Object.assign(new Error('sınır'), { code: 'limit' });
       if (t.ownerName) d.by = String(t.ownerName).slice(0, 40);
       save(d);
       return d.id;
@@ -387,5 +418,9 @@
     }
   };
 
-  global.SailTaktik = { cloud,  TEMPLATES, fromTemplate, MAX_GUSTS, referee, MAX_NOTES, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, MAX_BOATS, MAX_MARKS, MAX_PTS, blank, list, get, save, remove, clean, encode, decode, shareUrl, compile, preview, inject, legs, bearing };
+  const api = { cloud,  TEMPLATES, fromTemplate, referee, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, blank, list, get, save, remove, clean, reinject, encode, decode, shareUrl, compile, preview, inject, legs, bearing, LIMITS, HARD, lim, canAdd };
+  // ekleme düğmeleri bu değerlere bakar: role göre (sahip için HARD)
+  for (const [k, f] of Object.entries({ MAX_BOATS: 'boats', MAX_MARKS: 'marks', MAX_PTS: 'pts', MAX_NOTES: 'notes', MAX_GUSTS: 'gusts', MAX_TACTICS: 'tactics' }))
+    Object.defineProperty(api, k, { get: () => lim(f), enumerable: true });
+  global.SailTaktik = api;
 })(typeof window !== 'undefined' ? window : globalThis);

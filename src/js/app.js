@@ -1173,7 +1173,8 @@
   // Kokpitteki "Taktik oluştur" düğmesinde kayıtlı taktik sayısı
   function mineSub() {
     const n = window.SailTaktik ? SCENARIOS.filter(x => x.category === SailTaktik.CAT).length : 0;
-    if ($('mineSub')) $('mineSub').textContent = n ? `Tekneleri koy, rotayı çiz, oynat · ${n} taktiğin var` : 'Tekneleri koy, rotayı çiz, oynat';
+    const max = window.SailTaktik ? SailTaktik.MAX_TACTICS : Infinity;   // sahip dışında en çok 10 (kullanıcı 2026-11-27)
+    if ($('mineSub')) $('mineSub').textContent = n ? `Tekneleri koy, rotayı çiz, oynat · ${n}${Number.isFinite(max) ? '/' + max : ''} taktiğin var` : 'Tekneleri koy, rotayı çiz, oynat';
   }
   function setHome(on) {
     if (on === homeOn) return;
@@ -1340,6 +1341,19 @@
     updateScnNav();
     const s = SCENARIOS.find(s => s.id === location.hash.slice(1));
     if (s && s !== state.scn && !lockedScn(s)) loadScenario(s);
+  });
+  // Taktiklerim hesaba bağlı (js/user-data.js): hesap değişince ya da buluttan yeni taktik gelince listeler yenilenir
+  document.addEventListener('sail-userdata', e => {
+    if (e.detail.kind !== 'tactics' || !window.SailTaktik || TEK_ID) return;
+    SailTaktik.reinject(SCENARIOS);
+    const has = SCENARIOS.some(x => x.category === SailTaktik.CAT), i = CATS.indexOf(SailTaktik.CAT);
+    if (has && i < 0) CATS.push(SailTaktik.CAT); else if (!has && i >= 0) CATS.splice(i, 1);
+    if (state.scn && state.scn.user && !SCENARIOS.includes(state.scn)) {
+      const s = SCENARIOS.find(x => x.id === state.scn.id);
+      if (s) loadScenario(s); else if (!homeOn) { history.replaceState(null, '', location.pathname + location.search); setHome(true); }
+    }
+    if (!$('picker').classList.contains('hidden')) buildPicker();
+    if (homeOn) { buildHome(); mineSub(); }
   });
   const ds = document.body.dataset;
   $('versionLabel').textContent = ds.version ? `Sürüm ${ds.ver || ds.version} · ${ds.version} · ${ds.built}` : 'Geliştirme sürümü';

@@ -80,3 +80,11 @@ body.visits { display: block; background: var(--bg); }
 .vis-setup-btns { display: flex; gap: 8px; margin-bottom: 8px; }
 .vis-setup-btns .tb { margin-left: 0; flex: 0 0 auto; }
 .vis-note small { color: var(--muted); }
+/* Hesaplar: satır ayrıntısı (kullanıcı 2026-11-27) */
+.vis-table tbody tr[data-acc] { cursor: pointer; }
+.vis-table tbody tr[data-acc]:hover { background: var(--hover); }
+.vis-acc-more td { white-space: normal; background: var(--hover); }
+.vis-acc-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 6px; }
+.vis-acc-cols ul { margin: 4px 0 0; padding-left: 18px; }
+.vis-acc-cols small, .vis-acc-more > td > small { color: var(--muted); }
+@media (max-width: 640px) { .vis-acc-cols { grid-template-columns: 1fr; } }

@@ -1,5 +1,5 @@
 /* Yarış simülatörü – yarış kaydı: yarış boyunca kurulum + yapılan değişiklikler (işlemler) tutulur,
-   bitince kullanıcıya sorulur, bu cihazda (localStorage) saklanır; dosya olarak dışa / içe aktarılır.
+   bitince kullanıcıya sorulur, kullanıcının hesabında saklanır (js/user-data.js); dosya olarak dışa / içe aktarılır.
    Kayıt kareleri değil "tarifi" saklar: kurulum + hangi karede hangi işlem. Hesap deterministik olduğu için
    tekrar oynatınca yarış birebir aynı çıkar (bir kayıt birkaç KB). İleride Firebase'e aynı biçimle taşınır. */
 (function (global) {
@@ -17,17 +17,21 @@
   }
   const dirty = rec => !!rec && rec.rev !== rec.savedRev;
 
+  // Hesaba bağlı (js/user-data.js, kullanıcı 2026-11-27): her kullanıcı yalnız kendi kayıtlarını görür; bulutta sailUsers/{uid}/sailRaces.
+  const UD = () => global.SailUserData || null;
   function list() {
+    if (UD()) return UD().list('races').filter(valid);
     try { const a = JSON.parse(global.localStorage.getItem(KEY) || '[]'); return Array.isArray(a) ? a.filter(valid) : []; }
     catch (e) { return []; }
   }
   function write(a) { global.localStorage.setItem(KEY, JSON.stringify(a)); }   // dolarsa hata fırlatır
   function put(entry) {
+    if (UD()) { UD().put('races', entry); return; }                            // dolarsa / giriş yoksa hata fırlatır
     const a = list(), i = a.findIndex(x => x.id === entry.id);
     if (i >= 0) a[i] = entry; else a.unshift(entry);
     write(a);
   }
-  function remove(id) { write(list().filter(x => x.id !== id)); }
+  function remove(id) { if (UD()) { UD().remove('races', id); return; } write(list().filter(x => x.id !== id)); }
   function get(id) { return list().find(x => x.id === id) || null; }
   const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 

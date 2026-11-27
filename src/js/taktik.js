@@ -45,11 +45,20 @@
   function persist() {
     clearTimeout(saveTimer);
     if (!doc.boats.length) return false;
-    const ok = T.save(doc);
+    const r = T.save(doc), ok = r === true;
+    if (r === 'limit') { $('tkSaved').textContent = `Kaydedilmedi: en çok ${T.MAX_TACTICS} taktik`; limitNote(); return false; }
     $('tkSaved').textContent = ok ? 'Kaydedildi' : 'Kaydedilemedi';
     if (ok && !location.search.includes(doc.id)) history.replaceState(null, '', location.pathname + '?id=' + doc.id);
     return ok;
   }
+
+  // Taktik sınırı (kullanıcı 2026-11-27: sahip dışında en çok 10 kayıtlı taktik)
+  let limitShown = false;
+  function limitNote() {
+    if (limitShown) return; limitShown = true;
+    toast(`En çok ${T.MAX_TACTICS} taktik kaydedebilirsin. Yenisi için Taktiklerim'den birini sil.`);
+  }
+  if (fresh && !T.canAdd(doc.id)) setTimeout(limitNote, 600);
 
   // ---------- Ölçek: telefonda dokunma noktaları büyür ----------
   let ui = 1;
@@ -195,6 +204,9 @@
     $('tkAddBoat').disabled = doc.boats.length >= T.MAX_BOATS;
     $('tkAddMark').disabled = doc.marks.length >= T.MAX_MARKS;
     $('tkAddGust').disabled = (doc.gusts || []).length >= T.MAX_GUSTS;
+    $('tkAddBoat').title = doc.boats.length >= T.MAX_BOATS ? `En çok ${T.MAX_BOATS} tekne` : '';
+    $('tkAddMark').title = doc.marks.length >= T.MAX_MARKS ? `En çok ${T.MAX_MARKS} şamandıra` : '';
+    $('tkAddGust').title = (doc.gusts || []).length >= T.MAX_GUSTS ? `En çok ${T.MAX_GUSTS} sağanak` : '';
     $('tkUndo').disabled = !undo.length;
     drawRef();
     $('tkPlay').disabled = !doc.boats.some(b => b.route.length);
@@ -580,7 +592,7 @@
   };
 
   // ---------- Kodla açma (bulut) ----------
-  const CODE_ERR = { 'bad-code': 'Kod 6 harf ya da rakam olmalı.', 'not-found': 'Bu kodla bir taktik yok.', 'is-race': 'Bu bir yarış kodu. Ana sayfada Yarışlar’dan aç.' };
+  const CODE_ERR = { 'bad-code': 'Kod 6 harf ya da rakam olmalı.', 'not-found': 'Bu kodla bir taktik yok.', 'is-race': 'Bu bir yarış kodu. Ana sayfada Yarışlar’dan aç.', limit: 'Taktik sınırına ulaştın. Yenisini açmak için Taktiklerim’den birini sil.' };
   async function openCode(code, errEl) {
     const say = t => { if (errEl) errEl.textContent = t; else toast(t); };
     say('Taktik açılıyor…');

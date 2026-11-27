@@ -4,8 +4,8 @@
 //    siteyi …/velora-sailing/#t=ANAHTAR ile açar. track.js anahtarı ilk iş adresten siler (kayıtlara girmez, window.__veloraToken);
 //    burada signInWithCustomToken ile oturum açılır. Firebase oturumu bu sitede de saklanır: sonraki ziyaretlerde doğrudan açılır.
 // 2) Doğrudan gelen: giriş ekranında "Velora hesabıyla gir" → Velora e-posta ve şifresi (signInWithEmailAndPassword).
-// Rol: Velora'da işletmenin ana hesabı (users/{uid}: role owner, orgId = uid) → 'sahip', diğer Velora hesapları → 'kayitli'.
-// Velora anahtarındaki `vs` bilgisi varsa o kullanılır, yoksa profil Firestore'dan okunur (kural: herkes kendi profilini okur).
+// Rol: access.js verir. Yalnız Seyhun'un hesabı 'sahip' (admin), diğer bütün Velora hesapları 'kayitli' (kullanıcı 2026-11-27).
+// Velora'daki işletme sahipliği ve anahtardaki `vs` bilgisi rolü etkilemez; buradan yalnız ad okunur.
 //
 // CONFIG.apiKey boşsa modül hiçbir şey yapmaz (Velora girişi görünmez, site eskisi gibi çalışır).
 // Web ayarları gizli değildir (her web sitesinin kaynağında görünür); güvenlik Firebase kurallarındadır.
@@ -32,22 +32,22 @@ async function start() {
   const app = initializeApp(CONFIG, 'velora');
   const auth = au.getAuth(app);
   auth.languageCode = 'tr';
+  // Yerel test (yalnız localhost, ?emu=1 bir kez): Firebase emülatörleri (Auth 9099, Firestore 8080). Canlı sitede çalışmaz.
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    try { if (new URLSearchParams(location.search).has('emu')) localStorage.setItem('ps.emu', '1'); } catch (e) { /* yok */ }
+    let on = false; try { on = localStorage.getItem('ps.emu') === '1'; } catch (e) { /* yok */ }
+    if (on) { au.connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true }); fs.connectFirestoreEmulator(fs.getFirestore(app), '127.0.0.1', 8080); }
+  }
 
-  async function roleOf(user) {
-    try {
-      const t = await user.getIdTokenResult();
-      if (t.claims.vs === 'sahip' || t.claims.vs === 'kayitli') return { role: t.claims.vs, name: t.claims.ad || '' };
-    } catch (e) { /* yok */ }
-    try {
-      const d = (await fs.getDoc(fs.doc(fs.getFirestore(app), 'users', user.uid))).data() || {};
-      const owner = (d.role || 'owner') === 'owner' && (d.orgId || user.uid) === user.uid && d.via !== 'sailing';   // Sailing bağlantısından kaydolan sporcu sahip değil
-      return { role: owner ? 'sahip' : 'kayitli', name: d.name || '' };
-    } catch (e) { return { role: 'kayitli', name: '' }; }
+  async function nameOf(user) {
+    try { const t = await user.getIdTokenResult(); if (t.claims.ad) return String(t.claims.ad); } catch (e) { /* yok */ }
+    try { const d = (await fs.getDoc(fs.doc(fs.getFirestore(app), 'users', user.uid))).data() || {}; return d.name || ''; }
+    catch (e) { return ''; }
   }
   async function adopt(user, how) {
-    const { role, name } = await roleOf(user);
+    const name = await nameOf(user);
     const nm = name || user.displayName || (user.email ? user.email.split('@')[0] : 'Velora');
-    A()?.veloraLogin({ uid: user.uid, name: nm, email: user.email || '', role }, how);
+    A()?.veloraLogin({ uid: user.uid, name: nm, email: user.email || '' }, how);
   }
 
   window.VeloraAuth = {
@@ -110,6 +110,21 @@ async function start() {
     const out = [];
     snap.forEach(d => { const x = d.data(); for (const e of x.events || []) out.push({ ...e, name: x.name || '', fuid: x.uid || null, cloud: true }); });
     return out;
+  };
+  // Yalnız site sahibi (kural): hesaplar ve her hesabın taktik / yarış kaydı / antrenör yarışı (ziyaret.html → Hesaplar)
+  window.VeloraAuth.listAccounts = async () => {
+    const m = new Map(), row = id => { if (!m.has(id)) m.set(id, { uid: id, name: '', email: '', first: 0, last: 0, tactics: [], races: [], tasks: [] }); return m.get(id); };
+    const ms = v => (v && v.toMillis ? v.toMillis() : +v || 0);
+    const [us, ts, rs, cs] = await Promise.all([
+      fs.getDocs(fs.collection(db, 'sailUsers')), fs.getDocs(fs.collectionGroup(db, 'sailTactics')),
+      fs.getDocs(fs.collectionGroup(db, 'sailRaces')), fs.getDocs(fs.collection(db, 'sailChallenges')),
+    ]);
+    us.forEach(d => { const x = d.data(), r = row(d.id); r.name = x.name || ''; r.email = x.email || ''; r.first = ms(x.first); r.last = ms(x.last); });
+    const title = (d, k) => { try { const o = JSON.parse(d.data || '{}'); return String(o[k] || '').slice(0, 60); } catch (e) { return ''; } };
+    ts.forEach(d => { const x = d.data(); if (!x.del) row(d.ref.parent.parent.id).tactics.push({ id: d.id, t: x.t, title: title(x, 'title') || 'Adsız taktik' }); });
+    rs.forEach(d => { const x = d.data(); if (!x.del) row(d.ref.parent.parent.id).races.push({ id: d.id, t: x.t, title: title(x, 'name') || 'Yarış' }); });
+    cs.forEach(d => { const x = d.data(); if (x.owner) row(x.owner).tasks.push({ id: d.id, t: ms(x.at), title: (x.kind === 'taktik' ? 'Taktik kodu: ' : '') + (x.name || d.id), state: x.state }); });
+    return [...m.values()].sort((a, b) => (b.last || 0) - (a.last || 0));
   };
   document.dispatchEvent(new CustomEvent('velora-ready'));
   // Modül yüklenmeden çıkış yapıldıysa Firebase oturumu şimdi kapanır (access.js logout)

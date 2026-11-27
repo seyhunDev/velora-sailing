@@ -1705,6 +1705,7 @@
     setTimeout(() => { delete btn.dataset.armed; btn.innerHTML = old; btn.classList.remove('armed'); }, 3000);
     return false;
   }
+  document.addEventListener('sail-userdata', e => { if (e.detail.kind === 'races' && !$('recDlg').classList.contains('hidden')) recRender(); });   // hesap / bulut değişti
   function openRecDlg() { if (window.SailAccess && !SailAccess.guard('sim.records')) return; recRender(); $('recDlg').classList.remove('hidden'); }
   function closeRecDlg() { $('recDlg').classList.add('hidden'); }
   function recRender() {

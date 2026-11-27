@@ -156,7 +156,7 @@
   $('visSearch').oninput = () => { shown = 150; render(); };
   $('visWhoClear').onclick = () => { whoFilter = null; render(); };
   $('visMore').onclick = () => { shown += 300; render(); };
-  $('visOwner').onclick = () => SailAccess.open('owner');
+  $('visOwner').onclick = () => SailAccess.open('velora');
 
   // ---------- bulut (Firestore) ----------
   const RULES_URL = 'https://console.firebase.google.com/project/sesliasistan-3e95a/firestore/rules';
@@ -199,13 +199,38 @@
     cloudView(); render();
   }
 
+  // ---------- Hesaplar (yalnız site sahibi; kural: sailUsers, sailTactics/sailRaces grup sorgusu, sailChallenges listesi) ----------
+  let accs = null, accErr = '', accOpen = null;
+  const day = v => v ? new Date(v).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: '2-digit' }) : '–';
+  function accView() {
+    const t = $('visAcc');
+    if (accErr) { t.innerHTML = `<tbody><tr><td>${esc(accErr)}</td></tr></tbody>`; return; }
+    if (!accs) { t.innerHTML = '<tbody><tr><td>Yükleniyor…</td></tr></tbody>'; return; }
+    $('visAccN').textContent = `${accs.length} hesap · satıra dokun: ayrıntı`;
+    const li = (xs, f) => xs.length ? '<ul>' + xs.slice().sort((a, b) => (b.t || 0) - (a.t || 0)).map(x => `<li>${esc(x.title)} <small>${day(x.t)}${f ? f(x) : ''}</small></li>`).join('') + '</ul>' : '<p>–</p>';
+    t.innerHTML = `<thead><tr><th>Ad</th><th>E-posta</th><th>İlk giriş</th><th>Son giriş</th><th>Taktik</th><th>Yarış kaydı</th><th>Antrenör yarışı</th></tr></thead><tbody>` +
+      accs.map(a => `<tr data-acc="${esc(a.uid)}"><td>${esc(a.name || '–')}${a.uid === SailAccess.OWNER_UID ? ' <small>(sen)</small>' : ''}</td><td>${esc(a.email || '–')}</td><td>${day(a.first)}</td><td>${day(a.last)}</td>
+        <td>${a.tactics.length}</td><td>${a.races.length}</td><td>${a.tasks.length}</td></tr>` +
+        (accOpen === a.uid ? `<tr class="vis-acc-more"><td colspan="7"><div class="vis-acc-cols"><div><b>Taktikler</b>${li(a.tactics)}</div><div><b>Yarış kayıtları</b>${li(a.races)}</div><div><b>Antrenör yarışları</b>${li(a.tasks, x => x.state === 'closed' ? ' · kapalı' : '')}</div></div><small>Hesap kimliği: ${esc(a.uid)}</small></td></tr>` : '')).join('') + '</tbody>';
+    t.querySelectorAll('tr[data-acc]').forEach(r => { r.onclick = () => { accOpen = accOpen === r.dataset.acc ? null : r.dataset.acc; accView(); }; });
+  }
+  async function loadAccounts() {
+    const V = window.VeloraAuth;
+    if (!V || !V.listAccounts) return;
+    await V.ready().catch(() => {});
+    if (!V.uid()) { accErr = 'Hesapları görmek için Velora hesabınla gir.'; accView(); return; }
+    try { accs = await V.listAccounts(); accErr = ''; }
+    catch (e) { accErr = /permission|insufficient/i.test((e && (e.code || e.message)) || '') ? 'Hesaplar okunamadı: Firestore kuralları henüz yayınlanmamış (Velora deposu firestore.rules).' : 'Hesaplar okunamadı. Bağlantını kontrol et.'; }
+    accView();
+  }
+
   function gateView() {
     const ok = SailAccess.can('visits');
     $('visLocked').classList.toggle('hidden', ok);
     $('visBody').classList.toggle('hidden', !ok);
-    if (ok) { render(); loadCloud(); }
+    if (ok) { render(); loadCloud(); accView(); loadAccounts(); }
   }
-  document.addEventListener('velora-ready', () => { if (SailAccess.can('visits')) loadCloud(); });
+  document.addEventListener('velora-ready', () => { if (SailAccess.can('visits')) { loadCloud(); loadAccounts(); } });
   document.addEventListener('sail-access', gateView);
   addEventListener('storage', e => { if (e.key === 'ps.track.v1' && SailAccess.can('visits')) render(); });
   gateView();

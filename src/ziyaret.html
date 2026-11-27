@@ -29,7 +29,7 @@
   </svg>
   <header class="topbar acik">
     <a class="tool back-btn" href="./" title="Ana sayfa"><svg><use href="#i-back"/></svg><span class="lbl">Ana sayfa</span></a>
-    <h1 class="vis-h1">Ziyaret kayıtları</h1>
+    <h1 class="vis-h1">Ziyaretler ve hesaplar</h1>
     <div class="spacer"></div>
     <div class="tool-group">
       <a class="tool" href="sim.html" title="Yarış simülatörü"><svg><use href="#i-boat"/></svg><span class="lbl">Simülatör</span></a>
@@ -39,8 +39,8 @@
   <main class="vis-main" id="visMain">
     <section class="vis-locked hidden" id="visLocked">
       <h2>Bu sayfa yalnızca site sahibine açık</h2>
-      <p>Ziyaret kayıtlarını görmek için sahip girişi yap.</p>
-      <button class="tb primary" id="visOwner">Site sahibi girişi</button>
+      <p>Ziyaret kayıtlarını ve hesapları yalnız site sahibinin Velora hesabı görür.</p>
+      <button class="tb primary" id="visOwner">Velora hesabıyla gir</button>
     </section>
 
     <div id="visBody" class="hidden">
@@ -63,6 +63,11 @@
         <section class="vis-box"><h3>Cihaz · tarayıcı</h3><ol class="vis-rank" id="visDev"></ol></section>
         <section class="vis-box"><h3>En çok basılan düğmeler</h3><ol class="vis-rank" id="visClicks"></ol></section>
       </div>
+
+      <section class="vis-box">
+        <h3>Hesaplar <small id="visAccN">Velora hesabıyla girenler ve kaydettikleri · satıra dokun: ayrıntı</small></h3>
+        <div class="vis-table-wrap"><table class="vis-table" id="visAcc"></table></div>
+      </section>
 
       <section class="vis-box">
         <h3>Ziyaretçiler <small>satıra dokun: yalnız o kişinin olayları</small></h3>

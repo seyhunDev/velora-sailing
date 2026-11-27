@@ -95,17 +95,16 @@
       </div>` : ''}
     </article>`;
   }
-  // Firestore kuralı yayında değil / eski: kurulum kartı (antrenörün uid'iyle kural, kopyala, konsol bağlantısı)
+  // Firestore kuralı yayında değil / eski: site sahibine kurulum kartı, diğerlerine kısa not
   function setupCard() {
-    const uid = H.be && H.be.uid();
-    return `<b>Yarışlar için Firestore kuralı gerekli (bir kerelik).</b>
+    if (!(window.SailAccess && SailAccess.role() === 'sahip')) return '<b>Yarışlar şu an açılamıyor.</b> Site sahibinin Firebase kurallarını güncellemesi gerekiyor; biraz sonra tekrar dene.';
+    return `<b>Yarışlar için Firestore kuralı gerekli.</b>
       <ol class="hv-steps">
-        <li><a href="https://console.firebase.google.com/project/${D.PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore → Kurallar</a> sekmesini aç.</li>
-        <li>Oradaki kuralları <b>silme</b>. Aşağıdaki bloğu kopyala, <code>match /databases/{database}/documents {</code> satırının hemen altına yapıştır: başka bir <code>match</code> bloğunun (ör. <code>match /orgs/{orgId}</code>) <b>içine değil</b>, en üst seviyeye. (Daha önce yapıştırdığın <code>match /sailChallenges</code> bloğu varsa onu bununla değiştir.)</li>
-        <li><b>Yayınla</b>'ya bas, 1 dakika bekle, bu sayfayı yenile.</li>
+        <li>Kurallar Velora deposunda: <code>firestore.rules</code> (Velora Sailing bölümü). Orada: <code>pbcopy &lt; firestore.rules</code></li>
+        <li><a href="https://console.firebase.google.com/project/${D.PROJECT}/firestore/rules" target="_blank" rel="noopener">Firebase konsolunda Firestore → Kurallar</a>: hepsini seç, yapıştır, <b>Yayınla</b>. 1 dakika bekle, bu sayfayı yenile.</li>
       </ol>
-      <div class="hv-rules-h"><span>Kural (yarış oluşturma yetkisi: senin Velora hesabın)</span><button class="tb" id="hvCopyRules">Kuralı kopyala</button></div>
-      <pre class="hv-rules" id="hvRules">${esc(D.rulesText(uid))}</pre>`;
+      <div class="hv-rules-h"><span>Velora Sailing bölümü (kontrol için)</span><button class="tb" id="hvCopyRules">Kopyala</button></div>
+      <pre class="hv-rules" id="hvRules">${esc(D.rulesText())}</pre>`;
   }
   function render() {
     const note = $('hvNote'), list = $('hvList');

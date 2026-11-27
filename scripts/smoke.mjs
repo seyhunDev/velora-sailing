@@ -30,7 +30,7 @@ const browser = await chromium.launch();
 async function page(vp = { width: 1400, height: 800 }) {
   const ctx = await browser.newContext({ viewport: vp });
   // sahip hesabı: elle sürme ve kayıtlar açık; dışarıya istek gitmesin
-  await ctx.addInitScript(() => { if (!localStorage.getItem('ps.account.v1')) localStorage.setItem('ps.account.v1', JSON.stringify({ role: 'sahip', name: 'Test', uid: 'smoke' })); localStorage.setItem('ps.consent.v1', 'false'); });
+  await ctx.addInitScript(() => { if (!localStorage.getItem('ps.account.v1')) localStorage.setItem('ps.account.v1', JSON.stringify({ role: 'sahip', via: 'velora', name: 'Test', uid: 'wIfcw0kHBVVu2DVMiyg1fcSA85F3' })); localStorage.setItem('ps.consent.v1', 'false'); });
   await ctx.route(u => !u.href.startsWith(BASE), r => r.abort());
   const p = await ctx.newPage(); p.errors = [];
   p.on('pageerror', e => p.errors.push(e.message));

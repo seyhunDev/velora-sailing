@@ -82,8 +82,10 @@ src/
   js/sim.js           simülatör arayüzü: sürükle-bırak, rüzgar/sağanak, geri sarma, panel
   js/online.js        online yarış: şifreli oda, ortak saat, uzak tekneler (Firebase Realtime Database; ?net=yerel ile sahte)
   js/track.js         ziyaret/olay kaydı (şimdilik bu tarayıcıda; SailTrack.setSink ile Firebase'e bağlanır)
-  js/access.js        giriş ara ekranı, roller (sahip/kayıtlı/misafir), kilitli özellikler (FEATURES), KVKK bildirimi
-  ziyaret.html        ziyaret kayıtları (yalnız sahip; js/visits.js, css/visits.css)
+  js/access.js        giriş ara ekranı, roller (sahip = yalnız Seyhun / kayıtlı / misafir), kilitli özellikler (FEATURES), KVKK bildirimi
+  js/user-data.js     hesaba bağlı veri (taktikler, yarış kayıtları): cihaz önbelleği + Firestore sailUsers/{uid}
+  firebase/           Firestore kuralları (Sailing bölümü; yayında Velora deposu firestore.rules)
+  ziyaret.html        ziyaret kayıtları + Hesaplar (yalnız sahip; js/visits.js, css/visits.css)
 scripts/check-sim.mjs simülatör denetimi (npm run check içinde)
 scripts/build.mjs     derleme: hash'li dosya adları + sürüm damgası → dist/
 .github/workflows/    main'e push → otomatik yayın
