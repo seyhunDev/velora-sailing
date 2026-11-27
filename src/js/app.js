@@ -742,6 +742,7 @@
     b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
     b.querySelector('use').setAttribute('href', on ? '#i-voice' : '#i-voice-off');   // kapalıyken üstü çizili hoparlör
     b.title = on ? 'Sesli anlatım açık (kapatmak için dokun)' : 'Sesli anlatım kapalı (açmak için dokun)';
+    if (window.fitBottomLater) fitBottomLater();
   }
   // Kısa bildirim: anlatım açıldı / kapandı (2 sn)
   let narrToastEl = null, narrToastT = 0;
@@ -782,9 +783,50 @@
   $('speedSeg').onclick = e => {
     const btn = e.target.closest('button'); if (!btn) return;
     const all = [...$('speedSeg').children];
-    const next = phoneMq.matches && btn.classList.contains('on') ? all[(all.indexOf(btn) + 1) % all.length] : btn;
+    const next = phoneMq.matches && !btn.closest('.bb-more') && btn.classList.contains('on') ? all[(all.indexOf(btn) + 1) % all.length] : btn;
     all.forEach(x => x.classList.toggle('on', x === next)); state.speed = +next.dataset.v;
   };
+  // ---------- Alt çubuk sığmazsa (kullanıcı 2026-11-27, dar telefonda düğmeler ekran dışına çıkıyordu) ----------
+  // Oynat, zaman çubuğu ve süre her zaman kalır; Başa al, Sesli anlatım ve Hız "⋯" (Daha fazla) menüsüne geçer.
+  // Telefonda hep; başka cihazda önce hepsi yerine konur, ölçülür; satır taşıyorsa ya da zaman çubuğu çok daralıyorsa toplanır.
+  const BB_MORE = [['btnReset', 'Başa al'], ['btnNarr', 'Sesli anlatım'], ['speedSeg', 'Hız']];
+  const bbMarks = BB_MORE.map(([id]) => { const m = document.createComment(id); $(id).before(m); return m; });
+  const bbBtn = document.createElement('button');
+  bbBtn.id = 'btnMore'; bbBtn.className = 'tool more-btn hidden'; bbBtn.type = 'button';
+  bbBtn.title = 'Daha fazla'; bbBtn.setAttribute('aria-label', 'Daha fazla'); bbBtn.setAttribute('aria-haspopup', 'menu');
+  bbBtn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>';
+  $('timeLabel').after(bbBtn);
+  const bbPop = document.createElement('div');
+  bbPop.id = 'bbMore'; bbPop.className = 'bb-more hidden'; bbPop.setAttribute('role', 'menu');
+  document.body.appendChild(bbPop);
+  let bbW = 0;
+  function bbOpen(open) {
+    bbPop.classList.toggle('hidden', !open); bbBtn.classList.toggle('on', open);
+    if (!open) return;
+    const r = bbBtn.getBoundingClientRect();
+    bbPop.style.right = Math.max(8, innerWidth - r.right) + 'px';
+    bbPop.style.bottom = (innerHeight - r.top + 8) + 'px';
+  }
+  function fitBottom() {
+    const row = document.querySelector('.main-row'); if (!row) return;
+    bbOpen(false);
+    BB_MORE.forEach(([id], i) => bbMarks[i].after($(id)));         // önce hepsi yerinde
+    bbPop.innerHTML = ''; bbBtn.classList.add('hidden');
+    const tl = row.querySelector('.timeline').getBoundingClientRect().width;
+    const phone = document.documentElement.classList.contains('is-phone');   // telefonda hep sade: oynat + zaman çubuğu + ⋯
+    if (!phone && row.scrollWidth <= row.clientWidth + 1 && tl >= 150) return;
+    bbBtn.classList.remove('hidden');
+    for (const [id, lbl] of BB_MORE) {
+      const r = document.createElement('div'); r.className = 'bb-row';
+      r.innerHTML = `<span class="bb-lbl">${lbl}</span>`; r.appendChild($(id)); bbPop.appendChild(r);
+    }
+  }
+  bbBtn.onclick = e => { e.stopPropagation(); bbOpen(bbPop.classList.contains('hidden')); };
+  bbPop.addEventListener('click', e => { e.stopPropagation(); if (e.target.closest('#btnReset')) bbOpen(false); });
+  document.addEventListener('click', () => { if (!bbPop.classList.contains('hidden')) bbOpen(false); });
+  new ResizeObserver(es => { const w = Math.round(es[0].contentRect.width); if (w !== bbW) { bbW = w; fitBottom(); } }).observe(document.querySelector('.bottombar'));
+  addEventListener('orientationchange', () => setTimeout(fitBottom, 300));
+  window.fitBottomLater = () => requestAnimationFrame(fitBottom);
   $('scrub').oninput = e => { quizHide(); state.t = +e.target.value; quizRewind(); narrStop(); setFollow(true); render(); };
   $('btnAdd').onclick = addBoat; $('btnRemove').onclick = removeBoat;
   $('chkWind').onchange = e => { state.show.wind = e.target.checked; render(); };
@@ -1115,7 +1157,44 @@
     if (homeOn) buildHome(); else if (!$('picker').classList.contains('hidden')) buildPicker();
   };
   syncCls();
+  // Senaryo çubuğu sade (kullanıcı 2026-11-27): üstte yalnız Geri · senaryo adı · Ayarlar.
+  // Bilgi, Paylaş, Düzenle, önceki/sonraki, Tam ekran, Velora'ya dön, Bildir, Hesap Ayarlar penceresinin başında
+  // düğme olarak durur; her biri çubuktaki (gizli) asıl düğmeye basar, böylece davranış tek yerde kalır.
+  const SCN_ACTS = [
+    ['btnInfo', () => state.infoOpen ? 'Bilgi kartını kapat' : 'Bilgi kartı'],
+    ['btnShare', () => 'Paylaş'],
+    ['btnEdit', () => 'Düzenle'],
+    ['btnScnPrev', () => 'Önceki senaryo'],
+    ['btnScnNext', () => 'Sonraki senaryo'],
+    ['btnFull', b => b.classList.contains('fs-exit') ? 'Tam ekrandan çık' : 'Tam ekran'],
+    ['btnVelora', () => "Velora'ya dön"],
+    ['btnReport', () => 'Bildir'],
+    ['btnAccount', () => 'Hesap'],
+  ];
+  function buildScnActs() {
+    const box = $('scnActs'), on = !homeOn && !TEK_ID;
+    box.hidden = !on; box.innerHTML = '';
+    if (!on) return;
+    const grid = document.createElement('div'); grid.className = 'scn-acts-grid';
+    for (const [id, lbl] of SCN_ACTS) {
+      const o = $(id);
+      if (!o || o.hidden || o.classList.contains('hidden') || o.style.display === 'none') continue;
+      if (id === 'btnReport' && document.documentElement.dataset.role !== 'sahip') continue;
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'scn-act'; b.disabled = !!o.disabled;
+      if (id === 'btnInfo' && state.infoOpen) b.classList.add('on');
+      const ic = o.querySelector('svg');
+      const ini = id === 'btnAccount' ? o.querySelector('#accLbl')?.textContent : '';
+      if (ini) b.innerHTML = `<span class="scn-act-ini" data-role="${o.dataset.role || ''}">${ini}</span>`;
+      if (ic && !b.innerHTML) b.appendChild(ic.cloneNode(true));
+      b.insertAdjacentHTML('beforeend', `<span>${lbl(o)}</span>`);
+      b.onclick = e => { e.stopPropagation(); openSettings(false); setTimeout(() => o.click(), 0); };
+      grid.appendChild(b);
+    }
+    box.appendChild(grid);
+  }
   function openSettings(open) {
+    if (open) buildScnActs();
     $('settingsDlg').classList.toggle('hidden', !open);
     if (open && window.SailAccess && SailAccess.closeMenu) SailAccess.closeMenu();
   }
