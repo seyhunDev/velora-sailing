@@ -279,6 +279,8 @@
 | C1 | `c1-header-tack` | ✅ | Salınımlı rüzgar. 2026-11-23: gri filo, 2 tekne T gibi tramola atar, 3 tekne K gibi devam eder. Fikir: pusula okuması katmanı. | C2, C3 |
 | A9 | `a9-clear-air-tack` | ✅ | 2026-11-23. İkinci sırada pis hava, X t≈8.5'te tramola, 9-10'un kıçından sağa; `shadowLen: 150`. Fark sonunda ~0,9 boy (rungs). Fikir: X'in sağında da tekne olan varyant (önce bordala, sonra tramola). | A9b, C1 |
 | A9b | `a9b-foot-out` | ✅ | 2026-11-23. Tramola yolu gri 1/2 ile kapalı; S bordalayıp 4-5 arasındaki boşluğa kayar, H sıkıştırır; varsayılan gölge (uzun gölgede boşluk da kirli kalıyordu). Fark ~1,4 boy. Fikir: güvenli rüzgaraltı (safe leeward) dersi (motorda backwind yok). | A9 |
+| A10 | `a10-pin-tack-start` | ✅ | 2026-11-27 (kullanıcı): rüzgar 330°, pin ~5,5 boy önde. D ve 2 gri pin'den çıkıp 1 sn sonra tramola atar, hakem botu grubu (4 gri + Y) sancakta hattın hemen üstünden geçer ve t=5'te hep birlikte tramola atar (farklı anlarda atınca birbirine biniyorlardı). Y ~4 boy geride. Katalogda Pin ucu. | A3 |
+| A9c | `a9c-lift-hold` | ✅ | 2026-11-27 (kullanıcı): rüzgar 350 → 15 (sancağa çekti) → 345 (sancağa açtı). D ve 3 gri sancakta devam, t≈22'de tramola; H ve 1 gri hakem botundan çıkıp t=8.5'te tramola atar, ~5 boy geride. Not: merdiven rüzgara diktir, fark dönüş sürerken değil rüzgar geri dönünce görünür; metin buna göre. Katalogda Start sonrası. | P1, A9 |
 
 ### İA2b ailesi: sonraki varyant fikirleri (kullanıcı isteği 2026-11-12, sırayla eklenecek)
 > Ortak ders: yay yokken avantaj boşluk seçiminden, zamanlamadan ve rüzgaraltı açık sudan gelir. Hepsinde anahtar hareket: rüzgarüstü komşunun hemen rüzgaraltına sokulmak.
@@ -353,6 +355,8 @@
 8. Filo `row`/`back` teknenin ROTASI boyunca geri koyar. Hat avantajı büyükse (ör. rüzgar 335°, yatay hat) orsa rotası hatta neredeyse paraleldir ve ikinci sıra yana kayar: ikinci sırayı `pos` ile hattın ~1 boy altına ver.
 9. Senaryo teknesinin hemen önündeki (aynı kontra, yakın) filo teknesi pis rüzgarda yavaşlayınca senaryo teknesi onun kıçına biner (K11 uyarısı): o filo teknesini kaldır ya da aralığı ~110 px yap.
 10. Senaryodaki gri tekneler (`crowd: true` olan ders tekneleri) ile kural filosu aynı numaraları almasın: filo 1..N numaralanır, gri senaryo teknesine N'den büyük id ver (S25'te iki "1" ve iki "2" vardı).
+16. Merdiven (rungs) rüzgara dik ölçer: rüzgar dönüşü dersinde fark dönüş sürerken değil, rüzgar geri dönünce görünür. "Merdivene bak, önde" adımını o ana koy, sayıyla kontrol et.
+17. Aynı kontradaki yan yana gri tekneler tramolayı aynı anda atsın; farklı anlarda atınca birbirine biner.
 14. `fleetCopies` kopyaları `goto` hedefini AYNEN alır (mutlak nokta) ve dönüşten sonra aynı pupa rotasıyla gider: sonda üst üste binerler. Kopyaların son ayağına farklı yön ver (ör. +15° adım).
 15. Arka plan teknesi eklerken iskele/sancak kesişmesi yaratma (kural ihlali gibi görünür); yalnızca aynı kontrada, ders çiftlerinden uzakta.
 11. Hata teknesinin kritik anı (burun çizgide, çarpma, yetişememe) o adımın zamanında sahnede gerçekten görünsün; sayıyla doğrula (S22'de burun çizgiye hiç varmıyordu).
@@ -382,6 +386,8 @@
 | S23 | `ia13-black-flag` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
 | S24 | `a9-clear-air-tack` | ✅ | Filo sık (12 tekne); dokunulmadı. |
 | S25 | `a9b-foot-out` | ✅ | Gri senaryo teknelerinin numarası filoyla çakışıyordu (1, 2 → 10, 11); Kural 11 cümlesi düzeldi. |
+| S6 (yeni) | `a10-pin-tack-start` | ✅ | Yeni ders, listeye göre yapıldı. |
+| S27 (yeni) | `a9c-lift-hold` | ✅ | Yeni ders, listeye göre yapıldı. |
 | P1 | `c1-header-tack` | ✅ | Terimler: rüzgar açınca tramola at, çeken kontrada kal. |
 | P2 | `c3-layline` | ✅ | 2. tur (kullanıcı "devam edelim"): layline sırasında önde 2 tekne daha (`ahead`, pupa rotaları 210°/225°, aynı rotada üst üste biniyorlardı). |
 | P3 | `c4-lee-bow` | ✅ | 2. tur: etrafta seyreden 4 gri tekne (`G(id,x,y,tack)`), çiftler artık boş denizde değil. |
@@ -392,6 +398,10 @@
 | T1-T2 | İT1, İT1b | ✅ | Donanım dersi; metin kontrolü. |
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-27 · İki yeni start dersi: pin'den tramolalı start, rüzgar çekerse devam
+- Kullanıcı: pin avantajlı, start sonrası rüzgar çekti → tramola atma, açınca at; pin çok avantajlıysa pin'den çıkanlar hemen tramola atıp hakem botu tarafının önünden geçer.
+- Yapılan: `a10-pin-tack-start` (Pin ucu), `a9c-lift-hold` (Start sonrası), KATALOG, KONULAR A10/A9c ✅, kart satırları. Ayrıca P2'ye layline sırası, P3'e etrafta filo.
+
 ### 2026-11-27 · Velora tasarımına geçiş + açılış animasyonu
 - Kullanıcı: Sailing açılırken boş arka plan yerine animasyonlu yükleme; Velora'da logo ve renkler değişti, aynı tasarım ve renk mantığı.
 - Yapılan: Velora'nın (sesliasistan `globals.css` `.boot`, `main.sahne-pg`, `public/brand`) yeni logosu ve Sahne renkleri alındı; tüm sayfalarda renk değişkenleri, ana sayfa başlıkları dar büyük harf, limon düğmeler, giriş ekranı, simgeler, manifest/theme-color. Açılış ekranı `app-shell.js`. Senaryo üst/alt çubuklarının düzenine dokunulmadı (yalnız renk).

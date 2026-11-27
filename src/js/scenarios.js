@@ -787,6 +787,95 @@
     addBoat: { pin: { x: 130, y: 600 }, middle: { x: 430, y: 660 }, committee: { x: 880, y: 600 } }
   });
 
+  // ---------- A10: pin çok avantajlı → pin'den çık, hemen tramola, hakem botundan çıkanların önünden geç (kullanıcı 2026-11-27) ----------
+  S.push({
+    id: 'a10-pin-tack-start',
+    category: 'Taktik', topic: 'Start',
+    title: 'A10 · Pin çok avantajlı: pin\'den çık, hemen tramola at',
+    summary: 'Pin ucu çok avantajlıysa pin\'den çıkan tekneler start\'tan hemen sonra tramola atar ve hakem botu tarafından çıkanların önünden geçer. Bu, pin\'den tramolalı start demektir. Hakem botu tarafından çıkan tekne aynı hızla gitse bile geride kalır.',
+    duration: 16,
+    baseSpeed: 40,
+    wind: 330,                                    // pin çok avantajlı (hat yatay, rüzgar 30° sola dönmüş)
+    line: { pin: { x: 220, y: 500 }, boat: { x: 780, y: 500 } },
+    startAt: 0,
+    rungs: { boat: 'D', from: 2 },
+    boats: (() => {
+      const D =
+      { id: 'D', name: 'Pin\'den çık, hemen tramola', role: 'dogru', color: '#2a9d8f',
+        start: { x: 262, y: 512, h: 285 }, v0: 40,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 1.0, turn: 0 },
+          { mode: 'closehauled', tack: 'port', dur: 15, turn: 1.4, note: 'Hemen tramola: herkesin önünden' }
+        ] };
+      const Y =
+      { id: 'Y', name: 'Hakem botu tarafından çıkan', role: 'hata', color: '#e76f51',
+        start: { x: 735, y: 512, h: 285 }, v0: 40,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 5.0, turn: 0, note: 'Havam temiz ama geride kaldım' },
+          { mode: 'closehauled', tack: 'port', dur: 11, turn: 1.4 }
+        ] };
+      const C = (id, x, t) => ({ id, name: 'Filo', color: '#b8c7d6', crowd: true, start: { x, y: 512, h: 285 }, v0: 40,
+        segs: [{ mode: 'closehauled', tack: 'starboard', dur: t, turn: 0 }, { mode: 'closehauled', tack: 'port', dur: 16 - t, turn: 1.4 }] });
+      // pin grubu: D ile birlikte hemen tramola atar; hakem botu grubu: sancakta gider, filonun arkasında tramola atar
+      return [D, Y, C('1', 312, 1.4), C('2', 362, 1.8), C('3', 515, 5.0), C('4', 570, 5.0), C('5', 625, 5.0), C('6', 680, 5.0)];
+    })(),
+    steps: [
+      { t: 0, title: 'Pin çok avantajlı', text: 'Rüzgar sola döndü ve pin ucu hakem botundan beş altı boy önde kaldı. Orsa giden tekneler neredeyse start hattına paralel gidiyor. Yeşil D pin\'den, turuncu Y ise hakem botu tarafından çıkıyor.' },
+      { t: 1.2, title: 'D hemen tramola atıyor', text: 'D start\'tan bir iki saniye sonra tramola atıyor. Pin\'den çıkan tekneler zaten herkesin önünde, bu yüzden iskele kontrada da herkesin önünden geçebilirler.' },
+      { t: 4, title: 'Herkesin önünden geçiyor', text: 'İskele kontradaki tekne yol vermek zorundadır, buna Kural 10 diyoruz. Ama D o kadar önde ki sancak kontradaki teknelerin önünden rahatça geçiyor ve kimseyi kaçırmıyor.' },
+      { t: 7, title: 'Y geride kaldı', text: 'Y de temiz havada ve aynı hızla gitti ama merdivene bak: D\'nin çok gerisinde. Y şimdi tramola atıp D\'nin arkasından gidiyor.' },
+      { t: 12, title: 'Özet', text: 'Pin çok avantajlıysa pin\'den çık ve hemen tramola at; buna pin\'den tramolalı start diyoruz. Pin tarafındaki herkes böyle yapar ve hakem botu tarafından çıkanların önünden geçer gider.' }
+    ],
+    addBoat: { pin: { x: 300, y: 600 }, middle: { x: 500, y: 600 }, committee: { x: 700, y: 600 } }
+  });
+
+  // ---------- A9c: pin'den çıktın, rüzgar çekti → tramola atma; ilk açışta at (kullanıcı 2026-11-27) ----------
+  S.push({
+    id: 'a9c-lift-hold',
+    category: 'Taktik', topic: 'Start',
+    title: 'A9c · Rüzgar çekiyorsa devam et, açınca tramola at',
+    summary: 'Pin avantajlı diye pin\'den çıktın. Start\'tan sonra rüzgar çekti, yani seni şamandıraya yaklaştırıyor. O zaman tramola atma, devam et. Rüzgar açınca, yani seni şamandıradan uzaklaştırınca ilk fırsatta tramola at. Rüzgar çekerken tramola atan tekne şamandıradan uzaklaşır ve geride kalır.',
+    duration: 34,
+    baseSpeed: 18,
+    wind: [
+      { t: 0, from: 350 }, { t: 3, from: 350 }, { t: 7, from: 15 }, { t: 21, from: 15 }, { t: 24, from: 345 }, { t: 40, from: 345 }
+    ],
+    showWindTrace: true,
+    line: { pin: { x: 440, y: 620 }, boat: { x: 800, y: 620 } },
+    startAt: 0,
+    rungs: { boat: 'D', from: 9 },
+    marks: [{ x: 600, y: 60, label: 'Orsa şamandırası', zone: false }],
+    boats: (() => {
+      const D =
+      { id: 'D', name: 'Çekerken devam, açınca tramola', role: 'dogru', color: '#2a9d8f',
+        start: { x: 470, y: 632, h: 305 }, v0: 18,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 24, turn: 0, note: 'Rüzgar çekti: devam' },
+          { mode: 'closehauled', tack: 'port', dur: 10, turn: 1.4, note: 'Rüzgar açtı: tramola' }
+        ] };
+      const H =
+      { id: 'H', name: 'Rüzgar çekerken tramola atan', role: 'hata', color: '#e76f51',
+        start: { x: 760, y: 632, h: 305 }, v0: 18,
+        segs: [
+          { mode: 'closehauled', tack: 'starboard', dur: 8.5, turn: 0 },
+          { mode: 'closehauled', tack: 'port', dur: 25.5, turn: 1.4, note: 'HATA: şamandıradan uzaklaşıyor' }
+        ] };
+      return [D, H, ...fleetCopies(D, [{ dx: 52, dy: 3 }, { dx: 104, dy: -2 }, { dx: 156, dy: 4 }], 1),
+        ...fleetCopies(H, [{ dx: -50, dy: 4 }], 4)];
+    })(),
+    steps: [
+      { t: 0, title: 'Pin\'den start', text: 'Pin biraz avantajlıydı ve yeşil D pin\'den çıktı. Gri filonun çoğu da onun yanında, sancak kontrada orsa gidiyor. Turuncu H ise hakem botu tarafından çıktı.' },
+      { t: 5, title: 'Rüzgar sağa döndü: rüzgar çekti', text: 'Rüzgar sağa döndü ve sancak kontradaki D\'nin burnu şamandıraya doğru yükseldi. Rüzgar D\'yi şamandıraya yaklaştırıyor, buna rüzgar çekti diyoruz.' },
+      { t: 9, title: 'Rüzgar çekerken tramola atma', text: 'D tramola atmıyor, çünkü rüzgar çekerken tramola atarsan şamandıradan uzaklaşan kontraya geçersin. H ise tramola attı ve şimdi iskele kontrada şamandıradan uzaklaşıyor.' },
+      { t: 15, title: 'Kim şamandıraya gidiyor?', text: 'İki tekne de aynı hızla rüzgara karşı gidiyor. Ama D\'nin burnu şamandıraya doğru, H\'nin burnu ise şamandıradan uzağa bakıyor. Fark, rüzgar geri dönünce ortaya çıkacak.' },
+      { t: 22, title: 'Rüzgar sola döndü: rüzgar açtı', text: 'Şimdi rüzgar sola döndü ve D\'nin burnu şamandıradan uzaklaşmaya başladı. Rüzgar açtı, işte tramola zamanı.' },
+      { t: 24.5, title: 'İlk fırsatta tramola', text: 'D ve yanındaki filo hemen tramola atıyor. İskele kontrada rüzgar artık onları şamandıraya yaklaştırıyor, yani yine çeken kontradalar.' },
+      { t: 28, title: 'Merdivene bak', text: 'Rüzgar geri dönünce fark ortaya çıktı. Kesikli çizgi D\'nin H\'den dört beş boy önde olduğunu gösteriyor.' },
+      { t: 31, title: 'Özet', text: 'Rüzgar çekiyorsa tramola atma, devam et. Rüzgar açınca ilk fırsatta tramola at. Her zaman seni şamandıraya yaklaştıran kontrada kal.' }
+    ],
+    addBoat: { pin: { x: 480, y: 670 }, middle: { x: 620, y: 670 }, committee: { x: 760, y: 670 } }
+  });
+
   // ---------- C1: Header'da tramola ----------
   S.push({
     id: 'c1-header-tack',
@@ -2224,6 +2313,7 @@
     ['ia2-line-sag', 'Start', 'Hattı oku', 'Hat yayı: ortada önde dur', 'Ortadaki filo hattan geride kalır; hattı gören biraz önde durur.'],
     ['ia2b-no-sag', 'Start', 'Hattı oku', 'Yay yok: herkesle aynı hizada dur', 'Filo hattın dibindeyse önde durma, erken çıkarsın.'],
     ['a3-pin-favored', 'Start', 'Pin ucu', 'Pin avantajlı: pin\'den çık, tramola at', 'Pin\'in yanından çık, hemen tramolayla filonun önünden geç.'],
+    ['a10-pin-tack-start', 'Start', 'Pin ucu', 'Pin çok avantajlı: hemen tramola at', 'Pin\'den çık, hemen tramola at, herkesin önünden geç.'],
     ['ia1-port-approach-pin', 'Start', 'Pin ucu', 'Dışarıda bekle, alttan tramola', 'Kavganın dışında bekle, apaz gel, grubun altına tramola at.'],
     ['ia8-pin-chaos', 'Start', 'Pin ucu', 'Pin kalabalık: layline\'ın üstünde kal', 'Pin layline\'ının üstünde yer tut; altında kalırsan pin\'i dönemezsin.'],
     ['a4-committee-favored', 'Start', 'Hakem botu ucu', 'Hakem botu avantajlı: alttan gel', 'Oraya rüzgaraltından gelerek girersin; üstten sokulmak hak vermez.'],
@@ -2244,6 +2334,7 @@
     ['ia13-black-flag', 'Start', 'Bayraklar', 'Siyah bayrak: son dakikada start hattına değme', 'Son 1 dakikada hattı geçen diskalifiye olur; yarım boy geride bekle.'],
     ['a9-clear-air-tack', 'Start', 'Start sonrası', 'Pis havadan tramolayla çık', 'Öndekinin pis rüzgarındaysan omzuna bak, yol boşsa tramola at.'],
     ['a9b-foot-out', 'Start', 'Start sonrası', 'Tramola yolu kapalı: bordala, hızlan', 'Burnu biraz düşür, hızlan, rüzgaraltındaki boşluğa kay.'],
+    ['a9c-lift-hold', 'Start', 'Start sonrası', 'Rüzgar çekiyorsa devam et', 'Rüzgar çekerken tramola atma; rüzgar açınca ilk fırsatta at.'],
     // Parkur
     ['c1-header-tack', 'Parkur', 'Orsa ayağı', 'Rüzgar açınca tramola at', 'Rüzgar seni şamandıradan uzaklaştırırsa tramola at, çeken kontrada kal.'],
     ['c3-layline', 'Parkur', 'Orsa ayağı', 'Layline: tam zamanında tramola at', 'Şamandıraya tek kontrada gidebileceğin yerde tramola at; fazla gitme.'],
