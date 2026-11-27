@@ -4,7 +4,11 @@
 (function () {
   const E = SailEngine, NS = 'http://www.w3.org/2000/svg';
   const LOOP = 7, HOLD = 1;          // bir tur 7 sn, sonda 1 sn bekleme
-  const CROWD = 'rgba(200,214,227,.75)';
+  // filo renkleri senaryo oynatıcısıyla aynı (app.js CROWD_COLORS)
+  const CROWD_COLORS = ['#c9d6e3', '#b8c7d6', '#aab9c9', '#d5dde6', '#bfcbd8', '#a3b3c4', '#cdd7e1', '#b0bfcf', '#dbe3ea', '#9fb0c3'];
+  // ön izlemede tekne sınıfı: senaryonun kendi sınıfı, yoksa senaryodan senaryoya Optimist / ILCA karışık (kullanıcı 2026-11-24
+  // "hepsi Optimist olmasın, ILCA da olsun"). Yalnız görünüş; senaryo açılınca Ayarlar › Tekne sınıfı geçerli.
+  const clsOf = scn => scn.boatClass || (Math.floor(E.seedOf(scn.id) * 37) % 2 ? 'ilca' : 'optimist');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)');
   const cache = new Map();           // senaryo id → { boats, vb }
   const live = new Set();            // ekranda görünen ve çizilmiş küçük resimler
@@ -28,8 +32,8 @@
       return sp;
     });
     const sc = SailRules.buildScene(scn, specs);
-    const boats = sc.extras.map(track => ({ color: CROWD, track, crowd: true }))
-      .concat(scn.boats.map((b, i) => ({ color: b.color, track: sc.scripted[i] })));
+    const boats = sc.extras.map((track, i) => ({ id: 'f' + i, color: CROWD_COLORS[i % CROWD_COLORS.length], track, crowd: true }))
+      .concat(scn.boats.map((b, i) => ({ id: b.id || String(i), color: b.color, track: sc.scripted[i] })));
     // çerçeve: anlatılan tekneler + start hattı + şamandıralar (filo dışarıda kalabilir), kare
     const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     const add = (x, y) => { b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y); };
@@ -54,10 +58,16 @@
       cb.setAttribute('transform', E.committeeBoatTransform(boat.x, boat.y, E.windAt(scn.wind, 0)));
     }
     for (const m of scn.marks || []) el('circle', { cx: m.x, cy: m.y, r: 4 * k, fill: '#ff8c42', stroke: '#fff', 'stroke-width': k }, svg);
+    // opts.trails: anlatılan teknelerin hesaplanan yolu ince kesik çizgi (Taktik oluştur kartı: "rotayı çiz")
+    if (th.trails) for (const bt of p.boats) if (!bt.crowd) {
+      const pts = []; for (let t = 0; t <= scn.duration; t += 0.25) { const q = E.sampleTrack(bt.track, t); pts.push(`${q.x.toFixed(1)},${q.y.toFixed(1)}`); }
+      el('polyline', { points: pts.join(' '), fill: 'none', stroke: bt.color, 'stroke-width': 1.6 * k, 'stroke-dasharray': `${4 * k} ${4 * k}`, opacity: .7, 'stroke-linecap': 'round' }, svg);
+    }
+    // tekneler senaryolardaki çizimle: sınıfa göre gövde, donanım ve rüzgara göre yelken (BoatDraw.draw), her karede yeniden
+    th.cls = clsOf(scn);
     th.nodes = p.boats.map(bt => {
-      const g = el('g', {}, svg);
-      el('path', { d: BoatDraw.hullPath(BoatDraw.pref()), transform: 'scale(1.35)', fill: bt.color, stroke: bt.crowd ? 'none' : '#fff', 'stroke-width': 2 }, g);
-      return { g, track: bt.track };
+      const g = el('g', {}, svg), inner = el('g', { transform: 'scale(1.2)' }, g);
+      return { g, inner, track: bt.track, color: bt.color, seed: E.seedOf(bt.id), crowd: bt.crowd };
     });
     th.box.appendChild(svg);
     th.drawn = true;
@@ -65,9 +75,13 @@
   }
 
   function pose(th, t) {
+    const scn = th.scn, w = E.windAt(scn.wind, t), base = scn.baseSpeed || 55;
     for (const n of th.nodes) {
       const s = E.sampleTrack(n.track, t);
       n.g.setAttribute('transform', `translate(${s.x.toFixed(1)},${s.y.toFixed(1)}) rotate(${s.h.toFixed(1)})`);
+      n.inner.textContent = '';
+      const sp = E.sailPose(s.h, w, { v: s.v, base, t, seed: n.seed, back: !!s.back });
+      BoatDraw.draw(n.inner, th.cls, { color: n.color, pose: sp, t, seed: n.seed, heading: s.h, speed: (s.v || 0) / base, rich: false, strokeW: n.crowd ? 1 : 1.5, stroke: n.crowd ? 'rgba(255,255,255,.5)' : '#fff' });
     }
   }
 
@@ -104,7 +118,7 @@
     // opts.still: durağan kare (ana sayfa listesi); üstüne gelince / basılıyken oynar (hot)
     make(scn, opts) {
       const box = document.createElement('div'); box.className = 'thumb';
-      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), meet: !!(opts && opts.meet), hot: false };
+      const th = box._thumb = { scn, box, drawn: false, nodes: [], still: !!(opts && opts.still), meet: !!(opts && opts.meet), trails: !!(opts && opts.trails), hot: false };
       if (th.still) {
         const on = v => () => { th.hot = v; if (!v && th.drawn) pose(th, scn.duration * 0.6); kick(); };
         const host = () => box.closest('button, a') || box;

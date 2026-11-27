@@ -1073,6 +1073,18 @@
     if (allCat) sec.querySelector('.nx-more').onclick = () => { homeAll = allCat; homeQuery = ''; $('homeSearch').value = ''; buildHome(); $('homePage').scrollTop = 0; };
     return sec;
   }
+  // Taktik oluştur kartının ön izlemesi: gerçek motorla hesaplanan bir taktik (kullanıcı 2026-11-24 "uydurma animasyon olmasın").
+  // Kendi taktiği varsa en yenisi, yoksa kurucunun "Şamandıra dönüşü" hazır sahnesi; teknelerin yolu kesik çizgiyle görünür
+  function makeArt() {
+    const box = $('nxMakeArt'); if (!box || !window.SailTaktik || !window.SailThumbs) return;
+    box.innerHTML = '';
+    let scn = null;
+    try {
+      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT && x.boats && x.boats.length >= 2);
+      scn = mine[0] || SailTaktik.compile(SailTaktik.fromTemplate('samandira'), { id: 'ornek-samandira' });
+    } catch (e) { return; }
+    const th = SailThumbs.make(scn, { meet: true, trails: true }); th.classList.add('nx-make-thumb'); box.appendChild(th);
+  }
   function buildHome() {
     if (window.SailThumbs) SailThumbs.reset();
     const listMode = !!(homeAll || homeQuery.trim());
@@ -1083,9 +1095,16 @@
       buildList($('homeTabs'), $('homeList'), homeAll || homeCat, homeQuery, c => { homeAll = c; buildHome(); }, true);
       return;
     }
-    $('nxHero').innerHTML = ''; showHero(heroIdx);
+    $('nxHero').innerHTML = ''; showHero(heroIdx); makeArt();
     const rows = $('nxRows'); rows.innerHTML = '';
     seenSet = new Set(recentIds());
+    // Taktiklerim: kullanıcı taktik oluşturduysa satırların en üstünde, Taktik oluştur kartının hemen altında (kullanıcı 2026-11-24)
+    if (window.SailTaktik) {
+      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
+      const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
+      add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
+      if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
+    }
     // hava süzgeci: yalnız en az bir senaryoda hava verisi varsa
     const hasHava = SCENARIOS.some(x => havaOf(x).length);
     if (hasHava) {
@@ -1105,12 +1124,6 @@
     }
     const rec = recentIds().map(id => SCENARIOS.find(x => x.id === id)).filter(x => x && !x.user);
     if (rec.length) rows.appendChild(nxRow('İzlenenler', rec, null, null, ['Sıfırla', () => { clearRecent(); buildHome(); }]));
-    if (window.SailTaktik) {
-      const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
-      const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
-      add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
-      if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
-    }
     rows.querySelectorAll('.nx-row').forEach((r, i) => r.style.setProperty('--d', `${Math.min(i, 6) * 60}ms`));
   }
   $('nxHero').addEventListener('pointerenter', () => { heroPaused = true; });

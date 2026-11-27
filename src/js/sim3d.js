@@ -4,6 +4,7 @@
 // Kameralar: "Tekneden" (senin teknende oturan yelkencinin gözü; sürükleyerek etrafa bak), "Arkadan" (takip), "Yukarıdan" (filo).
 import * as THREE from 'three';
 import { createSea } from 'sea3d';
+import { optimistFactory } from 'optimist3d';
 
 const DEG = Math.PI / 180;
 let ctx = null;
@@ -165,11 +166,13 @@ function init() {
 
   // ---------- tekne havuzu ----------
   const boats = new Map();
+  let OPTI = null;                                                    // gerçekçi Optimist (js/optimist3d.js)
   function boatFor(b, cls) {
     let o = boats.get(b.id);
     if (!o || o.cls !== cls || o.color !== b.color) {
       if (o) scene.remove(o.m.g);
-      o = { m: buildBoat(cls, new THREE.Color(b.color || '#94a3b8')), cls, color: b.color };
+      const col = new THREE.Color(b.color || '#94a3b8');
+      o = { m: cls && cls.startsWith('ilca') ? buildBoat(cls, col) : (OPTI || (OPTI = optimistFactory(THREE))).make(col.getHex()), cls, color: b.color };
       scene.add(o.m.g); boats.set(b.id, o);
     }
     return o;
@@ -244,6 +247,7 @@ function init() {
       m.g.rotation.set(Math.sin(time * 1.7 + b.x) * 0.02, -b.h * DEG, heel, 'YXZ');
       const pose = sc.poses && sc.poses[b.id];
       const beta = pose ? pose.beta : -tack * 25;
+      if (m.pose) { m.pose({ beta, tack, flutter: pose ? pose.flutter : 0, time, tiller: Math.max(-1, Math.min(1, ((b.h - (o.lastH ?? b.h)) / Math.max(0.001, 1 / 60)) / 40)) }); o.lastH = b.h; m.g.visible = true; continue; }
       m.rig.rotation.y = beta * DEG;
       m.sail.scale.x = beta >= 0 ? 1 : -1;
       if (pose && pose.flutter > 0.15) m.sail.rotation.y = Math.sin(time * 18 + b.x) * 0.06 * pose.flutter; else m.sail.rotation.y = 0;
@@ -259,7 +263,7 @@ function init() {
     let mode = st.cam; if (mode === 'fp' && !mine) mode = 'chase';
     if (mode === 'fp') {
       const g = mine.o.m.g;
-      const eye = new THREE.Vector3(mine.o.m.sailor.position.x * 0.85, 1.05, mine.o.m.L * 0.12);      // yelkencinin başı (yerel)
+      const eye = mine.o.m.state ? mine.o.m.state.eye.clone() : new THREE.Vector3(mine.o.m.sailor.position.x * 0.85, 1.05, mine.o.m.L * 0.12);      // yelkencinin başı (yerel)
       g.updateMatrixWorld(); camPos.copy(eye).applyMatrix4(g.matrixWorld);
       const yaw = hd + st.yaw, pit = st.pitch;
       camLook.copy(camPos).add(new THREE.Vector3(Math.sin(yaw) * Math.cos(pit), Math.sin(pit), -Math.cos(yaw) * Math.cos(pit)));

@@ -13,6 +13,9 @@
     { id: 'Aoede', label: 'Kadın · sıcak' }
   ];
   const DEFAULT_VOICE = 'Aoede';
+  // Ses motoru sürümü (dosya adına girer; değişince bütün sesler yeniden üretilir). 'g2': Gemini-TTS, anlatıcı yönergesiyle
+  // (kullanıcı 2026-11-24: "hiç akıcı değil"; Vertex AI API 2026-11-25 açıldı), olmazsa Chirp 3 HD (scripts/tts.mjs).
+  const ENGINE = 'g2';
   const SAMPLE = 'Merhaba! Bu dersi ben anlatacağım. Rüzgar üç yüz elli dereceden esiyor; pin hafif avantajlı.';
 
   // Ekranda okunan metni konuşmaya uygun hale getirir (kısaltmalar, simgeler, BÜYÜK harfle vurgu)
@@ -33,6 +36,8 @@
       // kesme işaretli kelimeler (kullanıcı 2026-11-23: "layline'ın" ayrı ayrı okunup anlaşılmıyordu):
       // önce yabancı kelimelerin okunuşu, sonra tek harf / sayı + ek okunuşuyla birleşir, kalan kesmeler silinir
       .replace(/\b(layline|header|zone|px)(?=['’\s.,;:!?)]|$)/gi, w => SAY[w.toLowerCase()] || w)
+      // tramola: ses motoru "tramole" gibi okuyordu (kullanıcı 2026-11-27); Türkçe okunuşla yaz (tramolayla, tramolada… ekler korunur)
+      .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([Tt])ramola/g, (m, pre, T) => pre + (T === 'T' ? 'Tıramola' : 'tıramola'))
       .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([A-ZÇĞİÖŞÜ])['’]([a-zçğıöşü]+)/g, (m, pre, L, ek) => pre + (LETTER[L] || L) + ek)
       .replace(/\b(\d{1,3})['’]([a-zçğıöşü]+)/g, (m, n, ek) => numTr(+n) + ek)
       .replace(/([\wÇĞİÖŞÜçğıöşü])['’](?=[a-zçğıöşü])/g, '$1')
@@ -54,7 +59,7 @@
   // FNV-1a, iki tohum → 16 hane (metin + ses değişince dosya adı değişir)
   function fnv(str, h) { for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; }
   function key(voice, text) {
-    const s = voice + '|' + text;
+    const s = voice + '|' + ENGINE + '|' + text;
     return fnv(s, 2166136261).toString(16).padStart(8, '0') + fnv(s, 0x9747b28c).toString(16).padStart(8, '0');
   }
   const api = { VOICES, DEFAULT_VOICE, SAMPLE, speechText, key };

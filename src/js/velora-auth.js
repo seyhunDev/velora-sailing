@@ -40,7 +40,7 @@ async function start() {
     } catch (e) { /* yok */ }
     try {
       const d = (await fs.getDoc(fs.doc(fs.getFirestore(app), 'users', user.uid))).data() || {};
-      const owner = (d.role || 'owner') === 'owner' && (d.orgId || user.uid) === user.uid;
+      const owner = (d.role || 'owner') === 'owner' && (d.orgId || user.uid) === user.uid && d.via !== 'sailing';   // Sailing bağlantısından kaydolan sporcu sahip değil
       return { role: owner ? 'sahip' : 'kayitli', name: d.name || '' };
     } catch (e) { return { role: 'kayitli', name: '' }; }
   }
@@ -112,6 +112,8 @@ async function start() {
     return out;
   };
   document.dispatchEvent(new CustomEvent('velora-ready'));
+  // Modül yüklenmeden çıkış yapıldıysa Firebase oturumu şimdi kapanır (access.js logout)
+  try { if (localStorage.getItem('ps.fbSignOut') === '1') { localStorage.removeItem('ps.fbSignOut'); if (!pending) await au.signOut(auth).catch(() => {}); } } catch (e) { /* yok */ }
 
   if (pending) {
     try {

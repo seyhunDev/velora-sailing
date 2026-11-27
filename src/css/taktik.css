@@ -204,3 +204,11 @@ body.taktik { background: var(--bg); }
 .tk-kod-err { margin: 4px 4px 8px; color: var(--text2); }
 .tk-code-s { font-weight: 800; letter-spacing: .06em; font-size: 13px; padding: 3px 7px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); }
 .tk-kod .tk-in::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; }
+/* seçili nesne kartı: sürükleme tutamağı */
+.tk-grip { display: flex; justify-content: center; margin: -4px 0 -2px; padding: 2px 0 4px; cursor: grab; touch-action: none; }
+.tk-grip i { width: 38px; height: 5px; border-radius: 3px; background: var(--border, #d2d2d7); }
+.tk-grip:hover i { background: var(--muted, #8e8e93); }
+.tk-sel .tk-sel-h { touch-action: none; }
+.tk-sel.moving { cursor: grabbing; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
+.tk-sel.moving .tk-grip { cursor: grabbing; }
+.tk-sel { z-index: 5; }

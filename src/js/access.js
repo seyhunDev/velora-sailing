@@ -22,6 +22,12 @@
     'visits':      { roles: ['sahip'],            name: 'Ziyaret kayıtları' },
   };
 
+  // Giriş: Velora hesabı (seyhunDev/sesliasistan). Kaydol / şifremi unuttum Velora'nın sayfasında yapılır, Velora işi bitince
+  // kişiyi /api/sailing-giris anahtarıyla buradaki aynı adrese geri gönderir (Velora: src/lib/sailingReturn.js, 2026-11-24).
+  const VELORA = 'https://sesliasistan.netlify.app';
+  // Misafir seçeneği (2026-11-24: "kayıtlı değilse önce Velora'ya kaydolsun"). Tek senaryo bağlantısı (?izle) yine girişsiz.
+  const GUEST = false;
+
   const T = window.SailTrack || { log() {}, setWho() {}, consent: () => null, setConsent() {}, context: () => ({}), newSession: false };
   const get = () => { try { return JSON.parse(localStorage.getItem(ACC)) || null; } catch (e) { return null; } };
   const put = a => { try { a ? localStorage.setItem(ACC, JSON.stringify(a)) : localStorage.removeItem(ACC); } catch (e) { /* yok */ } };
@@ -31,6 +37,24 @@
   let acc = get();
   let veloraWait = false;
   const role = () => (acc && acc.role) || 'misafir';
+  const signedIn = () => !!acc && (GUEST || acc.role !== 'misafir');
+  // Çıkış: bu sitedeki hesap + Velora (Firebase) oturumu kapanır. Sonraki "Velora'ya kaydol / gir" Velora'ya &cikis=1 ile gider,
+  // Velora da tarayıcıdaki oturumunu kapatır; yoksa Velora eski hesabı tanıyıp kişiyi o hesapla geri gönderirdi (kullanıcı 2026-11-24).
+  const OUT = 'ps.loggedOut';
+  function logout() {
+    T.log('logout', {});
+    if (window.VeloraAuth) window.VeloraAuth.signOut();
+    else try { localStorage.setItem('ps.fbSignOut', '1'); } catch (e) { /* yok */ }   // modül yüklenince kapatır (velora-auth.js)
+    try { localStorage.setItem(OUT, '1'); } catch (e) { /* yok */ }
+    setAccount(null, 'çıkış'); openGate('home');
+  }
+  function toVelora(page) {
+    const back = location.pathname + location.search + location.hash;
+    let out = false; try { out = localStorage.getItem(OUT) === '1'; } catch (e) { /* yok */ }
+    T.log('velora', { go: page });
+    applyConsent();
+    location.assign(`${VELORA}/${page}?sailing=${encodeURIComponent(back)}${out ? '&cikis=1' : ''}`);
+  }
   const can = f => { const x = FEATURES[f]; return !x || x.roles.includes(role()); };
   function syncWho() { T.setWho({ role: acc ? acc.role : null, uid: acc && acc.uid, name: (acc && acc.name) || '' }); document.documentElement.dataset.role = role(); }
   syncWho();
@@ -44,6 +68,7 @@
 
   function setAccount(a, how) {
     acc = a; put(a); syncWho(); chipUpdate();
+    if (a && a.role !== 'misafir') try { localStorage.removeItem('ps.loggedOut'); } catch (e) { /* yok */ }
     setTimeout(askConsent, 400);
     document.dispatchEvent(new CustomEvent('sail-access', { detail: { role: role(), how } }));
   }
@@ -86,12 +111,12 @@
     document.body.appendChild(gate);
     gate.querySelector('#gateMore').onclick = e => { e.preventDefault(); gate.querySelector('#gateNotice').classList.toggle('hidden'); };
     gate.querySelector('#gateClose').onclick = () => closeGate('kapat');
-    gate.addEventListener('keydown', e => { if (e.key === 'Escape' && acc) closeGate('esc'); });
+    gate.addEventListener('keydown', e => { if (e.key === 'Escape' && (signedIn() || gateMode === 'locked')) closeGate('esc'); });
   }
 
   function renderGate() {
     const body = gate.querySelector('#gateBody');
-    gate.querySelector('#gateClose').style.display = acc ? '' : 'none';   // ilk girişte seçim zorunlu
+    gate.querySelector('#gateClose').style.display = signedIn() || gateMode === 'locked' ? '' : 'none';   // hesabı olmayan önce Velora'ya girer
     const f = lockedFeature && FEATURES[lockedFeature];
     const back = () => { gateMode = lockedFeature ? 'locked' : 'home'; renderGate(); };
     if (gateMode === 'home') {
@@ -100,17 +125,16 @@
           <h2 id="gateTitle">Velora <em>Sailing</em></h2>
           <p>Yarış yelkencileri için taktik ve kural animasyonları</p></div>
         <div class="gate-btns">
-          <button class="gate-btn primary" id="gateGuest">Misafir olarak devam et</button>
-          <button class="gate-btn" id="gateSignup">Kaydol <span>ücretsiz</span></button>
-          ${window.VeloraAuth ? '<button class="gate-btn velora" id="gateVelora"><i class="gate-vmark">' + LOGO + '</i>Velora hesabıyla gir</button>' : ''}
+          <button class="gate-btn primary" id="gateSignup">Velora'ya kaydol <span>ücretsiz</span></button>
+          <button class="gate-btn velora" id="gateVelora"><i class="gate-vmark">${LOGO}</i>Velora hesabımla gir</button>
+          ${GUEST ? '<button class="gate-btn ghost" id="gateGuest">Misafir olarak devam et</button>' : ''}
         </div>
-        <p class="gate-hint">Kaydolunca İleri Taktik, elle sürme ve yarış kaydı açılır.</p>
-        <button class="gate-link gate-owner" id="gateOwner">Site sahibi girişi</button>`;
-      body.querySelector('#gateGuest').onclick = () => chooseGuest();
-      body.querySelector('#gateSignup').onclick = () => { gateMode = 'signup'; renderGate(); };
-      body.querySelector('#gateOwner').onclick = () => { gateMode = 'owner'; renderGate(); };
-      const gv = body.querySelector('#gateVelora');
-      if (gv) gv.onclick = () => { gateMode = 'velora'; renderGate(); };
+        <p class="gate-hint">Velora Sailing, Velora hesabınla açılır. Kaydolunca bu sayfaya geri dönersin.</p>`;
+      const gg = body.querySelector('#gateGuest');
+      if (gg) gg.onclick = () => chooseGuest();
+      body.querySelector('#gateSignup').onclick = () => toVelora('register');
+      // Velora modülü yüklendiyse giriş burada (e-posta + şifre), yüklenmediyse Velora'nın giriş sayfasına gidilir
+      body.querySelector('#gateVelora').onclick = () => { if (window.VeloraAuth) { gateMode = 'velora'; renderGate(); } else toVelora('login'); };
     } else if (gateMode === 'velora') {
       body.innerHTML = `
         <button class="gate-back" id="gvBack">${BACK}Geri</button>
@@ -121,9 +145,12 @@
           <input id="gvPass" type="password" autocomplete="current-password" required placeholder="Şifre" aria-label="Şifre">
           <div class="gate-err" id="gvErr">${esc(veloraMsg)}</div>
           <button class="gate-btn primary" id="gvGo">Giriş</button>
-        </form>`;
+        </form>
+        <p class="gate-alt"><button type="button" class="gate-link" id="gvForgot">Şifremi unuttum</button> · <button type="button" class="gate-link" id="gvNew">Hesabım yok, kaydol</button></p>`;
       veloraMsg = '';
       body.querySelector('#gvBack').onclick = back;
+      body.querySelector('#gvForgot').onclick = () => toVelora('login');
+      body.querySelector('#gvNew').onclick = () => toVelora('register');
       body.querySelector('#gateVForm').onsubmit = async e => {
         e.preventDefault();
         const err = body.querySelector('#gvErr'), go = body.querySelector('#gvGo');
@@ -140,31 +167,15 @@
       body.innerHTML = `
         <div class="gate-hero"><span class="gate-logo lock">${LOCK}</span>
           <h2 id="gateTitle">${esc(f ? f.name : 'Bu bölüm')}</h2>
-          <p>Kayıtlı kullanıcılar için. Kaydolmak ücretsiz, bir dakika sürer.</p></div>
+          <p>Velora hesabı olanlar için. Kaydolmak ücretsiz, bir dakika sürer.</p></div>
         <div class="gate-btns">
-          <button class="gate-btn primary" id="gateSignup">Kaydol</button>
+          <button class="gate-btn primary" id="gateSignup">Velora'ya kaydol</button>
+          <button class="gate-btn velora" id="gateVelora"><i class="gate-vmark">${LOGO}</i>Velora hesabımla gir</button>
           <button class="gate-btn ghost" id="gateBack">Şimdi değil</button>
         </div>`;
-      body.querySelector('#gateSignup').onclick = () => { gateMode = 'signup'; renderGate(); };
+      body.querySelector('#gateSignup').onclick = () => toVelora('register');
+      body.querySelector('#gateVelora').onclick = () => { if (window.VeloraAuth) { gateMode = 'velora'; renderGate(); } else toVelora('login'); };
       body.querySelector('#gateBack').onclick = () => { T.log('locked', { feature: lockedFeature, answer: 'vazgeç' }); closeGate('vazgeç'); };
-    } else if (gateMode === 'signup') {
-      body.innerHTML = `
-        <button class="gate-back" id="gfBack">${BACK}Geri</button>
-        <h2 id="gateTitle" class="gate-h">Kaydol</h2>
-        <form class="gate-form" id="gateForm" novalidate>
-          <input id="gfName" autocomplete="name" required maxlength="60" placeholder="Adın soyadın" aria-label="Ad soyad">
-          <div class="gate-chips" role="radiogroup" aria-label="Ben bir">
-            ${['Sporcu', 'Antrenör', 'Veli', 'Diğer'].map((k, i) => `<button type="button" role="radio" class="gate-chip${i ? '' : ' on'}" aria-checked="${!i}" data-k="${k}">${k}</button>`).join('')}
-          </div>
-          <input id="gfClub" maxlength="60" placeholder="Kulüp (isteğe bağlı)" aria-label="Kulüp">
-          <input id="gfMail" type="email" autocomplete="email" maxlength="80" placeholder="E-posta (isteğe bağlı)" aria-label="E-posta">
-          <div class="gate-err" id="gfErr"></div>
-          <button class="gate-btn primary" id="gfGo">Kaydol ve başla</button>
-        </form>`;
-      body.querySelectorAll('.gate-chip').forEach(c => c.onclick = () => body.querySelectorAll('.gate-chip').forEach(x => { x.classList.toggle('on', x === c); x.setAttribute('aria-checked', x === c); }));
-      body.querySelector('#gfBack').onclick = back;
-      body.querySelector('#gateForm').onsubmit = e => { e.preventDefault(); doSignup(); };
-      setTimeout(() => body.querySelector('#gfName')?.focus(), 30);   // hızlı dokunuşta ekran değişmiş olabilir (rastgele tıklama testi buldu)
     } else if (gateMode === 'owner') {
       body.innerHTML = `
         <button class="gate-back" id="goBack">${BACK}Geri</button>
@@ -205,20 +216,6 @@
     setAccount({ role: 'misafir', uid: null, since: new Date().toISOString() }, 'misafir');
     T.log('gate', { choice: 'misafir' });
     gate.classList.add('hidden'); document.documentElement.classList.remove('gate-open');
-  }
-  function doSignup() {
-    const v = id => gate.querySelector(id).value.trim();
-    const name = v('#gfName'), email = v('#gfMail'), club = v('#gfClub');
-    const kind = (gate.querySelector('.gate-chip.on') || {}).dataset?.k || 'Diğer';
-    const err = gate.querySelector('#gfErr');
-    if (name.length < 2) { err.textContent = 'Adını yaz.'; return; }
-    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'E-posta adresi geçerli görünmüyor.'; return; }
-    applyConsent();
-    const prev = acc;
-    setAccount({ role: prev && prev.role === 'sahip' ? 'sahip' : 'kayitli', uid: rid(), name, email, kind, club, since: new Date().toISOString() }, 'kayıt');
-    T.log('signup', { name, email, kind, club, from: lockedFeature || 'giriş' });
-    gate.classList.add('hidden'); document.documentElement.classList.remove('gate-open');
-    toast(`Hoş geldin ${name.split(' ')[0]}! Tüm bölümler açık.`);
   }
   async function ownerLogin(key) {
     if (!(await isOwnerKey(key))) return false;
@@ -292,7 +289,7 @@
       <div class="acc-head"><span class="acc-av" data-role="${r}">${chip.innerHTML}</span>
         <div class="acc-id"><div class="acc-who">${esc(who)}</div>
         <div class="acc-sub"><span class="acc-role" data-role="${r}">${ROLE_NAMES[r]}</span>${acc && acc.email ? `<span class="acc-mail">${esc(acc.email)}</span>` : ''}</div></div></div>
-      ${r === 'misafir' ? '<button class="acc-item" data-a="signup">Kaydol <small>tüm bölümler açılır</small></button>' : ''}
+      ${r === 'misafir' ? '<button class="acc-item" data-a="signup">Velora\'ya kaydol / gir <small>tüm bölümler açılır</small></button>' : ''}
       ${can('visits') ? '<a class="acc-item" href="ziyaret.html" data-a="visits">Ziyaret kayıtları</a>' : ''}
       ${window.VeloraData ? `<button class="acc-item" data-a="data">Veri kullanımı <small>bugün ${VeloraData.fmt(VeloraData.stats().today)}</small></button>` : ''}
       <button class="acc-item" data-a="privacy">Gizlilik ve verilerim <small>${c === false ? 'kayıt kapalı' : 'kayıt açık'}</small></button>
@@ -302,11 +299,11 @@
     if (extra) { menu.appendChild(extra); extra.hidden = false; }
     menu.querySelectorAll('[data-a]').forEach(x => x.onclick = () => {
       const a = x.dataset.a; menu.classList.add('hidden');
-      if (a === 'signup') openGate('signup');
+      if (a === 'signup') openGate('home');
       else if (a === 'owner') openGate('owner');
       else if (a === 'privacy') openPrivacy();
       else if (a === 'data') window.VeloraData.open();
-      else if (a === 'logout') { T.log('logout', {}); if (acc && acc.via === 'velora' && window.VeloraAuth) window.VeloraAuth.signOut(); setAccount(null, 'çıkış'); openGate('home'); }
+      else if (a === 'logout') logout();
     });
     menu.classList.remove('hidden'); chip.classList.add('on');
   }
@@ -377,7 +374,7 @@
   } else if (window.__veloraToken) {
     // Velora'dan anahtarla gelindi: giriş ekranı gösterilmeden velora-auth.js oturumu açar; 12 sn'de olmazsa ekran açılır
     veloraWait = true;
-    setTimeout(() => { if (veloraWait && !acc) openGate('home'); veloraWait = false; }, 12000);
-  } else if (!acc && !document.documentElement.classList.contains('tek')) openGate('home');   // paylaşılan senaryo: girişsiz izlenir
+    setTimeout(() => { if (veloraWait && !signedIn()) openGate('home'); veloraWait = false; }, 12000);
+  } else if (!signedIn() && !document.documentElement.classList.contains('tek')) openGate('home');   // paylaşılan senaryo: girişsiz izlenir
   askConsent();
 })();

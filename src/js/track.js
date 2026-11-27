@@ -8,10 +8,12 @@
 //   race_end, race_save, drive, route, gate (giriş ekranı seçimi), signup, owner, consent, locked
 // Velora'dan gelen giriş anahtarı (#t=…) adresten hemen silinir: kayıtlara, geçmişe girmez (js/velora-auth.js kullanır)
 (function () {
-  const m = /^#t=([^&]+)/.exec(location.hash);
+  // #t=ANAHTAR[&h=ASIL_HASH]: Velora'dan kayıt/giriş dönüşünde asıl # (ör. senaryo kimliği) h ile gelir, geri konur
+  const m = /^#t=([^&]+)(?:&h=(.*))?$/.exec(location.hash);
   if (!m) return;
-  try { window.__veloraToken = decodeURIComponent(m[1]); } catch (e) { /* bozuk */ }
-  history.replaceState(null, '', location.pathname + location.search);
+  let h = '';
+  try { window.__veloraToken = decodeURIComponent(m[1]); h = m[2] ? decodeURIComponent(m[2]) : ''; } catch (e) { /* bozuk */ }
+  history.replaceState(null, '', location.pathname + location.search + (h ? '#' + h.replace(/^#/, '') : ''));
 })();
 (function () {
   const KEY = 'ps.track.v1', VID = 'ps.vid', SID = 'ps.sid', CONSENT = 'ps.consent.v2';   // v2: kayıtlar sunucuya gider (yeniden sorulur)
