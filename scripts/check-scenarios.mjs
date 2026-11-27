@@ -13,6 +13,9 @@ for (const scn of globalThis.SCENARIOS) {
   // Seslendirme: tek başına "hatta" Türkçe "hatta" (bile) diye okunur (kullanıcı 2026-11-27) → "start hattına/hattında" yaz
   for (const st of scn.steps || []) if (/(^|[^\wçğıöşü])hatta(?![\wçğıöşü])/i.test((st.title || '') + ' ' + (st.text || '')))
     warn(scn, `t=${st.t} adımında tek başına "hatta" var; "start hattına" ya da "start hattında" yaz`);
+  // Ders kodları (A3, İA2b, İT1…) KATALOG'la değişti (S1, P2…); metinde eski kodla ders anma, dersin adını yaz (2026-11-27)
+  for (const st of scn.steps || []) if (/(^|[^\wÇĞİÖŞÜçğıöşü])(İA|İT|[A-E])\d{1,2}[a-c]?(?=[\s'’]|$)[^.]*ders/.test(st.text || ''))
+    warn(scn, `t=${st.t} adımında eski ders kodu var; kod yerine dersin adını yaz`);
   console.log('•', scn.id);
   // uygulamadaki gibi: senaryo tekneleri + filo, pis rüzgar yavaşlaması dahil
   const specs = (scn.crowd || []).map(c => {

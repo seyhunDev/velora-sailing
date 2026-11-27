@@ -30,7 +30,8 @@ import { spawnSync } from 'node:child_process';
 const GEMINI_MODEL = process.env.TTS_GEMINI_MODEL || 'gemini-2.5-flash-tts';
 const PROJECT = process.env.TTS_PROJECT || '828345188662';   // sesli asistanın Google Cloud projesi (numarası gizli değil)
 const STYLE = 'Sekiz ile on dört yaş arası yelkenci çocuklara ders anlatan sıcak, sakin ve neşeli bir antrenör gibi oku. ' +
-  'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma.';
+  'Doğal bir hızda, cümleleri birbirine bağlayarak, akıcı bir sohbet tonuyla konuş; robot gibi kesik kesik okuma. ' +
+  'Bütün kelimeleri Türkçe okunuşuyla oku, yelken terimlerini yabancı kelime gibi okuma.';
 const used = { gemini: 0, chirp: 0 };
 const HAS_FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0;
 // Vertex kotası düşük (dakikada birkaç istek): istekler sıraya girer. Bütçe dolunca kalan metinler Chirp ile çıkar,

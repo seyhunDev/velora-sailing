@@ -239,6 +239,7 @@
 - 2026-11-27 · **Metinlerde tek başına "hatta" yazılmaz:** seslendirme onu "hatta" (bile) diye okur. Start hattı için "start hattına / start hattında" yazılır; `check-scenarios` uyarır.
 
 ## Açık sorular (kullanıcıya)
+- (2026-11-27) Rüzgar dönüşü terimleri: kapatma (header) / açma (lift) yerine hangisi? Seçenek 1: kapatma = açan (rüzgar açtırdı, kafayı açarsın), açma = çeken (rüzgar çektirdi). Seçenek 2: kapatma = çeken, açma = açan. Değişecek yerler: C1 (P1) metinleri, KATALOG satırı, taktik-core hazır sahnesi ve rüzgar dönüşü notu, ayar3d arkadan ders.
 - İleri Teknik (İT1/İT1b) misafire açık; İleri Taktik gibi kayıtlılara kilitlensin mi? Palanga miktarı (orta-sert 'belirgin sıkı', hafif 'yalnız boşluk') kulübün halat işaretiyle sayısal verilebilir mi?
 - Yelken ayarı: J-Sails, Olimpic, CD kılavuzları (PDF) kullanıcıdan bekleniyor; "Van" hangi marka? OneSails mm dizisinin bağ sırası tepeden mi? Bumba yüksekliği kılavuzlarda yok (North: üst emniyet halatı sert havada yelkeni aşağı alır).
 - Misafire hangi bölümler kapalı olsun? Şimdilik İleri Taktik + Elle sür + yarış kaydı. Kayıt izni kutusu varsayılan işaretli; KVKK/GDPR'ye sıkı uyum için işaretsiz (açık rıza) olması daha doğru, kullanıcı karar verecek.
@@ -323,7 +324,53 @@
 4. Playwright ekran görüntüsü (en az 2 kritik an).
 5. `KONULAR.md` durumunu ✅ yap.
 
+## Senaryo iyileştirme kontrol listesi (tüm senaryolar turu, kullanıcı 2026-11-27)
+> Kullanıcı: "en baştan başlayıp sırasıyla, önceki geliştirmeleri hepsinde kullanalım; hepsini notlara yazalım ki bir dahaki sefere nereye dikkat ettiğimizi bilelim." Her senaryoda bu listeyi baştan sona uygula. Yeni bir ders öğrenince buraya madde ekle.
+
+**A. Metin ve seslendirme**
+1. 10-14 yaş: kısa cümle, "sen" diye hitap, kural ayrı cümle ("Buna Kural 10 diyoruz."). Parantez, ok, tırnak, %, eğik çizgi, ≈ yok. Ekrandaki metin = okunan metin.
+2. Tek başına "hatta" yazma, "start hattına / start hattında" yaz (`check-scenarios` uyarır).
+3. "tramola" ses motorunda "tramole" gibi çıkıyordu: `narration.js` → `speechText` metni "tıramola" diye gönderir (ekler korunur). Ekranda yine "tramola" yazılır. Başka yanlış okunan kelime çıkarsa aynı yere ekle (yabancılar `SAY` tablosunda).
+4. Metinde eski ders kodu (A3, İA2b, İT1…) yazma; kodlar KATALOG'dan gelir ve değişir. Dersin adını yaz ("hakem botu ucu dersinde"). `check-scenarios` uyarır.
+5. Rüzgar dönüşü terimleri: kullanıcıya soruldu (2026-11-27), cevap gelince buraya yaz. "Kapama" (cover, rakibin üstünde kalma) ayrı kavram, ona dokunma.
+6. Start hattının şamandıra ucu "pin"dir; "orsa şamandırası" parkurun üst şamandırası.
+7. Adım zamanı olayla eşleşsin; son adım (Sonuç/Özet) sahnede tekneler hâlâ görünürken gelsin (tekneler üst çubuğun altına kaçmasın, gerekirse `duration` kısalt).
+
+**B. Gerçekçi filo (İA1-İA15'ten öğrenilenler)**
+1. Optimist filosu sık durur: ön sıra merkezleri ~48-52 px, burunlar hattın 0,1-0,5 boy altında, ikinci sıra ~50-55 px geride. Seyrek, hattan uzak filo gerçekçi değil.
+2. Filo avantajlı uca toplanır; dezavantajlı uç seyrek. Hat avantajı dersinde bu farkı göster.
+3. Start öncesi canlı filo: `crowdLife: {gap}`, `leeway` (filo pin'e/rüzgaraltına kayar), `drift` (ders teknesinin yanındakiler 0, pin ucu 0-0,5), hakem botu ucu baştan boş ve 2-3 tekne `wait` ile dışarıda bekleyip açılan boşluğa girer.
+4. Ders teknesi filoya yaklaşırken yakından geçer (2-3 boy uzaktan değil). İskele kontradaki tekne sancaktakilerin kıçından geçmek için burnunu düşürür (ör. 100°), dümdüz orsa giderse ön sıraya çarpar.
+5. Hakem botu gövde biçimiyle çarpışır (`obstacleGap`); tekneler botun kıçına yakın geçebilir.
+6. `goto` hedefi rüzgara 42°'den yakınsa tekne hedefi aşar: son ayağı kısa tut.
+7. Çerçeve: sahne başta ve sonda alt/üst çubuğa girmesin; hat çok aşağıdaysa bütün y'leri birlikte yukarı kaydır.
+8. Filo `row`/`back` teknenin ROTASI boyunca geri koyar. Hat avantajı büyükse (ör. rüzgar 335°, yatay hat) orsa rotası hatta neredeyse paraleldir ve ikinci sıra yana kayar: ikinci sırayı `pos` ile hattın ~1 boy altına ver.
+9. Senaryo teknesinin hemen önündeki (aynı kontra, yakın) filo teknesi pis rüzgarda yavaşlayınca senaryo teknesi onun kıçına biner (K11 uyarısı): o filo teknesini kaldır ya da aralığı ~110 px yap.
+
+**C. Denetim (her senaryoda)**
+1. `npm run check` sıfır uyarı (alan dışı, çakışma <30 px, engel, kural/protesto, "hatta", eski kod).
+2. Playwright masaüstü 1400×800 ekran görüntüsü: ilk an, kritik an, son an (`scratchpad` betiği; `.consent-bar` gizlenir).
+3. Kart satırını (Senaryo kartları) ve bu turun tablosunu güncelle.
+
+**Tur durumu** (S1'den sırayla; ✅ bitti, — dokunulmadı)
+| Kod | id | Durum | Yapılan |
+|---|---|---|---|
+| S1 | `a1-line-bias` | ✅ | 7 teknelik filo hakem botu ucunda (2 sıra), pin ucunda yalnız A; A iskeleye geçip hepsinin kıçından geçer, ~4 boy geride. Sahne 90 px yukarı. |
+| S2 | `a1b-measure` | ✅ | Tek tekne ölçüm dersi (start öncesi erken, hat boş olur): yalnız metin kontrolü. |
+| S3 | `ia2-line-sag` | ✅ | İA turunda yapılmıştı; metinde eski kod düzeldi. |
+| S4 | `ia2b-no-sag` | ✅ | İA turunda yapılmıştı; metinde eski kod düzeldi. |
+| S5 | `a3-pin-favored` | ✅ | Pin tarafında sık filo: 4 ön sıra + 3 ikinci sıra (konumla), hakem botu tarafı boş. P1 hepsinin önünden geçer. Sahne 60 px yukarı. |
+| S6 | `ia1-port-approach-pin` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+| S7 | `ia8-pin-chaos` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+| S8 | `a4-committee-favored` | ✅ | Hakem botu tarafında L'nin yanına 2 tekne, pin tarafında 2 ön + 2 ikinci sıra; W bordalayıp filonun altında pis rüzgarda kalır. |
+| S9-S16 | İA3, İA5, İA6, İA14, İA15, İA2c, İA11, İA12 | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-27 · Tüm senaryolar turu, 1. parti (S1-S8) + seslendirme
+- Kullanıcı: bütün senaryoları baştan sırayla, İleri Taktik'teki gerçekçi filo ve diğer geliştirmelerle elden geçir; "tramola" doğru okunsun; kapatma/açma yerine açan/çeken; öğrenilenleri notlara yaz.
+- Yapılan: "Senaryo iyileştirme kontrol listesi" bölümü (yukarıda, tur tablosuyla). `speechText` tramola → "tıramola"; Gemini yönergesine "Türkçe okunuşla oku". Metinlerdeki eski ders kodları (A3, A12, İA2b, İT1, İA2) ders adıyla değişti, `check-scenarios` eski kodu uyarır. S1, S5, S8 gerçekçi filo; S2-S4, S6-S7, S9-S16 kontrol.
+- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). Sıradaki: S17 `a2-timing`, sonra S18'den sırayla.
+
 ### 2026-11-27 · Seslendirmede "hatta" okunuşu
 - Kullanıcı: "hatta doğru gidiyor" gibi kısaltılmış start hattı, seslendirmede Türkçe "hatta" (bile) diye okunuyor.
 - Yapılan: senaryolardaki bütün tek başına "hatta" / "Hatta" (adım başlığı, metin, özet, not, etiket, KATALOG) "start hattına" ya da "start hattında" oldu (29 satır). `check-scenarios.mjs` artık adım başlığı/metninde tek başına "hatta" görürse uyarır. Değişen adımların sesi yayında yeniden üretilir.

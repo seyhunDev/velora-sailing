@@ -36,6 +36,8 @@
       // kesme işaretli kelimeler (kullanıcı 2026-11-23: "layline'ın" ayrı ayrı okunup anlaşılmıyordu):
       // önce yabancı kelimelerin okunuşu, sonra tek harf / sayı + ek okunuşuyla birleşir, kalan kesmeler silinir
       .replace(/\b(layline|header|zone|px)(?=['’\s.,;:!?)]|$)/gi, w => SAY[w.toLowerCase()] || w)
+      // tramola: ses motoru "tramole" gibi okuyordu (kullanıcı 2026-11-27); Türkçe okunuşla yaz (tramolayla, tramolada… ekler korunur)
+      .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([Tt])ramola/g, (m, pre, T) => pre + (T === 'T' ? 'Tıramola' : 'tıramola'))
       .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([A-ZÇĞİÖŞÜ])['’]([a-zçğıöşü]+)/g, (m, pre, L, ek) => pre + (LETTER[L] || L) + ek)
       .replace(/\b(\d{1,3})['’]([a-zçğıöşü]+)/g, (m, n, ek) => numTr(+n) + ek)
       .replace(/([\wÇĞİÖŞÜçğıöşü])['’](?=[a-zçğıöşü])/g, '$1')
