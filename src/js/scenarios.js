@@ -1453,6 +1453,128 @@
     startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
   });
 
+  // ---------- İA14: hakem botu kapalı, açılan küçük boşluğa gir ve orada bekle ----------
+  S.push({
+    id: 'ia14-committee-slip-in',
+    category: 'İleri Taktik', topic: 'Start · Hakem botu',
+    title: 'İA14 · Hakem botu kapalı: açılan boşluğa gir, orada bekle',
+    summary: 'Hakem botu ucu kalabalık ve ön sıra kapalı. Yeşil D ikinci sırada, ön sıranın arkasında bekler ve gözünü boşluklarda tutar. Ön sıradaki gri K sıkışıp yerinden çıkınca küçük bir boşluk açılır; D hemen yavaşça oraya girer ve start\'a kadar orada durup bekler. Turuncu Y de ikinci sırada ama fırsatı kaçırır, start\'ı arkada, pis rüzgarda alır.',
+    duration: 38,
+    baseSpeed: 40,
+    clockScale: 4,
+    wind: 5,
+    line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
+    startAt: 30,
+    rungs: { boat: 'D', from: 30.5 },
+    committeeLabel: 'right',
+    boats: [
+      { id: 'D', name: 'Arkadan boşluğa giren', role: 'dogru', color: '#2a9d8f',
+        start: { x: 752, y: 548, h: 0 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 0, dur: 15.2, speed: 0.008, turn: 0, note: 'İkinci sırada: boşluk kolla' },
+          { mode: 'goto', x: 712, y: 490, speed: 0.45, rate: 60, dur: 4, note: 'Boşluk açıldı: hemen gir' },
+          { mode: 'hold', h: 3, dur: 8.0, speed: 0.008, turn: 1.2, note: 'Yer benim: bekle' },
+          { mode: 'closehauled', tack: 'starboard', dur: 10, turn: 0.8 }
+        ] },
+      { id: 'K', name: 'Sıkışıp çıkan', color: '#8d99ae',
+        start: { x: 712, y: 482, h: 345 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 345, dur: 12, speed: 0.008, turn: 0, drift: 0.6, note: 'Sıkıştı' },
+          { mode: 'heading', h: 190, dur: 6.4, turn: 0.8, speed: 0.6, note: 'Çıkıyor' },
+          { mode: 'heading', h: 268, dur: 2.5, turn: 1.0, speed: 0.95 },
+          { mode: 'goto', x: 498, y: 488, speed: 0.75, rate: 70, dur: 6 },
+          { mode: 'hold', h: 345, dur: 2.5, speed: 0.008, turn: 1.4, note: 'Yeni yerinde' },
+          { mode: 'closehauled', tack: 'starboard', dur: 9, turn: 0.8 }
+        ] },
+      { id: 'Y', name: 'Fırsatı kaçıran', role: 'hata', color: '#e76f51',
+        start: { x: 615, y: 532, h: 350 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 350, dur: 28.4, speed: 0.008, turn: 0, note: '' },
+          { mode: 'closehauled', tack: 'starboard', dur: 9.6, turn: 0.8, speed: 0.85, note: 'Pis rüzgarda, arkada' }
+        ] }
+    ],
+    crowdLife: { gap: 36 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },
+    crowd: [
+      { slot: 0.14, drift: 0.3 }, { slot: 0.21, back: 6 }, { slot: 0.275, back: -4 }, { slot: 0.34, back: 8 }, { slot: 0.405 },
+      { slot: 0.595, back: -4 }, { slot: 0.66, back: 4, drift: 0 }, { slot: 0.73, drift: 0 }, { slot: 0.885, drift: 0 },
+      { slot: 0.25, row: 1 }, { slot: 0.36, row: 1, back: 8 }, { slot: 0.95, row: 1, back: 20, drift: 0 }
+    ],
+    spots: [{ x: 712, y: 488, r: 27, from: 14.5, to: 19.5, label: 'Boşluk', dx: 0, dy: -64 }],
+    steps: [
+      { t: 0, title: 'Start\'a 2 dakika: hakem botu kapalı', text: 'Hakem botu ucu avantajlı ve herkes orada. Ön sıra dolu, tekneler yan yana sıkışmış ve aralarda hiç boşluk yok.' },
+      { t: 2, title: 'D ikinci sırada bekliyor', text: 'Yeşil D geç kaldı ve ön sıraya giremedi. Ama pes etmiyor. Ön sıranın hemen arkasında, rüzgara baş vermiş bekliyor ve gözü teknelerin arasında.' },
+      { t: 6, title: 'Y de arkada', text: 'Turuncu Y de ikinci sırada. O ise sadece bekliyor ve önündeki teknelere bakmıyor.' },
+      { t: 9, title: 'K sıkıştı', text: 'Ön sıradaki gri K iki teknenin arasında sıkıştı. Yelkenini dolduramıyor, yavaş yavaş aşağı kayıyor. Bu yüzden yerinden çıkıp başka yer aramaya karar veriyor.' },
+      { t: 14, title: 'Küçük bir boşluk açıldı', text: 'K çıkınca sarı halkanın olduğu yerde bir teknelik boşluk açıldı. Böyle bir boşluk birkaç saniye açık kalır. İlk gören ve hemen giden alır.' },
+      { t: 15.2, title: 'D hemen giriyor', text: 'D hiç beklemeden yelkenini biraz dolduruyor ve yavaşça boşluğa giriyor. Hızlı girmiyor, çünkü öndeki tekneye ve hatta çok yakın.' },
+      { t: 19.6, title: 'Girdin mi, dur ve bekle', text: 'D boşluğa girince burnunu rüzgara verip duruyor. Hatta erken gitmiyor. Şimdi ön sıradaki yer onun ve start\'a kadar orada bekleyecek.' },
+      { t: 22, title: 'Y fırsatı kaçırdı', text: 'Y boşluğu fark etmedi. Hâlâ arkada, ön sıradaki teknelerin hemen arkasında bekliyor. Start\'ta onların pis rüzgarında kalacak.' },
+      { t: 27.4, title: '10 saniye kala doldur', text: 'D yelkenini dolduruyor ve hızlanıyor. Burnunu biraz düşürüp hızlanma yerini kullanıyor.' },
+      { t: 30, title: 'START: D ön sırada', text: 'D ön sıradan, temiz havada çıkıyor. Y ise ikinci sırada, pis havada ve yavaş.' },
+      { t: 34, title: 'Özet', text: 'Arkada kaldıysan gözünü ön sıradaki boşluklarda tut. Küçük bir boşluk açılınca hemen ve yavaşça gir. Girdikten sonra burnunu rüzgara ver ve start\'a kadar orada bekle.' }
+    ],
+    addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 600 }, committee: { x: 720, y: 620 } },
+    startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
+  });
+
+  // ---------- İA15: hakem botunda sıkıştın, kayıyorsun: hemen çık, boş yer bul ----------
+  S.push({
+    id: 'ia15-committee-escape',
+    category: 'İleri Taktik', topic: 'Start · Hakem botu',
+    title: 'İA15 · Hakem botunda sıkıştın: hemen çık, boş yer bul',
+    summary: 'Hakem botu ucu kalabalık. Yeşil K ve turuncu Y ön sırada iki teknenin arasında sıkışmış, yelkenlerini dolduramıyor ve yavaş yavaş rüzgaraltına kayıyorlar. K bunu erken fark eder, hemen yerinden çıkar, filonun arkasından dolaşıp ortadaki boş yere gider ve orada bekler. Y ise yerini bırakmak istemez, kaydıkça ön sıradan düşer ve start\'ı arkada, pis rüzgarda alır.',
+    duration: 38,
+    baseSpeed: 40,
+    clockScale: 4,
+    wind: 5,
+    line: { pin: { x: 200, y: 440 }, boat: { x: 800, y: 440 } },
+    startAt: 30,
+    rungs: { boat: 'K', from: 30.5 },
+    committeeLabel: 'right',
+    boats: [
+      { id: 'K', name: 'Sıkışınca hemen çıkan', role: 'dogru', color: '#2a9d8f',
+        start: { x: 668, y: 482, h: 345 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 345, dur: 7, speed: 0.008, turn: 0, drift: 1.0, note: 'Sıkıştı, kayıyor' },
+          { mode: 'heading', h: 190, dur: 4.8, turn: 0.8, speed: 0.6, note: 'Hemen çık' },
+          { mode: 'heading', h: 268, dur: 2.6, turn: 1.0, speed: 0.75, note: 'Filonun arkasından' },
+          { mode: 'goto', x: 505, y: 490, speed: 0.6, rate: 70, dur: 6, note: 'Boş yere gir' },
+          { mode: 'hold', h: 345, dur: 9.6, speed: 0.008, turn: 1.4, note: 'Yeni yer benim' },
+          { mode: 'closehauled', tack: 'starboard', dur: 10, turn: 0.8 }
+        ] },
+      { id: 'Y', name: 'Sıkışıp kalan', role: 'hata', color: '#e76f51',
+        start: { x: 714, y: 482, h: 350 }, v0: 0,
+        segs: [
+          { mode: 'hold', h: 350, dur: 28.4, speed: 0.008, turn: 0, drift: 2.0, driftH: 188, note: 'Yerimi bırakmam' },
+          { mode: 'closehauled', tack: 'starboard', dur: 9.6, turn: 0.8, speed: 0.85, note: 'Pis rüzgarda, arkada' }
+        ] }
+    ],
+    crowdLife: { gap: 36 },
+    leeway: { from: 0, rate: 1.0, ang: 75 },
+    crowd: [
+      { slot: 0.14, drift: 0.3 }, { slot: 0.21, back: 6 }, { slot: 0.275, back: -4 }, { slot: 0.34, back: 8 }, { slot: 0.405 },
+      { slot: 0.595, back: -4 }, { slot: 0.66, back: 4, drift: 0 }, { slot: 0.885, drift: 0 },
+      { slot: 0.22, row: 1 }, { slot: 0.31, row: 1, back: 8 }, { slot: 0.95, row: 1, back: 20, drift: 0 }
+    ],
+    spots: [{ x: 505, y: 488, r: 27, from: 7, to: 19, label: 'Boş yer', dx: 0, dy: 46 }],
+    steps: [
+      { t: 0, title: 'Start\'a 2 dakika: hakem botu kalabalık', text: 'Hakem botu ucu avantajlı ve ön sıra tıklım tıklım. Yeşil K ile turuncu Y ön sırada, iki teknenin arasında sıkışmış.' },
+      { t: 2.5, title: 'Sıkışınca kayarsın', text: 'Sıkışan tekne yelkenini dolduramaz, çünkü doldurursa yanındakine çarpar. Yelken boş kalınca tekne yavaş yavaş rüzgaraltına, aşağı kayar.' },
+      { t: 5, title: 'K durumu fark ediyor', text: 'K her saniye biraz daha aşağı indiğini görüyor. Burada kalırsa start\'ta öndeki teknelerin pis rüzgarında kalacak.' },
+      { t: 7, title: 'Hemen çık', text: 'K beklemeden bordalıyor ve sıranın arkasına çıkıyor. Erken karar verdiği için yeni yer aramaya bolca zamanı var.' },
+      { t: 10, title: 'Boş yeri bul', text: 'K filonun arkasından ortaya doğru gidiyor. Sarı halkanın olduğu yerde iki teknelik boş su var. Kalabalık uçtan biraz uzak ama temiz.' },
+      { t: 14.5, title: 'Boş yere gir', text: 'K orsalayıp yavaşça boş yere giriyor. Rüzgarüstündeki teknenin altına yanaşıyor ve önünde hızlanma yeri bırakıyor.' },
+      { t: 19, title: 'Dur ve bekle', text: 'K yeni yerinde burnunu rüzgara verip bekliyor. Bu yer artık onun.' },
+      { t: 23, title: 'Y inat etti', text: 'Y yerini bırakmak istemedi. Kaydıkça ön sıradan düştü ve şimdi öndeki teknelerin arkasında kaldı.' },
+      { t: 27.4, title: '10 saniye kala doldur', text: 'K yelkenini dolduruyor ve önündeki boşluğa doğru hızlanıyor. Y ise ancak öndekiler gidince hareket edebiliyor.' },
+      { t: 30, title: 'START: temiz havada', text: 'K ön sıradan, temiz havada ve hızla çıkıyor. Y ise arkada, pis rüzgarda ve yavaş.' },
+      { t: 34, title: 'Özet', text: 'Sıkıştıysan ve kaymaya başladıysan inat etme. Hemen çık, filonun arkasından dolaş ve boş bir yer bul. Erken karar verirsen yeni yerine rahatça girer ve orada beklersin.' }
+    ],
+    addBoat: { pin: { x: 290, y: 580 }, middle: { x: 500, y: 620 }, committee: { x: 720, y: 620 } },
+    startSlots: { pin: [0.1], middle: [0.5], committee: [0.8] }
+  });
+
   // ---------- İA7: hatta yer tut, kayınca yüksel ----------
   S.push({
     id: 'ia7-hold-climb',
@@ -2090,6 +2212,8 @@
     ['ia3-committee-hold', 'Start', 'Hakem botu ucu', 'Hakem botunda yer tut', 'Erken gel, bayrağın dibinde bekle, altındaki boşluğu koru.'],
     ['ia5-committee-crowd', 'Start', 'Hakem botu ucu', 'Hakem botu kalabalık: erken gir', 'Son dakikada gelen yer bulamaz; erken gir, yerini tut.'],
     ['ia6-committee-gap', 'Start', 'Hakem botu ucu', 'Kuvvetli rüzgar: açılan boşluğa gir', 'Bekleyenler aşağı kayar; botun dibinde açılan boşluğa gir.'],
+    ['ia14-committee-slip-in', 'Start', 'Hakem botu ucu', 'Kapalı sırada açılan boşluğa gir', 'Arkadaysan boşluğu kolla; açılınca hemen gir ve orada bekle.'],
+    ['ia15-committee-escape', 'Start', 'Hakem botu ucu', 'Sıkıştın, kayıyorsun: hemen çık', 'Kaymaya başladıysan inat etme; arkadan dolaş, boş yer bul.'],
     ['ia2c-pick-gap', 'Start', 'Boşluk seçme', 'Boşluk seç: dar mı, geniş mi?', '2 dakika kala bak, geniş ve avantajlı boşluğu seç.'],
     ['ia11-plan-b', 'Start', 'Boşluk seçme', 'B planı: ikinci boşluğu aklında tut', 'Seçtiğin boşluk dolarsa yoldaki ikinci boşluğa gir.'],
     ['ia12-late-port-tack', 'Start', 'Boşluk seçme', 'Son saniyede tramola: boşluk yeter mi?', 'İskele kontradan geliyorsan yalnız geniş boşluğa tramola at.'],

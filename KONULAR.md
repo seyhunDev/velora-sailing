@@ -114,6 +114,8 @@ Durum sütunu: ✅ animasyon hazır · 🔜 sırada · ⬜ planlandı
 | H14 | Boşluğunu savun | Rüzgarüstü komşunun altına yerleşen tekne, geç gelen biri rüzgaraltındaki boşluğa bakınca burnu hafif düşürüp yelken boş yanlamasına kayarak boşluğu kapatır (K12, K11, K15). HATA: boşluğun ortasında bekleyen tekne yarısını kaptırır, iki teknenin arasında hızlanamaz. | ✅ (İA10) |
 | H15 | B planı: seçtiğin boşluk dolarsa | 2 dk kala iki boşluk seç (A: avantajlı, B: yolda kalan). Filonun altından A'ya giderken A dolunca hemen B'ye gir. HATA: yedek planı olmayan dolan boşluğa gider, ikinci sırada kalır (K12). | ✅ (İA11) |
 | H16 | Son saniyede iskele kontradan boşluğa tramola | Filonun altından iskele kontrada gelip boşluğa tramola: boşluk en az 3 boy (tramola + K15 kaçınma yeri + hızlanma), tramolayı komşulardan 1-1,5 boy uzakta bitir. HATA: dar boşluğa, sancak teknenin dibine tramola (K13, K15) → protesto, iki tur ceza (K44.2). | ✅ (İA12) |
+| H17 | Hakem botu kapalı: açılan boşluğa gir, orada bekle | Hakem botu ucunda ön sıra kapalı; ikinci sırada bekleyen tekne gözünü boşluklarda tutar, ön sıradan sıkışan bir tekne çıkınca açılan bir teknelik boşluğa hemen ve yavaşça girer, rüzgara baş verip start'a kadar orada bekler. HATA: arkada bekleyip fırsatı kaçıran ikinci sırada, pis rüzgarda çıkar (K12). | ✅ (İA14) |
+| H18 | Sıkıştın, kayıyorsun: hemen çık, boş yer bul | Hakem botu ucunda iki teknenin arasında sıkışan tekne yelkenini dolduramaz, rüzgaraltına kayar; erken karar verip bordalayarak sıranın arkasına çıkar, filonun arkasından ortadaki boş yere gider, orsalayıp girer ve bekler. HATA: yerini bırakmayan tekne kayarak ön sıradan düşer, pis rüzgarda çıkar. | ✅ (İA15) |
 
 # III. TEKNİK
 
