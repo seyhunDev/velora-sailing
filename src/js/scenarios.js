@@ -791,8 +791,8 @@
   S.push({
     id: 'c1-header-tack',
     category: 'Taktik', topic: 'Rüzgar ve orsa',
-    title: 'C1 · Salınımlı rüzgar: kapatmada (header) tramola at',
-    summary: 'Rüzgar birkaç dakikada bir sağa-sola salınıyorsa, sizi orsadan "kapatan" dönüşte tramola atıp "açan" (lift) kontrada kalmak, hiç tramola atmayan tekneye kıyasla ciddi kazanç sağlar.',
+    title: 'C1 · Salınımlı rüzgar: rüzgar açınca tramola at',
+    summary: 'Rüzgar birkaç dakikada bir sağa sola salınıyorsa, seni şamandıradan uzaklaştıran açan rüzgarda (header) tramola at, seni şamandıraya yaklaştıran çeken rüzgarda (lift) kal. Hiç tramola atmayan tekneye göre çok kazanırsın.',
     duration: 38,
     baseSpeed: 20,
     wind: [
@@ -801,10 +801,10 @@
     ],
     rungs: { boat: 'T', from: 12 },
     showWindTrace: true,
-    // filo: bir kısmı yeşil gibi header'da tramola atar, bir kısmı turuncu gibi kontrada devam eder
+    // filo: bir kısmı yeşil gibi açan rüzgarda (header) tramola atar, bir kısmı turuncu gibi kontrada devam eder
     boats: (() => {
       const T =
-      { id: 'T', name: 'Kapatmada tramola atan', role: 'dogru', color: '#2a9d8f',
+      { id: 'T', name: 'Rüzgar açınca tramola atan', role: 'dogru', color: '#2a9d8f',
           start: { x: 680, y: 650, h: 315 }, v0: 20,
           segs: [
             { mode: 'closehauled', tack: 'starboard', dur: 10, turn: 0 },
@@ -819,12 +819,12 @@
     })(),
     steps: [
       { t: 0, title: 'Rüzgar tam kuzeyden', text: 'İki tekne de sancak kontrada orsa gidiyor, gri filonun bazısı yeşil gibi, bazısı da turuncu gibi davranacak. Sağ üstteki ok rüzgarın geldiği yönü gösteriyor, sen de pusulada orsa rotanı aklında tut.' },
-      { t: 7, title: 'Rüzgar sola döndü: kapatma', text: 'Rüzgar sola dönünce sancak kontradaki tekne daha aşağı gitmek zorunda kalır ve burnu şamandıradan uzaklaşır. Buna kapatma diyoruz, pusuladaki rakam da düşer.' },
-      { t: 10, title: 'Yeşil tramola atıyor', text: 'Kural çok basit: kapatmada tramola at. Yeşil iskele kontraya geçti ve şimdi rüzgar onu şamandıraya doğru götürüyor, buna da açma diyoruz; turuncu ise kapalı kontrada devam ediyor.' },
+      { t: 7, title: 'Rüzgar sola döndü: rüzgar açtı', text: 'Rüzgar sola dönünce sancak kontradaki tekne daha aşağı gitmek zorunda kalır ve burnu şamandıradan uzaklaşır. Buna rüzgar açtı diyoruz, pusuladaki rakam da düşer.' },
+      { t: 10, title: 'Yeşil tramola atıyor', text: 'Kural çok basit: rüzgar açınca tramola at. Yeşil iskele kontraya geçti ve şimdi rüzgar onu şamandıraya yaklaştırıyor, buna da rüzgar çekti diyoruz. Turuncu ise rüzgarın açtığı kontrada, şamandıradan uzaklaşarak devam ediyor.' },
       { t: 14, title: 'Merdiven basamağı', text: 'Kesikli çizgi kimin gerçekten önde olduğunu gösteriyor ve yeşil, turuncunun önüne geçti. Unutma, yukarı demek rüzgarın geldiği yön demektir, ekranın üstü değil.' },
-      { t: 20, title: 'Rüzgar sağa döndü', text: 'Şimdi rüzgar sağa döndü ve bu kez iskele kontradaki yeşil kapanırken turuncu sancak kontrada açılıyor.' },
-      { t: 22, title: 'Yeşil yine tramola atıyor', text: 'Yeşil kapanınca yine tramola atıp açılan kontraya geçiyor. İki tekne de şimdi aynı kontrada ve aradaki fark büyüyor.' },
-      { t: 32, title: 'Sonuç', text: 'Yeşil hep açılan kontrada kaldığı için şamandıraya daha kısa yoldan gitti. Ortalama rotanı bil, rotan ortalamanın altına düşerse tramola at, üstündeysen devam et; her küçük dalgalanmada değil, dönüş yerleşince tramola at.' }
+      { t: 20, title: 'Rüzgar sağa döndü', text: 'Şimdi rüzgar sağa döndü. Bu kez iskele kontradaki yeşil için rüzgar açtı, sancak kontradaki turuncu için ise rüzgar çekti.' },
+      { t: 22, title: 'Yeşil yine tramola atıyor', text: 'Rüzgar açınca yeşil yine tramola atıp rüzgarın çektiği kontraya geçiyor. İki tekne de şimdi aynı kontrada ve aradaki fark büyüyor.' },
+      { t: 32, title: 'Sonuç', text: 'Yeşil hep rüzgarın çektiği kontrada kaldığı için şamandıraya daha kısa yoldan gitti. Ortalama rotanı bil, rotan ortalamanın altına düşerse tramola at, üstündeysen devam et; her küçük dalgalanmada değil, dönüş yerleşince tramola at.' }
     ],
     addBoat: { pin: { x: 440, y: 650 }, middle: { x: 620, y: 650 }, committee: { x: 760, y: 650 } }
   });
@@ -2240,7 +2240,7 @@
     ['a9-clear-air-tack', 'Start', 'Start sonrası', 'Pis havadan tramolayla çık', 'Öndekinin pis rüzgarındaysan omzuna bak, yol boşsa tramola at.'],
     ['a9b-foot-out', 'Start', 'Start sonrası', 'Tramola yolu kapalı: bordala, hızlan', 'Burnu biraz düşür, hızlan, rüzgaraltındaki boşluğa kay.'],
     // Parkur
-    ['c1-header-tack', 'Parkur', 'Orsa ayağı', 'Rüzgar kapatınca tramola at', 'Rüzgar salınıyorsa kapatmada tramola at, açan kontrada kal.'],
+    ['c1-header-tack', 'Parkur', 'Orsa ayağı', 'Rüzgar açınca tramola at', 'Rüzgar seni şamandıradan uzaklaştırırsa tramola at, çeken kontrada kal.'],
     ['c3-layline', 'Parkur', 'Orsa ayağı', 'Layline: tam zamanında tramola at', 'Şamandıraya tek kontrada gidebileceğin yerde tramola at; fazla gitme.'],
     ['c4-lee-bow', 'Parkur', 'Orsa ayağı', 'Geçemiyorsan önüne tramola at', 'Sancak tekneyi geçemiyorsan bir boy önüne, rüzgaraltına tramola at.'],
     ['c4b-tight-cover', 'Parkur', 'Orsa ayağı', 'Kapama: rakibinin üstünde kal', 'Arkandaki rakip her tramola attığında sen de at, onun rüzgarüstünde kal.'],

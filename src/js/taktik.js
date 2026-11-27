@@ -401,7 +401,7 @@
     const sh = doc.shift || { t: 5, d: 0 }, dur = (prev && prev.scn.duration) || 10;
     let d = sh.d;
     const opts = [[-20, '20° sola'], [-10, '10° sola'], [0, 'Dönmesin'], [10, '10° sağa'], [20, '20° sağa']];
-    openDlg('Rüzgar dönüşü', `<p class="tk-p">Rüzgar oynatırken dönsün mü? Sağa dönüş sancak kontraya açma, iskele kontraya kapatma olur. Sola dönüş tersi.</p>
+    openDlg('Rüzgar dönüşü', `<p class="tk-p">Rüzgar oynatırken dönsün mü? Sağa dönüş sancak kontra için çeken, iskele kontra için açan rüzgardır. Sola dönüş tersi.</p>
       <div class="tk-seg tk-seg-big" id="tkShD">${opts.map(([v, l]) => `<button data-d="${v}" class="${v === d ? 'on' : ''}">${l}</button>`).join('')}</div>
       <label class="tk-sw tk-sw2"><span>Kaçıncı saniyede?</span><span class="tk-sec"><input type="number" id="tkShT" min="0" max="60" step="1" value="${sh.t}"><span>sn</span></span><small class="tk-muted">Taktik ${dur} sn</small></label>
       <div class="tk-dlg-a"><button class="tb primary" id="tkShOk">Tamam</button></div>`, b => {

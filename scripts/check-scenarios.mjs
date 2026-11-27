@@ -16,6 +16,9 @@ for (const scn of globalThis.SCENARIOS) {
   // Ders kodları (A3, İA2b, İT1…) KATALOG'la değişti (S1, P2…); metinde eski kodla ders anma, dersin adını yaz (2026-11-27)
   for (const st of scn.steps || []) if (/(^|[^\wÇĞİÖŞÜçğıöşü])(İA|İT|[A-E])\d{1,2}[a-c]?(?=[\s'’]|$)[^.]*ders/.test(st.text || ''))
     warn(scn, `t=${st.t} adımında eski ders kodu var; kod yerine dersin adını yaz`);
+  // Rüzgar dönüşü terimi (kullanıcı 2026-11-27): açan = hedeften uzaklaştıran (header), çeken = hedefe yaklaştıran (lift)
+  for (const st of scn.steps || []) if (/\bkapatma(da)?\b|\baçma\b|açılan kontra|kapalı kontra/i.test((st.title || '') + ' ' + (st.text || '')))
+    warn(scn, `t=${st.t} adımında eski rüzgar dönüşü terimi var; açan rüzgar (uzaklaştırır) ya da çeken rüzgar (yaklaştırır) yaz`);
   console.log('•', scn.id);
   // uygulamadaki gibi: senaryo tekneleri + filo, pis rüzgar yavaşlaması dahil
   const specs = (scn.crowd || []).map(c => {

@@ -68,8 +68,8 @@
       title: 'Start', text: 'Tekneler hattın altından orsada start eder. Hattın hangi ucu daha iyi?',
       marks: [{ x: 500, y: 110, zone: false }], line: { pin: { x: 260, y: 430 }, boat: { x: 740, y: 430 } },
       boats: [0, 1, 2, 3, 4].map(i => B(i, 330 + i * 85, 480, [['orsa', -1, 240]])) }) },
-    { id: 'kapatma', label: 'Kapatma ve açma', desc: 'Rüzgar sola döner. A tramola atar, B devam eder.', make: () => ({
-      title: 'Kapatmada tramola', text: 'Rüzgar sola dönünce sancak kontradaki tekneler kapatma yer. A tramola atar ve açmayla yükselir. B devam eder, alçalır.',
+    { id: 'kapatma', label: 'Açan ve çeken rüzgar', desc: 'Rüzgar sola döner. A tramola atar, B devam eder.', make: () => ({
+      title: 'Rüzgar açınca tramola', text: 'Rüzgar sola dönünce sancak kontradaki tekneler için rüzgar açar, şamandıradan uzaklaşırlar. A tramola atar, çeken rüzgarla şamandıraya yaklaşır. B devam eder, uzaklaşır.',
       shift: { t: 4, d: -15 }, marks: [{ x: 500, y: 90, zone: false }],
       boats: [B(0, 300, 560, [['orsa', -1, 160], ['orsa', 1, 360]], 'dogru'), B(1, 860, 500, [['orsa', -1, 380]], 'hata')] }) },
     { id: 'saganak', label: 'Sağanak', desc: 'Sağanağa giren tekne hızlanır.', make: () => ({
@@ -153,7 +153,7 @@
     let cur = { x: b.x, y: b.y }, h = null;
     for (const p of b.route) {
       if (Math.hypot(p.x - cur.x, p.y - cur.y) < 8) continue;
-      // Orsa seçilerek çizilen bacak: tekne o kontrada ORSADA gider (rüzgar dönerse rotası da döner: açma / kapatma)
+      // Orsa seçilerek çizilen bacak: tekne o kontrada ORSADA gider (rüzgar dönerse rotası da döner: çeken / açan rüzgar)
       if (p.m === 'orsa') {
         const tack = p.s < 0 ? 'starboard' : 'port';
         pts.push({ x: p.x, y: p.y, ch: tack, dist: Math.hypot(p.x - cur.x, p.y - cur.y), turn: h != null && tackOfH(h, w) !== tack ? 1.2 : 0.5 });
@@ -234,7 +234,7 @@
     if (d.shift && d.shift.t <= scn.duration) {
       const a = Math.abs(d.shift.d), right = d.shift.d > 0;
       steps.push({ t: d.shift.t, title: `Rüzgar ${a}° ${right ? 'sağa' : 'sola'} döndü`,
-        text: `Rüzgar ${right ? 'sağa' : 'sola'} döndü. ${right ? 'Sancak' : 'İskele'} kontradaki tekneler için bu bir açma: daha yükseğe gidebilirler. ${right ? 'İskele' : 'Sancak'} kontradakiler için kapatma: rotaları düşer. Kapatmada tramola at.` });
+        text: `Rüzgar ${right ? 'sağa' : 'sola'} döndü. ${right ? 'Sancak' : 'İskele'} kontradaki tekneler için rüzgar çekti: daha yükseğe gidip hedefe yaklaşırlar. ${right ? 'İskele' : 'Sancak'} kontradakiler için rüzgar açtı: rotaları düşer, hedeften uzaklaşırlar. Rüzgar açınca tramola at.` });
     }
     if (d.gusts.length && !d.notes.length) steps.push({ t: 0.5, title: 'Sağanak', text: 'Koyu su sağanak demek. Rüzgar orada daha sert, içine giren tekne hızlanır. Sağanak rüzgarla birlikte aşağı kayar.' });
     for (const ev of scn.refEvents) steps.push({ t: ev.t, title: ev.title, text: ev.text });

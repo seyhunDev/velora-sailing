@@ -608,7 +608,7 @@ function start() {
   new ResizeObserver(fit).observe(host);
   fit();
 
-  // ---------- arkadan ders: açan / kapatan rüzgar, sağanak ----------
+  // ---------- arkadan ders: açan (header) / çeken (lift) rüzgar, sağanak (terimler: kullanıcı 2026-11-27) ----------
   // Açılar (derece): 0 = başlangıç rotası, + = rüzgarüstüne (-Z). W: rüzgarın geldiği yön, H: tekne başı, AWA = W - H.
   // Tekne yerinde durur; su, rüzgar çizgileri ve dümen suyu hareketi gösterir. Kamera tekneye arkadan bakar.
   const LS = { id: 'kapatti', t: 0, play: false, gust: 0.65, W: 45, H: 0, G: 0, tl: 0, sheetIn: 0, prevH: 0, done: false };
@@ -616,17 +616,17 @@ function start() {
   const seg = (t, a, b) => ease((t - a) / (b - a));
   const LESSONS = {
     kapatti: {
-      name: 'Kapattı', sub: 'pırpır → kafayı aç', end: 10,
+      name: 'Açtı', sub: 'pırpır → kafayı aç', end: 10,
       steps: [[0, 'Rüzgar sabit, dümen düz. Yelken dolu, şeritler akıyor.'],
-        [2.4, 'Rüzgar kapattı (header): baştan geliyor, yelkenin ön yakası pırpırlıyor.'],
+        [2.4, 'Rüzgar açtı (header): baştan geliyor, yelkenin ön yakası pırpırlıyor.'],
         [4, 'Yekeyi kendine çek: kafayı aç (rüzgaraltına dön).'],
         [6.6, 'Yelken yeniden doldu. Dümen düz, yeni rotada devam.']],
       at: t => ({ W: 45 - 12 * seg(t, 2.4, 3.4), H: -12 * seg(t, 4, 6.6), G: 0, sheetIn: 0 }),
     },
     acti: {
-      name: 'Açtı', sub: 'tüyler düştü → orsala', end: 10,
+      name: 'Çekti', sub: 'tüyler düştü → orsala', end: 10,
       steps: [[0, 'Rüzgar sabit, dümen düz. Yelken dolu, şeritler akıyor.'],
-        [2.4, 'Rüzgar açtı (lift): yandan geliyor, arka yakadaki tüyler düştü, yelken fazla kapalı kaldı.'],
+        [2.4, 'Rüzgar çekti (lift): yandan geliyor, arka yakadaki tüyler düştü, yelken fazla kapalı kaldı.'],
         [4, 'Yekeyi karşıya it: orsala (rüzgarüstüne dön), rüzgar sana çektirdi.'],
         [6.6, 'Şeritler yeniden akıyor. Daha yüksek rotada devam.']],
       at: t => ({ W: 45 + 12 * seg(t, 2.4, 3.4), H: 12 * seg(t, 4, 6.6), G: 0, sheetIn: 0 }),
@@ -709,7 +709,7 @@ function start() {
     if (hud) {
       const tillerTxt = Math.abs(LS.tl) < 0.05 ? 'düz' : LS.tl < 0 ? 'kendine çekili (kafa açılıyor)' : 'karşıya itili (orsalıyor)';
       const sailTxt = LS.luff > 0.2 ? 'ön yaka pırpır' : LS.stall > 0.2 ? 'arka tüyler düştü' : 'dolu, şeritler akıyor';
-      $('lrWind').textContent = `${Math.round(awa)}°${awa < 40 ? ' (kapattı)' : awa > 50 ? ' (açtı)' : ''}`;
+      $('lrWind').textContent = `${Math.round(awa)}°${awa < 40 ? ' (açtı)' : awa > 50 ? ' (çekti)' : ''}`;
       $('lrTiller').textContent = tillerTxt;
       $('lrSail').textContent = sailTxt;
       $('lrSheet').textContent = LS.sheetIn > 0.05 ? `çekildi (${LS.sheetIn > 0.8 ? 'çok' : LS.sheetIn > 0.45 ? 'orta' : 'az'})` : 'normal';

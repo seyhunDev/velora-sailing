@@ -153,6 +153,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-27 · Rüzgar dönüşü terimleri: açmak = hedeften uzaklaşmak (header, tramola at), çekmek = hedefe yaklaşmak (lift). C1/P1, KATALOG, Taktik oluştur hazır sahnesi ve dönüş notu, 3D arkadan ders (Açtı / Çekti) buna göre.
 - 2026-11-27: Senaryo ekranında üst çubukta yalnız Geri, ad, Ayarlar; diğer işlemler Ayarlar penceresinde. Yeni bir senaryo düğmesi eklenecekse çubuğa değil `SCN_ACTS` listesine (app.js) eklenir. Alt çubukta telefonda yalnız Oynat + zaman çubuğu + ⋯.
 - 2026-11-24 · **Anlatım akıcı olsun** (kullanıcı: "seslendirme hiç akıcı değil", 8-14 yaş): ses motoru Gemini-TTS (Cloud TTS `gemini-2.5-flash-tts`, ses Aoede, "çocuklara anlatan sıcak antrenör" yönergesiyle; olmazsa Chirp 3 HD, `scripts/tts.mjs`), `SailNarr` ENGINE='g1' dosya adına girer. Adım metinleri artık kısa-kesik değil: 2-3 cümle, "ve, çünkü, bu yüzden" ile bağlı, sohbet dili; işaret yok.
 - 2026-11-25 · Vertex AI API açıldı (kullanıcı) → ENGINE='g2', bütün sesler Gemini ile yeniden. Gemini olmadığında üretilen Chirp sesi önbellekte `<key>.chirp.mp3` olur, sonraki yayında Gemini yeniden denenir. Değişmeyen metin önbellekten (ücretsiz); tam üretim ~55 bin harf, yaklaşık 1 dolar.
@@ -241,7 +242,6 @@
 - 2026-11-27 · **Metinlerde tek başına "hatta" yazılmaz:** seslendirme onu "hatta" (bile) diye okur. Start hattı için "start hattına / start hattında" yazılır; `check-scenarios` uyarır.
 
 ## Açık sorular (kullanıcıya)
-- (2026-11-27) Rüzgar dönüşü terimleri: kapatma (header) / açma (lift) yerine hangisi? Seçenek 1: kapatma = açan (rüzgar açtırdı, kafayı açarsın), açma = çeken (rüzgar çektirdi). Seçenek 2: kapatma = çeken, açma = açan. Değişecek yerler: C1 (P1) metinleri, KATALOG satırı, taktik-core hazır sahnesi ve rüzgar dönüşü notu, ayar3d arkadan ders.
 - İleri Teknik (İT1/İT1b) misafire açık; İleri Taktik gibi kayıtlılara kilitlensin mi? Palanga miktarı (orta-sert 'belirgin sıkı', hafif 'yalnız boşluk') kulübün halat işaretiyle sayısal verilebilir mi?
 - Yelken ayarı: J-Sails, Olimpic, CD kılavuzları (PDF) kullanıcıdan bekleniyor; "Van" hangi marka? OneSails mm dizisinin bağ sırası tepeden mi? Bumba yüksekliği kılavuzlarda yok (North: üst emniyet halatı sert havada yelkeni aşağı alır).
 - Misafire hangi bölümler kapalı olsun? Şimdilik İleri Taktik + Elle sür + yarış kaydı. Kayıt izni kutusu varsayılan işaretli; KVKK/GDPR'ye sıkı uyum için işaretsiz (açık rıza) olması daha doğru, kullanıcı karar verecek.
@@ -335,7 +335,7 @@
 3. "tramola" ses motorunda "tramole" gibi çıkıyordu: `narration.js` → `speechText` metni "tıramola" diye gönderir (ekler korunur). Ekranda yine "tramola" yazılır. Başka yanlış okunan kelime çıkarsa aynı yere ekle (yabancılar `SAY` tablosunda).
 3b. Metinde kalan İngilizce terimler (layline, barging, lee-bow, header, zone) `SAY` tablosunda Türkçe okunuşla gider; yenisini eklersen oraya da ekle. Denetim için: bütün adımları `speechText`'ten geçirip w/x/q/ing/bow içeren kelimeleri listele.
 4. Metinde eski ders kodu (A3, İA2b, İT1…) yazma; kodlar KATALOG'dan gelir ve değişir. Dersin adını yaz ("hakem botu ucu dersinde"). `check-scenarios` uyarır.
-5. Rüzgar dönüşü terimleri: kullanıcıya soruldu (2026-11-27), cevap gelince buraya yaz. "Kapama" (cover, rakibin üstünde kalma) ayrı kavram, ona dokunma.
+5. Rüzgar dönüşü terimleri (kullanıcı 2026-11-27): **açan rüzgar / rüzgar açtı** = seni hedeften uzaklaştıran dönüş (header), o zaman tramola atılır; **çeken rüzgar / rüzgar çekti** = seni hedefe yaklaştıran dönüş (lift). "Kapatma" ve "açma" (eski anlamıyla) kullanılmaz; `check-scenarios` uyarır. "Kapama" (cover, rakibin üstünde kalma) ayrı kavram, ona dokunma.
 6. Start hattının şamandıra ucu "pin"dir; "orsa şamandırası" parkurun üst şamandırası.
 7. Adım zamanı olayla eşleşsin; son adım (Sonuç/Özet) sahnede tekneler hâlâ görünürken gelsin (tekneler üst çubuğun altına kaçmasın, gerekirse `duration` kısalt).
 
@@ -377,7 +377,7 @@
 | S23 | `ia13-black-flag` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
 | S24 | `a9-clear-air-tack` | ✅ | Filo sık (12 tekne); dokunulmadı. |
 | S25 | `a9b-foot-out` | ✅ | Gri senaryo teknelerinin numarası filoyla çakışıyordu (1, 2 → 10, 11); Kural 11 cümlesi düzeldi. |
-| P1 | `c1-header-tack` | ⏳ | Görüntü iyi; çeken/açan terimi kullanıcının seçimini bekliyor. |
+| P1 | `c1-header-tack` | ✅ | Terimler: rüzgar açınca tramola at, çeken kontrada kal. |
 | P2-P6 | C3, C4, C4b, D3, D3b | ✅ | 2026-11-23'te filoyla yapılmıştı; ekran görüntüsünde sorun yok. "lee-bow" ve "barging" okunuşu eklendi. Fikir: P2'de layline'da daha çok tekne. |
 | Ş1-Ş3 | E2, E1, D4 | ✅ | Filo var, sorun yok. Not: Ş1'de şamandıra yazısını tekneler örtüyor (motor yazısı, dokunulmadı). |
 | K1 | `b1-rule10` | ✅ | Tekneler alt kenardaydı, 45 px yukarı. İki teknelik temel kural dersi olarak kaldı. |
@@ -392,7 +392,7 @@
 ### 2026-11-27 · Tüm senaryolar turu, 1. parti (S1-S8) + seslendirme
 - Kullanıcı: bütün senaryoları baştan sırayla, İleri Taktik'teki gerçekçi filo ve diğer geliştirmelerle elden geçir; "tramola" doğru okunsun; kapatma/açma yerine açan/çeken; öğrenilenleri notlara yaz.
 - Yapılan: "Senaryo iyileştirme kontrol listesi" bölümü (yukarıda, tur tablosuyla). `speechText` tramola → "tıramola"; Gemini yönergesine "Türkçe okunuşla oku". Metinlerdeki eski ders kodları (A3, A12, İA2b, İT1, İA2) ders adıyla değişti, `check-scenarios` eski kodu uyarır. S1, S5, S8 gerçekçi filo; S2-S4, S6-S7, S9-S16 kontrol.
-- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). 2. parti (S17-S25) ve 3. parti (P, Ş, K, T) aynı gün. Kalan: P1 terimleri (kullanıcı cevabı).
+- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). 2. parti (S17-S25) ve 3. parti (P, Ş, K, T) aynı gün. P1 terimleri de bitti (açan = uzaklaştırır, çeken = yaklaştırır).
 
 ### 2026-11-27 · Seslendirmede "hatta" okunuşu
 - Kullanıcı: "hatta doğru gidiyor" gibi kısaltılmış start hattı, seslendirmede Türkçe "hatta" (bile) diye okunuyor.
