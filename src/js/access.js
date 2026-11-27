@@ -279,7 +279,8 @@
     const open = force != null ? force : menu.classList.contains('hidden');
     if (!open) { menu.classList.add('hidden'); chip.classList.remove('on'); return; }
     const r = role(), c = T.consent();
-    const b = chip.getBoundingClientRect();
+    // senaryo çubuğunda hesap düğmesi gizli (Ayarlar'dan açılır): menü Ayarlar düğmesinin altında
+    const b = (chip.offsetParent ? chip : document.getElementById('btnSettings') || chip).getBoundingClientRect();
     menu.style.top = (b.bottom + 6) + 'px';
     menu.style.right = Math.max(8, innerWidth - b.right) + 'px';
     menu.style.maxHeight = `calc(100dvh - ${Math.round(b.bottom + 14)}px)`;

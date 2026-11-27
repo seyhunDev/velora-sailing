@@ -1359,3 +1359,51 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
   .ck-body .home-h2 { text-align: left; }
   .ck-body .home-search { flex: 1 1 100%; }
 }
+
+/* ==========================================================================
+   Senaryo çubuğu sade (kullanıcı 2026-11-27, telefonda üst çubuk iç içe giriyordu):
+   üstte yalnız Geri · senaryo adı · Ayarlar. Bilgi, Paylaş, Düzenle, önceki/sonraki,
+   Tam ekran, Bildir, Hesap Ayarlar penceresinin başında (#scnActs, js/app.js buildScnActs).
+   Paylaşılan bağlantı (html.tek) kendi düzenini korur.
+   ========================================================================== */
+html:not(.tek) .scn-top :is(.scn-step, #btnEdit, .tool-group > :not(#btnSettings)) { display: none !important; }
+html:not(.tek) .scn-top .scn-group { flex: 0 1 auto; max-width: min(720px, calc(100% - 120px)); }
+html:not(.tek) .scn-top .scn-group .scn-btn { border-radius: 12px; max-width: 100%; }
+html:not(.tek) .scn-top .scn-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html:not(.tek) .scn-top .set-btn { width: 44px; height: 44px; min-width: 0; padding: 0; border-radius: 50%; background: var(--raised); color: var(--text); }
+html:not(.tek) .scn-top .set-btn:hover { background: var(--raised2); }
+@media (max-height: 500px) { html:not(.tek) .scn-top .set-btn { width: 40px; height: 40px; } }
+html:not(.tek) .scn-top .set-btn .lbl { display: none; }
+html:not(.tek) .scn-top .set-btn svg { width: 22px; height: 22px; }
+.scn-acts { padding-top: 4px; }
+.scn-acts[hidden] { display: none; }
+.scn-acts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.scn-act { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; min-height: 74px; padding: 12px 6px 10px;
+  border: 0; border-radius: 12px; background: var(--panel-solid); color: var(--text); font: inherit; font-size: 13px; font-weight: 600;
+  line-height: 1.2; text-align: center; cursor: pointer; }
+.scn-act:hover:not(:disabled) { background: var(--raised2); }
+.scn-act:disabled { opacity: .4; cursor: default; }
+.scn-act.on { color: var(--accent); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent); }
+.scn-act svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.scn-act-ini { display: grid; place-items: center; width: 24px; height: 24px; box-sizing: border-box; margin: -1px 0; border-radius: 50%; font-size: 13px; font-weight: 700;
+  border: 2px solid var(--muted); }
+.scn-act-ini[data-role="sahip"] { border-color: var(--hak); }
+.scn-act-ini[data-role="kayitli"] { border-color: var(--accent); }
+@media (max-height: 500px) {
+  .scn-acts-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+  .scn-act { min-height: 62px; padding: 9px 4px 7px; gap: 4px; font-size: 12px; }
+}
+/* Alt çubuk "⋯" Daha fazla (sığmayınca; js/app.js fitBottom) */
+.more-btn.hidden { display: none; }
+.more-btn { flex: 0 0 auto; width: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; }
+.more-btn.on { background: var(--raised2); color: var(--text); }
+.bb-more { position: fixed; z-index: 75; min-width: 220px; padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  background: var(--panel-solid); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+.bb-more.hidden { display: none; }
+.bb-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 6px 0 12px; border-radius: 10px; }
+.bb-row + .bb-row { box-shadow: inset 0 1px 0 var(--border); }
+.bb-row:has(.narr-btn.hidden) { display: none; }
+.bb-lbl { font-size: 14px; font-weight: 600; color: var(--text); }
+.bb-more .speed button:not(.on) { display: inline-flex; align-items: center; }
+.bb-more .speed button { min-width: 40px; }
+html:not(.tek) .scn-top .tool-group { margin-left: auto; }
