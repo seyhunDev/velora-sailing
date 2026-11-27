@@ -112,4 +112,70 @@
     if (!touch || isPage()) return;
     if (!e.target.closest('input, textarea, [contenteditable]')) e.preventDefault();
   });
+
+  // AÇILIŞ EKRANI (kullanıcı 2026-11-27 "açılırken boş arka plan yerine animasyonlu loading"): Velora'nın açılışıyla aynı dil.
+  // Koyu Sahne zemin (#0b0b0c), limon daire gelir, V yukarıdan inip daireyi oyar, altında VELORA SAILING ve dalga.
+  // İlk açılışta (oturumda bir kez) en az ~1 sn görünür; sonraki sayfa geçişlerinde 0,35 sn saydam bekler: sayfa o sürede
+  // hazırsa hiç görünmez. Sayfa 'load' olunca solar; ne olursa olsun 8 sn'de kalkar. window.VeloraBoot.hide() ile erken kaldırılır.
+  (function boot() {
+    if (H.classList.contains('no-boot')) return;
+    let first = true;
+    try { first = !sessionStorage.getItem('velora.boot'); sessionStorage.setItem('velora.boot', '1'); } catch (e) { /* gizli sekme */ }
+    const t0 = performance.now(), MIN = first ? 1100 : 0;
+    const css = document.createElement('style');
+    css.textContent = `
+html{background:#0b0b0c}
+.vboot{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#0b0b0c;color:#f4f4f5;
+  font-family:"Barlow Condensed","Inter",system-ui,-apple-system,sans-serif;transition:opacity .45s cubic-bezier(.4,0,.2,1)}
+.vboot.warm{animation:vbwarm .3s ease-out .35s both}
+.vboot.out{opacity:0;pointer-events:none}
+.vboot.out .vb-mark{transform:scale(1.08);transition:transform .45s cubic-bezier(.4,0,.2,1)}
+.vb-mark{display:flex;flex-direction:column;align-items:center;margin-top:-4vh}
+.vb-logo{width:min(26vmin,8.5rem);height:auto;overflow:visible}
+.vb-disc{transform-origin:50px 52px;transform-box:view-box;animation:vbcore .6s cubic-bezier(.2,.9,.3,1.3) .1s both,vbbreath 2.4s ease-in-out 1.4s infinite}
+.vb-v{transform-box:view-box;animation:vbvin .55s cubic-bezier(.2,.9,.3,1) .45s both}
+.vb-word{margin:1.1rem 0 0;font-size:clamp(1.6rem,6vmin,2.4rem);font-weight:800;letter-spacing:.04em;text-transform:uppercase;line-height:1;
+  animation:vbin .7s cubic-bezier(.2,.9,.3,1) .7s both}
+.vb-word em{font-style:normal;color:#d4ff3a}
+.vb-wave{display:block;width:min(40vmin,10rem);height:14px;margin-top:.9rem;animation:vbin .7s cubic-bezier(.2,.9,.3,1) .85s both}
+.vb-wave path{fill:none;stroke:#d4ff3a;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:14 10;animation:vbflow 1.1s linear infinite}
+.vb-sub{margin:.55rem 0 0;font:500 .72rem/1 Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#a1a1aa;
+  animation:vbin .7s cubic-bezier(.2,.9,.3,1) .95s both,vbpulse 1.8s ease-in-out 1.7s infinite}
+@keyframes vbcore{from{transform:scale(0);opacity:0}}
+@keyframes vbvin{from{transform:translateY(-46px)}}
+@keyframes vbbreath{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes vbin{from{opacity:0;transform:translateY(8px)}}
+@keyframes vbpulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes vbflow{to{stroke-dashoffset:-24}}
+@keyframes vbwarm{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.vboot *{animation:none!important}}`;
+    const d = document.createElement('div');
+    d.className = 'vboot' + (first ? '' : ' warm');
+    d.setAttribute('role', 'status'); d.setAttribute('aria-label', 'Yükleniyor');
+    d.innerHTML = `<div class="vb-mark">
+      <svg class="vb-logo" viewBox="2 2 96 100" aria-hidden="true"><defs><mask id="vbCut" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="104">
+        <rect width="100" height="104" fill="#fff"/><path class="vb-v" d="M26 19 L35.6 19 C 42 35, 46 47.8, 50 55.8 L59.6 19 L74 19 L56.4 67 L43.6 67 Z" fill="#000"/></mask></defs>
+        <g mask="url(#vbCut)"><circle class="vb-disc" cx="50" cy="52" r="30" fill="#d4ff3a"/></g></svg>
+      <p class="vb-word" lang="en">Velora <em>Sailing</em></p>
+      <svg class="vb-wave" viewBox="0 0 160 14" preserveAspectRatio="none" aria-hidden="true"><path d="M2 7 Q 12 1 22 7 T 42 7 T 62 7 T 82 7 T 102 7 T 122 7 T 142 7 T 158 7"/></svg>
+      <p class="vb-sub">Hazırlanıyor</p></div>`;
+    (document.head || H).appendChild(css);
+    H.appendChild(d);
+    // gövde gelince açılış ekranını onun içine al (kendi başına <html> altında da çizilir; bu yalnız düzen için)
+    document.addEventListener('DOMContentLoaded', () => { if (d.parentNode === H) document.body.appendChild(d); });
+    let gone = false;
+    const hide = () => {
+      if (gone) return; gone = true;
+      const wait = Math.max(0, MIN - (performance.now() - t0));
+      setTimeout(() => requestAnimationFrame(() => {
+        d.classList.add('out');
+        setTimeout(() => d.remove(), 500);
+      }), wait);
+    };
+    window.VeloraBoot = { hide };
+    if (document.readyState === 'complete') hide(); else addEventListener('load', hide);
+    setTimeout(hide, 8000);
+    // geri tuşuyla önbellekten dönülünce (bfcache) açılış ekranı kalmasın
+    addEventListener('pageshow', e => { if (e.persisted) d.remove(); });
+  })();
 })();

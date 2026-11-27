@@ -116,7 +116,7 @@ body.havuz { display: block; background: var(--bg); }
 .km-fld .dlg-lbl { margin-top: 0; }
 .hv-new .km-names .task-note-in { min-height: 64px; resize: vertical; }
 .km-sec { border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.02); margin-top: 8px; }
-.km-sec.open { border-color: rgba(56,189,248,.35); background: rgba(56,189,248,.035); }
+.km-sec.open { border-color: rgba(212,255,58,.35); background: rgba(212,255,58,.035); }
 .km-sh { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 56px; background: none; border: 0; color: var(--text); text-align: left; cursor: pointer; border-radius: 12px; font: inherit; }
 .km-sh:hover { background: var(--hover); }
 .km-no { flex: 0 0 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; background: var(--raised2, #1e3044); color: var(--text2); }
@@ -132,8 +132,8 @@ body.havuz { display: block; background: var(--bg); }
 /* hazır akışlar */
 .km-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 10px; }
 .km-presets .pr { height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--raised); color: var(--text2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.km-presets .pr:hover { color: var(--text); border-color: rgba(56,189,248,.5); }
-.km-presets .pr.on { background: rgba(56,189,248,.18); border-color: #38bdf8; color: #e0f2fe; }
+.km-presets .pr:hover { color: var(--text); border-color: rgba(212,255,58,.5); }
+.km-presets .pr.on { background: rgba(212,255,58,.16); border-color: #d4ff3a; color: #f4f4f5; }
 /* zaman çizelgesi */
 .tl { margin: 4px 0 12px; padding: 8px 24px 4px; border-radius: 10px; background: #0a1c2e; border: 1px solid var(--border); }
 .tl-track { position: relative; height: 46px; border-bottom: 1.5px solid rgba(148,163,184,.45); }

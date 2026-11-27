@@ -42,7 +42,7 @@ body.net-on #driveBar { display: none !important; }   /* içindekilerin hepsi ka
 .net-rooms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .net-rooms button { width: 100%; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; text-align: left; padding: 10px 12px;
   background: var(--raised); border: 1px solid var(--border); border-radius: 12px; }
-.net-rooms button.on, .net-rooms button:hover { border-color: rgba(56,189,248,.55); }
+.net-rooms button.on, .net-rooms button:hover { border-color: rgba(212,255,58,.55); }
 .net-rooms b { grid-row: 1 / 3; align-self: center; font-size: 17px; letter-spacing: 1.5px; color: #7dd3fc; font-variant-numeric: tabular-nums; }
 .net-rooms span { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .net-rooms small { font-size: 12px; color: var(--muted); }
@@ -76,7 +76,7 @@ body.net-on #driveBar { display: none !important; }   /* içindekilerin hepsi ka
 .np-host { background: var(--accent-soft); color: var(--accent); }
 .net-players .icon.sm { width: 30px; height: 30px; flex: 0 0 auto; }
 .net-share { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; padding: 10px 12px; border-radius: 12px;
-  background: rgba(56,189,248,.08); border: 1px solid rgba(56,189,248,.3); font-size: 13px; color: var(--text2); }
+  background: rgba(212,255,58,.08); border: 1px solid rgba(212,255,58,.3); font-size: 13px; color: var(--text2); }
 .net-share b { color: #7dd3fc; letter-spacing: 1.5px; }
 
 .net-res { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
@@ -120,7 +120,7 @@ body.net-on #driveBar { display: none !important; }   /* içindekilerin hepsi ka
 .np-watch { background: rgba(167,139,250,.18); color: #c4b5fd; }
 .net-players li.ready { border-color: rgba(74,222,128,.45); }
 .net-players .tb.np-coach { flex: 0 0 auto; min-height: 28px; height: 28px; padding: 0 8px; font-size: 11.5px; }
-.net-players .tb.np-coach.on { color: #7dd3fc; border-color: rgba(56,189,248,.5); }
+.net-players .tb.np-coach.on { color: #d4ff3a; border-color: rgba(212,255,58,.5); }
 .net-me { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .net-me .tb { min-height: 38px; padding: 0 14px; font-weight: 700; }
 .tb.net-ready.on { background: rgba(34,197,94,.2); border-color: rgba(74,222,128,.6); color: #bbf7d0; }
