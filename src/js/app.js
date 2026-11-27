@@ -142,6 +142,7 @@
   // ---------- Senaryo yükleme ----------
   function loadScenario(scn) {
     state.scn = scn; state.t = 0; state.playing = false; state.stepIdx = 0;
+    state.watchNew = true;                                          // izleme sayacı yeniden (watchTick)
     quizReset(); quizHide();
     state.boats = scn.boats.map(b => ({ ...b }));
     // kalabalık filo: senaryoda tanımlı, kural motoruyla birlikte simüle edilen tekneler
@@ -651,6 +652,7 @@
         state.t = narrHold(state.t + dt * state.speed);
         quizCheck();
         if (state.t >= state.scn.duration) { state.t = state.scn.duration; state.playing = false; updatePlayButton(); }
+        watchTick();
         render({ dt });
         narrSync();
       }
@@ -903,8 +905,8 @@
     const th = window.SailThumbs ? SailThumbs.make(x) : document.createElement('div');
     th.classList.add('thumb');
     th.insertAdjacentHTML('beforeend', `<span class="code-badge">${esc(code)}</span>` +
-      (active ? '<span class="now">Açık</span>' : '') + (locked ? '<span class="lock">Kaydol</span>' : ''));
-    c.appendChild(th);
+      (active ? '<span class="now">Açık</span>' : '') + (locked ? '<span class="lock">Kaydol</span>' : '') + seenBadge(x, 'seen-tag') + progBar(x));
+    c.appendChild(th); c.classList.toggle('seen', !x.user && isSeen(x.id));
     c.insertAdjacentHTML('beforeend', `<div class="ttl">${esc(ttl)}</div>`);
     c.onclick = () => {
       if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
@@ -921,11 +923,11 @@
     const active = seenScn && state.scn && state.scn.id === x.id, locked = lockedScn(x);
     r.classList.toggle('active', active); r.classList.toggle('locked', locked);
     const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
-    th.classList.add('thumb', 'row-thumb'); r.appendChild(th);
+    th.classList.add('thumb', 'row-thumb'); th.insertAdjacentHTML('beforeend', progBar(x)); r.appendChild(th); r.classList.toggle('seen', !x.user && isSeen(x.id));
     const mins = Math.floor(x.duration / 60), secs = Math.round(x.duration % 60);
     r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}${x.ileri ? '<span class="row-lvl">İleri</span>' : ''}</b>
       <small>${esc(x.short || firstSentence(x.summary))}</small></span>
-      <span class="row-r">${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
+      <span class="row-r">${seenBadge(x, 'row-tag seen')}${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
       <svg class="row-chev"><use href="#i-next"/></svg>`);
     r.onclick = () => {
       if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
@@ -958,7 +960,7 @@
     // Taktiklerim: ilk kart "Yeni taktik" (Taktik oluştur sayfası)
     const mine = !q && window.SailTaktik && cat === SailTaktik.CAT;
     for (const gname of groups) {
-      const inGroup = items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname);
+      const inGroup = seenLast(items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname));
       if (rows) {
         const h = document.createElement('div'); h.className = 'ls-head';
         h.innerHTML = `${esc(gname)}<span>${inGroup.length}</span>`; list.appendChild(h);
@@ -978,7 +980,7 @@
         a.innerHTML = '<div class="thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></div><div class="ttl">Yeni taktik</div>';
         grid.appendChild(a);
       }
-      for (const x of items.filter(i => (q ? i.category : (i.topic || 'Genel')) === gname)) grid.appendChild(scenarioCard(x));
+      for (const x of inGroup) grid.appendChild(scenarioCard(x));
     }
   }
   function buildPicker() {
@@ -989,10 +991,50 @@
   // ---------- Ana sayfa (açılış): adreste senaryo yoksa görünür ----------
   // v10 vitrin (kullanıcı 2026-11-24 "Netflix gibi, abartısız"): öne çıkan senaryo (canlı oynar, 8 sn'de bir değişir) ·
   // üç iş · "Kaldığın yerden" + konu konu yatay kayan satırlar. Arama ya da "Tümü" → liste görünümü (buildList, satırlar)
-  const RECENT = 'ps.recent.v1';
-  const recentIds = () => { try { return (JSON.parse(localStorage.getItem(RECENT)) || []).filter(id => SCENARIOS.some(x => x.id === id)); } catch (e) { return []; } };
-  const pushRecent = id => { try { localStorage.setItem(RECENT, JSON.stringify([id, ...recentIds().filter(i => i !== id)].slice(0, 60))); } catch (e) { /* yok */ } };
-  const clearRecent = () => { try { localStorage.removeItem(RECENT); } catch (e) { /* yok */ } };
+  // İzlenenler: senaryo %80'ine kadar OYNATILINCA (zaman çubuğunu sürüklemek sayılmaz) "İzlendi" (kullanıcı 2026-11-27).
+  // Kayıt kullanıcıya göre (aynı cihazda iki sporcu ayrı), bu cihazda: localStorage 'ps.watch.v1' = { kişi: { id: {p: 0..1, at: ms} } }.
+  // Listelerde izlenmeyenler başta, izlenenler sonda. Eski 'ps.recent.v1' (ana sayfadan açılanlar) bir kez izlendi sayılır.
+  const WATCH = 'ps.watch.v1', RECENT = 'ps.recent.v1', SEEN_P = 0.8;
+  const watchWho = () => { const a = window.SailAccess && SailAccess.account && SailAccess.account(); return (a && a.uid) || 'cihaz'; };
+  function watchAll() {
+    let all = null;
+    try { all = JSON.parse(localStorage.getItem(WATCH)); } catch (e) { /* yok */ }
+    if (!all || typeof all !== 'object') {
+      all = {};
+      try {
+        const old = JSON.parse(localStorage.getItem(RECENT)) || [], me = {}, now = Date.now();
+        old.forEach((id, i) => { me[id] = { p: 1, at: now - i * 1000 }; });
+        if (old.length) all[watchWho()] = me;
+        localStorage.setItem(WATCH, JSON.stringify(all)); localStorage.removeItem(RECENT);
+      } catch (e) { /* yok */ }
+    }
+    return all;
+  }
+  const watchMine = () => { const m = watchAll()[watchWho()]; return m && typeof m === 'object' ? m : {}; };
+  const watchP = id => { const w = watchMine()[id]; return w ? +w.p || 0 : 0; };
+  const isSeen = id => watchP(id) >= SEEN_P;
+  function watchSave(id, p) {
+    try { const all = watchAll(), me = all[watchWho()] || (all[watchWho()] = {}); me[id] = { p: Math.min(1, Math.max(p, (me[id] && me[id].p) || 0)), at: Date.now() }; localStorage.setItem(WATCH, JSON.stringify(all)); } catch (e) { /* yok */ }
+  }
+  // izlenenler, en son izlenen başta
+  const recentIds = () => { const me = watchMine(); return Object.keys(me).filter(id => me[id].p >= SEEN_P && SCENARIOS.some(x => x.id === id)).sort((a, b) => me[b].at - me[a].at); };
+  const clearRecent = () => { try { const all = watchAll(); delete all[watchWho()]; localStorage.setItem(WATCH, JSON.stringify(all)); } catch (e) { /* yok */ } };
+  // izlenmeyenler başa, izlenenler sona (yarım izlenen izlenmemiş sayılır); kendi içinde sıra korunur
+  const seenLast = xs => { const me = watchMine(), sn = x => (me[x.id] && me[x.id].p >= SEEN_P) ? 1 : 0; return xs.map((x, i) => [x, i]).sort((a, b) => sn(a[0]) - sn(b[0]) || a[1] - b[1]).map(a => a[0]); };
+  // kartın altındaki ilerleme çizgisi + İzlendi rozeti
+  const progBar = x => { const p = x.user ? 0 : watchP(x.id); return p > 0.02 ? `<span class="w-bar${p >= SEEN_P ? ' full' : ''}"><i style="width:${Math.round(Math.min(1, p) * 100)}%"></i></span>` : ''; };
+  // oynatırken: bu açılışta oynatılan süre (sahne saniyesi). %80'i ya da (en az %30'u oynatılıp) sona varılması = izlendi
+  let watchRun = { id: null, played: 0, lastT: 0, saved: 0 };
+  function watchTick() {
+    const scn = state.scn; if (!scn || scn.user || !scn.duration) return;
+    if (state.watchNew || watchRun.id !== scn.id) state.watchNew = false, watchRun = { id: scn.id, played: 0, lastT: state.t, saved: watchP(scn.id) };
+    const d = state.t - watchRun.lastT; watchRun.lastT = state.t;
+    if (d > 0 && d < 1) watchRun.played += d;                       // sürükleme / geri sarma sayılmaz
+    let p = watchRun.played / scn.duration;
+    if (state.t >= scn.duration && p >= 0.3) p = 1;
+    if (p >= watchRun.saved + 0.05 || (p >= SEEN_P && watchRun.saved < SEEN_P) || (p >= 1 && watchRun.saved < 1)) { watchSave(scn.id, p); watchRun.saved = Math.max(watchRun.saved, p); }
+  }
+  const seenBadge = (x, cls) => !x.user && isSeen(x.id) ? `<span class="${cls}"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>İzlendi</span>` : '';
   // Hava şartı (ileride senaryo verisine girilecek): x.hava = 'hafif' | 'orta' | 'sert' (birkaç tane olabilir: dizi), x.maxKn = en çok rüzgar (knot).
   // Hiçbir senaryoda veri yoksa süzgeç çipleri görünmez.
   const HAVA = [['hafif', 'Hafif'], ['orta', 'Orta'], ['sert', 'Sert']];
@@ -1002,14 +1044,16 @@
   const havaOk = x => !homeHava || havaOf(x).includes(homeHava);
   let homeCat = 'Start', homeQuery = '', homeAll = null, homeOn = null, fromHome = false;
   let heroIdx = 0, heroTimer = 0, heroPaused = false;
-  const openScn = x => { if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; } pushRecent(x.id); location.hash = x.id; openPicker(false); };
+  const openScn = x => { if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; } location.hash = x.id; openPicker(false); };
   const durTxt = x => `${Math.floor(x.duration / 60)}:${String(Math.round(x.duration % 60)).padStart(2, '0')}`;
   // öneriler: izlenmemiş, açık senaryolar; her gruptan sırayla (grup içinde katalog sırası), izlenenler en sonda
   function suggestions(n) {
     const seen = new Set(recentIds());
     const per = CATS.filter(c => !(window.SailTaktik && c === SailTaktik.CAT))
       .map(c => SCENARIOS.filter(x => x.category === c && !x.user && !lockedScn(x) && !seen.has(x.id) && havaOk(x)));
-    const out = [];
+    // yarım bırakılanlar önce (kaldığın yerden)
+    const out = SCENARIOS.filter(x => !x.user && !lockedScn(x) && !seen.has(x.id) && havaOk(x) && watchP(x.id) > 0.02).slice(0, n);
+    for (const a of per) for (let k = a.length - 1; k >= 0; k--) if (out.includes(a[k])) a.splice(k, 1);
     for (let i = 0; out.length < n && per.some(a => a[i]); i++) for (const a of per) if (a[i] && out.length < n) out.push(a[i]);
     return out;
   }
@@ -1050,14 +1094,13 @@
     const c = document.createElement('button'); c.type = 'button'; c.className = 'nx-card'; c.classList.toggle('locked', locked);
     const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
     th.classList.add('nx-thumb');
-    th.insertAdjacentHTML('beforeend', `<span class="nx-badge">${esc(code)}</span>${seenSet.has(x.id) ? '<span class="nx-seen">İzlendi</span>' : ''}${x.ileri ? '<span class="nx-lvl">İleri</span>' : ''}${locked ? '<span class="nx-lock">Kaydol</span>' : `<span class="nx-time">${durTxt(x)}</span>`}<span class="nx-hov"><svg><use href="#i-play"/></svg></span>`);
-    c.appendChild(th);
+    th.insertAdjacentHTML('beforeend', `<span class="nx-badge">${esc(code)}</span>${seenBadge(x, 'nx-seen')}${x.ileri ? '<span class="nx-lvl">İleri</span>' : ''}${locked ? '<span class="nx-lock">Kaydol</span>' : `<span class="nx-time">${durTxt(x)}</span>`}<span class="nx-hov"><svg><use href="#i-play"/></svg></span>${progBar(x)}`);
+    c.appendChild(th); c.classList.toggle('seen', !x.user && isSeen(x.id));
     c.insertAdjacentHTML('beforeend', `<b>${esc(ttl)}</b><small>${esc(x.topic || x.category)}${havaTxt(x) ? ' · ' + esc(havaTxt(x)) : ''}</small>`);
     c.title = x.short || firstSentence(x.summary);
     c.onclick = () => openScn(x);
     return c;
   }
-  let seenSet = new Set();
   function nxRow(title, items, allCat, extra, tool) {
     const sec = document.createElement('section'); sec.className = 'nx-row';
     sec.innerHTML = `<div class="nx-rh"><h3>${esc(title)}</h3><span class="nx-n">${items.length}</span>${allCat ? '<button class="nx-more" type="button">Tümü<svg><use href="#i-next"/></svg></button>' : ''}${tool ? `<button class="nx-more" type="button" data-tool>${esc(tool[0])}</button>` : ''}</div>
@@ -1097,7 +1140,6 @@
     }
     $('nxHero').innerHTML = ''; showHero(heroIdx); makeArt();
     const rows = $('nxRows'); rows.innerHTML = '';
-    seenSet = new Set(recentIds());
     // Taktiklerim: kullanıcı taktik oluşturduysa satırların en üstünde, Taktik oluştur kartının hemen altında (kullanıcı 2026-11-24)
     if (window.SailTaktik) {
       const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
@@ -1119,8 +1161,7 @@
     const groups = CATS.filter(c => c !== (window.SailTaktik && SailTaktik.CAT));
     for (const c of groups) {
       const xs = SCENARIOS.filter(x => x.category === c && havaOk(x));
-      xs.sort((a, b) => seenSet.has(a.id) - seenSet.has(b.id));
-      if (xs.length) rows.appendChild(nxRow(c, xs, c));
+      if (xs.length) rows.appendChild(nxRow(c, seenLast(xs), c));
     }
     const rec = recentIds().map(id => SCENARIOS.find(x => x.id === id)).filter(x => x && !x.user);
     if (rec.length) rows.appendChild(nxRow('İzlenenler', rec, null, null, ['Sıfırla', () => { clearRecent(); buildHome(); }]));
@@ -1290,7 +1331,6 @@
       SailAccess.guard('scn.ileri'); history.replaceState(null, '', location.pathname + location.search); return;
     }
     const s = fromHash(); if (s !== state.scn) loadScenario(s);
-    if (s && !s.user) pushRecent(s.id);
     if (homeOn) { fromHome = true; setHome(false); }
   });
   // giriş/kayıt sonrası kilitler değişir: seçici açıksa yenile, adresteki kilitli senaryoyu aç

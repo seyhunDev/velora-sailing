@@ -1413,3 +1413,19 @@ html:not(.tek) .scn-top .set-btn svg { width: 22px; height: 22px; }
 .bb-more .speed button:not(.on) { display: inline-flex; align-items: center; }
 .bb-more .speed button { min-width: 40px; }
 html:not(.tek) .scn-top .tool-group { margin-left: auto; }
+
+/* İzlenen senaryolar (kullanıcı 2026-11-27): yeşil "İzlendi" rozeti + kartın altında ilerleme çizgisi; izlenenler listelerde sonda */
+.w-bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; height: 4px; background: rgba(255,255,255,.28); pointer-events: none; }
+.w-bar i { display: block; height: 100%; background: #d4ff3a; }
+.w-bar.full i { background: #3fb871; }
+.nx-seen, .seen-tag, .row-tag.seen { display: inline-flex; align-items: center; gap: 3px; }
+.nx-seen svg, .seen-tag svg, .row-tag.seen svg { width: 13px; height: 13px; flex: none; }
+.nx-seen { bottom: 10px; }
+.card .thumb .seen-tag { position: absolute; left: 8px; bottom: 10px; z-index: 1; height: 22px; padding: 0 7px; border-radius: 7px;
+  font-size: 12px; font-weight: 700; color: #fff; background: rgba(47,138,87,.92); }
+.card .thumb .seen-tag svg, .nx-seen svg { position: static; width: 13px; height: 13px; }
+.row-tag.seen { background: rgba(47,138,87,.16); color: #3fb871; margin-right: 6px; }
+.row-thumb { position: relative; }
+.card.seen .ttl, .nx-card.seen b, .scn-row.seen .row-t b { opacity: .78; }
+.scn-row.seen .row-thumb::after { content: ''; position: absolute; right: 3px; top: 3px; z-index: 1; width: 16px; height: 16px; border-radius: 99px;
+  background: #3fb871 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat; }
