@@ -348,6 +348,10 @@
 7. Çerçeve: sahne başta ve sonda alt/üst çubuğa girmesin; hat çok aşağıdaysa bütün y'leri birlikte yukarı kaydır.
 8. Filo `row`/`back` teknenin ROTASI boyunca geri koyar. Hat avantajı büyükse (ör. rüzgar 335°, yatay hat) orsa rotası hatta neredeyse paraleldir ve ikinci sıra yana kayar: ikinci sırayı `pos` ile hattın ~1 boy altına ver.
 9. Senaryo teknesinin hemen önündeki (aynı kontra, yakın) filo teknesi pis rüzgarda yavaşlayınca senaryo teknesi onun kıçına biner (K11 uyarısı): o filo teknesini kaldır ya da aralığı ~110 px yap.
+10. Senaryodaki gri tekneler (`crowd: true` olan ders tekneleri) ile kural filosu aynı numaraları almasın: filo 1..N numaralanır, gri senaryo teknesine N'den büyük id ver (S25'te iki "1" ve iki "2" vardı).
+11. Hata teknesinin kritik anı (burun çizgide, çarpma, yetişememe) o adımın zamanında sahnede gerçekten görünsün; sayıyla doğrula (S22'de burun çizgiye hiç varmıyordu).
+12. Yazı çakışması: hakem botu yazısı (`committeeLabel`) bekleyen teknelerin ve bayrak yazısının üstüne binmesin; gerekirse bekleyenleri biraz uzağa al.
+13. Ders teknesinin rengi gri filoyla karışmasın (gri yerine mor `#c77dff`).
 
 **C. Denetim (her senaryoda)**
 1. `npm run check` sıfır uyarı (alan dışı, çakışma <30 px, engel, kural/protesto, "hatta", eski kod).
@@ -366,6 +370,12 @@
 | S7 | `ia8-pin-chaos` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
 | S8 | `a4-committee-favored` | ✅ | Hakem botu tarafında L'nin yanına 2 tekne, pin tarafında 2 ön + 2 ikinci sıra; W bordalayıp filonun altında pis rüzgarda kalır. |
 | S9-S16 | İA3, İA5, İA6, İA14, İA15, İA2c, İA11, İA12 | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+| S17 | `a2-timing` | ✅ | Filo zaten gerçekçiydi. Adımlar zamana göre sıralandı; geç kalan G griden mora (filoyla karışıyordu). |
+| S18-S21 | İA4, İA7, İA9, İA10 | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+| S22 | `a12-flags` | ✅ | F'nin burnu artık gerçekten çizgiyi geçiyor (t≈17-20); hakem botu yazısı sağda, bekleyen iki tekne biraz dışarıda. |
+| S23 | `ia13-black-flag` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
+| S24 | `a9-clear-air-tack` | ✅ | Filo sık (12 tekne); dokunulmadı. |
+| S25 | `a9b-foot-out` | ✅ | Gri senaryo teknelerinin numarası filoyla çakışıyordu (1, 2 → 10, 11); Kural 11 cümlesi düzeldi. |
 
 ## Oturum günlüğü (en yeni üstte)
 ### 2026-11-27 · Senaryo üst çubuğunu sadeleştir
@@ -375,7 +385,7 @@
 ### 2026-11-27 · Tüm senaryolar turu, 1. parti (S1-S8) + seslendirme
 - Kullanıcı: bütün senaryoları baştan sırayla, İleri Taktik'teki gerçekçi filo ve diğer geliştirmelerle elden geçir; "tramola" doğru okunsun; kapatma/açma yerine açan/çeken; öğrenilenleri notlara yaz.
 - Yapılan: "Senaryo iyileştirme kontrol listesi" bölümü (yukarıda, tur tablosuyla). `speechText` tramola → "tıramola"; Gemini yönergesine "Türkçe okunuşla oku". Metinlerdeki eski ders kodları (A3, A12, İA2b, İT1, İA2) ders adıyla değişti, `check-scenarios` eski kodu uyarır. S1, S5, S8 gerçekçi filo; S2-S4, S6-S7, S9-S16 kontrol.
-- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). Sıradaki: S17 `a2-timing`, sonra S18'den sırayla.
+- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). 2. parti (S17-S25) aynı gün. Sıradaki: P1 `c1-header-tack` (terim cevabını bekler), P2'den sırayla.
 
 ### 2026-11-27 · Seslendirmede "hatta" okunuşu
 - Kullanıcı: "hatta doğru gidiyor" gibi kısaltılmış start hattı, seslendirmede Türkçe "hatta" (bile) diye okunuyor.
