@@ -236,6 +236,7 @@
 - 2026-11-12 · **Pis rüzgar koninin her yerinde yavaşlatır:** `engine.shadowOf` artık koni içinde en az %30 etki verir (önce kenarda/uçta ~0). Simülatörde gölge yarış, dönüş ve OCS dönüşünde uygulanır (bekleme ve ceza turunda değil); "Pis rüzgar" katmanı varsayılan açık; hız etiketinde ↓ her gölgede. Bu yüzden A2'de 2. sıradaki filo teknesi slot 0.20→0.26 (pin dışına düşüyordu).
 
 - 2026-11-13 · **Simülatörde ayarlar kategorilere, elle sürme canlı.** Kullanıcı: çok ayar animasyonu kapatıyor, yatayda sağdan kategori seçip aç; elle sürünce tekne anında öne fırladı. Yarışta zaman donarken teknenin tek başına ilerlemesi adil değildi (hata). Canlı sürmede herkes birlikte ilerler; kurulumda (saat yokken) yer almak için donuk sürme kaldı.
+- 2026-11-27 · **Metinlerde tek başına "hatta" yazılmaz:** seslendirme onu "hatta" (bile) diye okur. Start hattı için "start hattına / start hattında" yazılır; `check-scenarios` uyarır.
 
 ## Açık sorular (kullanıcıya)
 - İleri Teknik (İT1/İT1b) misafire açık; İleri Taktik gibi kayıtlılara kilitlensin mi? Palanga miktarı (orta-sert 'belirgin sıkı', hafif 'yalnız boşluk') kulübün halat işaretiyle sayısal verilebilir mi?
@@ -323,6 +324,11 @@
 5. `KONULAR.md` durumunu ✅ yap.
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-27 · Seslendirmede "hatta" okunuşu
+- Kullanıcı: "hatta doğru gidiyor" gibi kısaltılmış start hattı, seslendirmede Türkçe "hatta" (bile) diye okunuyor.
+- Yapılan: senaryolardaki bütün tek başına "hatta" / "Hatta" (adım başlığı, metin, özet, not, etiket, KATALOG) "start hattına" ya da "start hattında" oldu (29 satır). `check-scenarios.mjs` artık adım başlığı/metninde tek başına "hatta" görürse uyarır. Değişen adımların sesi yayında yeniden üretilir.
+- Not: "hattın, hattı, hattan" gibi biçimler belirsiz değil, dokunulmadı. Yeni metinlerde "hatta" yazma.
+
 ### 2026-11-27 · Hakem botu ucuna iki yeni start: İA14 boşluğa gir, İA15 sıkışınca çık
 - Kullanıcı: hakem botu tarafı kalabalık ve kapalı; küçük bir yer açılınca arkadaki sporcu oraya girip beklemeli. Bir de sıkışıp rüzgaraltına kayan tekne hemen çıkıp yeni boş yer bulmalı.
 - Yapılan: İA14 `ia14-committee-slip-in` (S12), İA15 `ia15-committee-escape` (S13), KATALOG satırları, KONULAR H17/H18 ✅, kart satırları. Metinler 10-14 yaş stilinde; sesli anlatım yayında otomatik üretilir. `npm run check` temiz. Görüntüler: proje dosyaları `hakem-botu-iki-yeni/`.
