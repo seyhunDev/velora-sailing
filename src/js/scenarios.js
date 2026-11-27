@@ -127,7 +127,7 @@
           { mode: 'heading', h: 180, dur: 2.4, turn: 1.2, note: 'Geri dön' },                  // çizginin altına in
           { mode: 'closehauled', tack: 'starboard', dur: 3.6, turn: 1.2 }
         ] },
-      { id: 'G', name: 'Geç kalan', role: 'hata', color: '#8d99ae',
+      { id: 'G', name: 'Geç kalan', role: 'hata', color: '#c77dff',
         start: { x: 335, y: 495, h: 340 }, v0: 2,
         segs: [
           { mode: 'hold', h: 340, dur: 19.5, speed: 0.05, turn: 0 },
@@ -146,10 +146,10 @@
     steps: [
       { t: 0, title: 'Start\'a 1 dakika 20 saniye', text: 'Gri tekneler hattın bir boy kadar gerisinde, burunları rüzgarda ve yelkenleri boş bekliyor. Aralarındaki boşluklar çok önemli, çünkü hızlanacağın yer orası; yeşil tekne de yavaşça yerine geliyor.' },
       { t: 4, title: 'Yerini al, rüzgara baş ver', text: 'Yeşil tekne de hattın dibinde durdu ve yelkeni boş, sallanıyor. Optimist hattan uzakta değil, hemen gerisinde bekler. Altındaki boşluğu koru, biri sokulmaya çalışırsa orsa edip kapat, buna Kural 11 diyoruz.' },
+      { t: 16.5, title: '14 saniye kala: hazırlan', text: 'Yeşil tekne yelkenini doldurmaya başladı, filo ise 10 saniye kala dolduracak. Optimist yelkeni doldurunca tam hıza 10 12 saniyede çıkar, bu yüzden hattın dibinde bekleyip son 10 12 saniyede hızlanmalısın.' },
       { t: 17.2, title: 'Turuncu bir saniye erken doldurdu', text: 'Turuncu yelkenini 11 saniye kala, yeşil ise 12 saniye kala doldurdu ama yeşil bir boy daha gerideydi. Bir iki saniye bile yarım boy fark ettirir.' },
       { t: 19.6, title: 'Burun çizgiyi geçti: erken start', text: 'Start anında teknenin bir parçası, mesela burnu, çizginin önündeyse erken çıkmış olursun ve buna fodepar denir. Çoğu fodepar böyle yarım boyla olur, ne yapman gerektiğini de hakem botundaki bayrak söyler; bunu start bayrakları dersinde göreceksin.' },
-      { t: 16.5, title: '14 saniye kala: hazırlan', text: 'Yeşil tekne yelkenini doldurmaya başladı, filo ise 10 saniye kala dolduracak. Optimist yelkeni doldurunca tam hıza 10 12 saniyede çıkar, bu yüzden hattın dibinde bekleyip son 10 12 saniyede hızlanmalısın.' },
-      { t: 20, title: 'START', text: 'Yeşil tekne tam start anında, tam hızla çizgide ve filo da onunla birlikte çıkıyor. Turuncu geri dönmek zorunda kaldığı için çok zaman kaybedecek, geç dolduran gri tekne de çizgiyi yavaş geçecek.' },
+      { t: 20, title: 'START', text: 'Yeşil tekne tam start anında, tam hızla çizgide ve filo da onunla birlikte çıkıyor. Turuncu geri dönmek zorunda kaldığı için çok zaman kaybedecek, geç dolduran mor G de start hattını yavaş geçecek.' },
       { t: 25, title: 'Sonuç', text: 'Hattın bir boy gerisinde rüzgara baş verip bekle, altında boşluk tut ve start\'tan 10 12 saniye önce yelkenini doldur. Antrenmanda bir boyu kaç saniyede gittiğini tekrar tekrar ölç, böylece zamanlaman kendiliğinden oturur.' }
     ],
     addBoat: { pin: { x: 290, y: 560 }, middle: { x: 390, y: 640 }, committee: { x: 720, y: 560 } },
@@ -296,7 +296,7 @@
         start: { x: 520, y: 520, h: 340 }, v0: 2,
         segs: [
           { mode: 'hold', h: 340, dur: 12, speed: 0.05, turn: 0 },
-          { mode: 'hold', h: 350, dur: 6, speed: 0.12, turn: 0.8 },                       // hattın dibine fazla sokuldu
+          { mode: 'hold', h: 350, dur: 6, speed: 0.2, turn: 0.8 },                        // hattın dibine fazla sokuldu (burun t≈17.5'te çizgiyi geçer)
           { mode: 'hold', h: 350, dur: 2, speed: 0.1, turn: 0, note: 'Burun çizgide!' },
           { mode: 'heading', h: 170, dur: 3, turn: 1.2, speed: 0.6, note: 'Geri çekiliyor' }, // geri in
           { mode: 'hold', h: 340, dur: 4.5, speed: 0.05, turn: 1.0 },
@@ -313,8 +313,8 @@
     leeway: { from: 0, rate: 1.0, ang: 75 },   // gerçekçi
     crowd: [{ slot: 0.1, drift: 0.3 }, { slot: 0.68, back: 6 }, { slot: 0.8, back: -4 }, { slot: 0.1, row: 1, drift: 0.3 }, { slot: 0.68, row: 1 },
       // hakem botunun dibi baştan boş: iki tekne dışarıda bekler, açılan boşluğa süzülür
-      { slot: 0.905, wait: { x: 828, y: 462, h: 0, until: 19, speed: 0.45 } },
-      { slot: 0.86, row: 1, wait: { x: 862, y: 505, h: 355, until: 20, speed: 0.5 } }],
+      { slot: 0.905, wait: { x: 872, y: 450, h: 0, until: 18, speed: 0.45 } },
+      { slot: 0.86, row: 1, wait: { x: 905, y: 500, h: 355, until: 19, speed: 0.5 } }],
     steps: [
       { t: 0, title: 'Start\'a 2 dakika: U bayrağı', text: 'Hakem botunda hazırlık bayrağı olarak U bayrağı var ve bu bayrak, erken çıkarsan ne olacağını söyler. Sağ üstteki saat gerçek zamanı gösteriyor, animasyon ise dört kat hızlı.' },
       { t: 6, title: 'Bayrak türleri', text: 'Mavi beyaz P bayrağında erken çıkarsan geri dönüp hattı yeniden geçersin ve ceza yoktur. Sarı siyah I bayrağında son dakikada hattın önündeysen uçlardan dolaşarak dönersin. Kırmızı beyaz kareli U bayrağında son dakikada hattın önündeysen yarıştan çıkarsın; siyah bayrakta da öyle, üstelik start tekrarlansa bile o yarışa giremezsin.' },
@@ -416,9 +416,9 @@
           { mode: 'closehauled', tack: 'starboard', dur: 15, turn: 1.0, note: 'Geride kaldı' }
         ] },
       // rüzgarüstündeki komşular (gri filo): tramola yolunu kapatırlar
-      { id: '1', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 658, y: 553, h: 340 }, v0: 0,
+      { id: '10', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 658, y: 553, h: 340 }, v0: 0,
         segs: [{ mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 }, { mode: 'closehauled', tack: 'starboard', dur: 34, turn: 1.0 }] },
-      { id: '2', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 882, y: 563, h: 340 }, v0: 0,
+      { id: '11', name: 'Filo', crowd: true, color: '#b8c7d6', start: { x: 882, y: 563, h: 340 }, v0: 0,
         segs: [{ mode: 'hold', h: 340, dur: 2, speed: 0.015, turn: 0 }, { mode: 'closehauled', tack: 'starboard', dur: 34, turn: 1.0 }] }
     ],
     crowdLife: { gap: 38 },
@@ -431,7 +431,7 @@
       { t: 0, title: 'Start\'a 6 saniye', text: 'Yeşil S ve turuncu H ikinci sırada, öndeki teknenin hemen arkasındalar ve ikisinin de sağında, yukarısında bir tekne var. Ön sırada yeşil işaretlerle gösterilen iki boşluk var.' },
       { t: 6, title: 'START: gölgedesin', text: 'Filo sancak kontrada çıkıyor ve S ile H öndeki teknenin pis havasında kaldığı için yavaşlıyor. Pis hava öndeki teknenin bir iki boy arkasına kadar uzanır.' },
       { t: 6.8, title: 'Tramola yolu kapalı', text: 'Tramola atsalar sağdaki tekneye çarparlar, oysa tramola atan tekne herkese yol vermelidir, buna Kural 13 diyoruz. O zaman çıkış yolu aşağıda, rüzgaraltında.' },
-      { t: 8, title: 'S bordalıyor', text: 'S burnunu biraz düşürüp yelkenini biraz kaçırıyor, hızlanıyor ve aşağıdaki boşluğa kayıyor. Bunu yaparken soldaki tekneden uzak duruyor, çünkü yukarıdaki tekne o ve bu Kural 11.' },
+      { t: 8, title: 'S bordalıyor', text: 'S burnunu biraz düşürüp yelkenini biraz kaçırıyor, hızlanıyor ve aşağıdaki boşluğa kayıyor. Bunu yaparken soldaki tekneden uzak duruyor, çünkü yukarıdaki tekne S ve yukarıdaki tekne yol verir. Buna Kural 11 diyoruz.' },
       { t: 10, title: 'H sıkıştırıyor', text: 'H gölgeden yukarı doğru, orsalayarak çıkmaya çalışıyor ama yelkeni boşalıp tekne yavaşlıyor. Öndeki tekne de uzaklaşmadığı için gölgeden bir türlü çıkamıyor.' },
       { t: 13, title: 'S boşlukta orsaya döndü', text: 'S boşluğa yerleşti, önü ve yukarısı açık, şimdi temiz havada tam hızla gidiyor. Aşağı inerken kaybettiğini birkaç saniyede geri alıyor.' },
       { t: 18, title: 'Kim önde?', text: 'Kesikli çizgiye bakınca S\'nin filoyla aynı hızda gittiğini görüyorsun, H ise hem sıkıştırdığı hem de gölgede kaldığı için geride.' },
