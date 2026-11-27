@@ -331,6 +331,7 @@
 1. 10-14 yaş: kısa cümle, "sen" diye hitap, kural ayrı cümle ("Buna Kural 10 diyoruz."). Parantez, ok, tırnak, %, eğik çizgi, ≈ yok. Ekrandaki metin = okunan metin.
 2. Tek başına "hatta" yazma, "start hattına / start hattında" yaz (`check-scenarios` uyarır).
 3. "tramola" ses motorunda "tramole" gibi çıkıyordu: `narration.js` → `speechText` metni "tıramola" diye gönderir (ekler korunur). Ekranda yine "tramola" yazılır. Başka yanlış okunan kelime çıkarsa aynı yere ekle (yabancılar `SAY` tablosunda).
+3b. Metinde kalan İngilizce terimler (layline, barging, lee-bow, header, zone) `SAY` tablosunda Türkçe okunuşla gider; yenisini eklersen oraya da ekle. Denetim için: bütün adımları `speechText`'ten geçirip w/x/q/ing/bow içeren kelimeleri listele.
 4. Metinde eski ders kodu (A3, İA2b, İT1…) yazma; kodlar KATALOG'dan gelir ve değişir. Dersin adını yaz ("hakem botu ucu dersinde"). `check-scenarios` uyarır.
 5. Rüzgar dönüşü terimleri: kullanıcıya soruldu (2026-11-27), cevap gelince buraya yaz. "Kapama" (cover, rakibin üstünde kalma) ayrı kavram, ona dokunma.
 6. Start hattının şamandıra ucu "pin"dir; "orsa şamandırası" parkurun üst şamandırası.
@@ -374,12 +375,18 @@
 | S23 | `ia13-black-flag` | ✅ | İA turunda yapılmıştı; dokunulmadı. |
 | S24 | `a9-clear-air-tack` | ✅ | Filo sık (12 tekne); dokunulmadı. |
 | S25 | `a9b-foot-out` | ✅ | Gri senaryo teknelerinin numarası filoyla çakışıyordu (1, 2 → 10, 11); Kural 11 cümlesi düzeldi. |
+| P1 | `c1-header-tack` | ⏳ | Görüntü iyi; çeken/açan terimi kullanıcının seçimini bekliyor. |
+| P2-P6 | C3, C4, C4b, D3, D3b | ✅ | 2026-11-23'te filoyla yapılmıştı; ekran görüntüsünde sorun yok. "lee-bow" ve "barging" okunuşu eklendi. Fikir: P2'de layline'da daha çok tekne. |
+| Ş1-Ş3 | E2, E1, D4 | ✅ | Filo var, sorun yok. Not: Ş1'de şamandıra yazısını tekneler örtüyor (motor yazısı, dokunulmadı). |
+| K1 | `b1-rule10` | ✅ | Tekneler alt kenardaydı, 45 px yukarı. İki teknelik temel kural dersi olarak kaldı. |
+| K2 | `b8-rule18` | ✅ | Şamandıra ve bölge üst çubuğun altında kalıyordu, sahne 82 px aşağı. |
+| T1-T2 | İT1, İT1b | ✅ | Donanım dersi; metin kontrolü. |
 
 ## Oturum günlüğü (en yeni üstte)
 ### 2026-11-27 · Tüm senaryolar turu, 1. parti (S1-S8) + seslendirme
 - Kullanıcı: bütün senaryoları baştan sırayla, İleri Taktik'teki gerçekçi filo ve diğer geliştirmelerle elden geçir; "tramola" doğru okunsun; kapatma/açma yerine açan/çeken; öğrenilenleri notlara yaz.
 - Yapılan: "Senaryo iyileştirme kontrol listesi" bölümü (yukarıda, tur tablosuyla). `speechText` tramola → "tıramola"; Gemini yönergesine "Türkçe okunuşla oku". Metinlerdeki eski ders kodları (A3, A12, İA2b, İT1, İA2) ders adıyla değişti, `check-scenarios` eski kodu uyarır. S1, S5, S8 gerçekçi filo; S2-S4, S6-S7, S9-S16 kontrol.
-- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). 2. parti (S17-S25) aynı gün. Sıradaki: P1 `c1-header-tack` (terim cevabını bekler), P2'den sırayla.
+- Bekleyen: kapatma/açma eşlemesi kullanıcıya soruldu (Açık sorular). 2. parti (S17-S25) ve 3. parti (P, Ş, K, T) aynı gün. Kalan: P1 terimleri (kullanıcı cevabı).
 
 ### 2026-11-27 · Seslendirmede "hatta" okunuşu
 - Kullanıcı: "hatta doğru gidiyor" gibi kısaltılmış start hattı, seslendirmede Türkçe "hatta" (bile) diye okunuyor.

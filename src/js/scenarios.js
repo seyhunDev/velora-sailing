@@ -767,10 +767,10 @@
     marks: [{ x: 500, y: 90, label: 'Orsa şamandırası', zone: false }],
     boats: [
       { id: 'S', name: 'Sancak kontra', role: 'hak', color: '#2a9d8f',
-        start: { x: 760, y: 620, h: 315 }, v0: 55,
+        start: { x: 760, y: 575, h: 315 }, v0: 55,
         segs: [{ mode: 'closehauled', tack: 'starboard', dur: 14, turn: 0 }] },
       { id: 'P', name: 'İskele kontra', role: 'yol', color: '#e76f51',
-        start: { x: 240, y: 620, h: 45 }, v0: 55,
+        start: { x: 240, y: 575, h: 45 }, v0: 55,
         segs: [
           { mode: 'closehauled', tack: 'port', dur: 3.6, turn: 0 },
           { mode: 'heading', h: 100, dur: 2.6, turn: 1.0 },           // bordala, arkasından geç
@@ -1144,12 +1144,12 @@
     duration: 17.5,
     baseSpeed: 40,
     wind: 0,
-    marks: [{ x: 450, y: 168, label: 'Orsa şamandırası (iskelede bırak)', zone: true }],
+    marks: [{ x: 450, y: 250, label: 'Orsa şamandırası (iskelede bırak)', zone: true }],
     // Optimist kalabalığı: I'nın önünde ve arkasında aynı layline'dan gelen dizi, O'nun arkasında dıştan gelenler
     boats: (() => {
       const I =
       { id: 'I', name: 'İçteki · yer hakkı', role: 'hak', color: '#2a9d8f',
-          start: { x: 830, y: 460, h: 315 }, v0: 40,
+          start: { x: 830, y: 542, h: 315 }, v0: 40,
           segs: [
             { mode: 'closehauled', tack: 'starboard', dur: 9.3, turn: 0 },
             { mode: 'heading', h: 250, dur: 1.4, turn: 1.4 },
@@ -1157,7 +1157,7 @@
           ] };
       const O =
       { id: 'O', name: 'Dıştaki · yer verir', role: 'yol', color: '#e76f51',
-          start: { x: 876, y: 420, h: 315 }, v0: 40,
+          start: { x: 876, y: 502, h: 315 }, v0: 40,
           segs: [
             { mode: 'closehauled', tack: 'starboard', dur: 12.2, turn: 0 },
             { mode: 'heading', h: 250, dur: 1.6, turn: 1.4 },
@@ -1172,7 +1172,7 @@
       { t: 12.5, title: 'Şamandıradan sonra', text: 'Dönüş bitince Kural 18 de biter ve normal kurallar geçerli olur. Artık pupadayız ve kimin yukarıda, kimin aşağıda olduğuna bakıyoruz.' },
       { t: 14.5, title: 'Yeni kurallardan not', text: 'İlk tekne bölgeye girdiği an hak sahibi belli olur. Bölgenin içinde tramola atan ya da bölgeye arkadan giren tekne yer isteyemez, o yüzden içeriye burnunu sokma.' }
     ],
-    addBoat: { pin: { x: 760, y: 530 }, middle: { x: 900, y: 530 }, committee: { x: 940, y: 400 } },
+    addBoat: { pin: { x: 760, y: 612 }, middle: { x: 900, y: 612 }, committee: { x: 940, y: 482 } },
     addBoatLabels: { pin: 'Önde (iç)', middle: 'Arkada', committee: 'Dışta' }
   });
 

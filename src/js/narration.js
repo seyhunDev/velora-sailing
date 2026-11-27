@@ -35,7 +35,7 @@
       .replace(/\(\s*([1-4])\s*\)/g, (m, d) => ORD[d] + ',')   // (1) → birincisi,
       // kesme işaretli kelimeler (kullanıcı 2026-11-23: "layline'ın" ayrı ayrı okunup anlaşılmıyordu):
       // önce yabancı kelimelerin okunuşu, sonra tek harf / sayı + ek okunuşuyla birleşir, kalan kesmeler silinir
-      .replace(/\b(layline|header|zone|px)(?=['’\s.,;:!?)]|$)/gi, w => SAY[w.toLowerCase()] || w)
+      .replace(/\b(layline|header|zone|px|barging|lee-bow)(?=['’\s.,;:!?)]|$)/gi, w => SAY[w.toLowerCase()] || w)
       // tramola: ses motoru "tramole" gibi okuyordu (kullanıcı 2026-11-27); Türkçe okunuşla yaz (tramolayla, tramolada… ekler korunur)
       .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([Tt])ramola/g, (m, pre, T) => pre + (T === 'T' ? 'Tıramola' : 'tıramola'))
       .replace(/(^|[^\wÇĞİÖŞÜçğıöşü])([A-ZÇĞİÖŞÜ])['’]([a-zçğıöşü]+)/g, (m, pre, L, ek) => pre + (LETTER[L] || L) + ek)
@@ -47,7 +47,7 @@
     return s;
   }
   // Okunuşlar: yabancı kelimeler ve harf adları (ekle birleşince doğru okunsun: "Z'nin" → "Zenin")
-  const SAY = { layline: 'leylayn', header: 'hedır', zone: 'zon', px: 'piksel' };
+  const SAY = { layline: 'leylayn', header: 'hedır', zone: 'zon', px: 'piksel', barging: 'barcing', 'lee-bow': 'li bov' };
   const LETTER = { A: 'A', B: 'Be', C: 'Ce', Ç: 'Çe', D: 'De', E: 'E', F: 'Fe', G: 'Ge', H: 'He', I: 'I', İ: 'İ', J: 'Je', K: 'Ke', L: 'Le',
     M: 'Me', N: 'Ne', O: 'O', Ö: 'Ö', P: 'Pe', R: 'Re', S: 'Se', Ş: 'Şe', T: 'Te', U: 'U', Ü: 'Ü', V: 'Ve', W: 'Dabılyu', X: 'İks', Y: 'Ye', Z: 'Ze' };
   function numTr(n) {
