@@ -1372,9 +1372,12 @@ body.tek-bad .scn-group, body.tek-bad #btnInfo { visibility: hidden; }
    Tam ekran, Bildir, Hesap Ayarlar penceresinin başında (#scnActs, js/app.js buildScnActs).
    Paylaşılan bağlantı (html.tek) kendi düzenini korur.
    ========================================================================== */
-html:not(.tek) .scn-top :is(.scn-step, #btnEdit, .tool-group > :not(#btnSettings)) { display: none !important; }
+html:not(.tek) .scn-top :is(#btnEdit, .tool-group > :not(#btnSettings)) { display: none !important; }
 html:not(.tek) .scn-top .scn-group { flex: 0 1 auto; max-width: min(720px, calc(100% - 120px)); }
-html:not(.tek) .scn-top .scn-group .scn-btn { border-radius: 12px; max-width: 100%; }
+html:not(.tek) .scn-top .scn-group .scn-btn { border-radius: 0; max-width: 100%; }
+/* önceki/sonraki senaryo yine başlığın iki yanında (kullanıcı 2026-11-28: senaryo açıkken doğrudan sıradakine geçebilmeli) */
+html:not(.tek) .scn-top .scn-step { width: 44px; }
+@media (max-height: 500px) { html:not(.tek) .scn-top .scn-step { width: 40px; } }
 html:not(.tek) .scn-top .scn-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html:not(.tek) .scn-top .set-btn { width: 44px; height: 44px; min-width: 0; padding: 0; border-radius: 50%; background: var(--raised); color: var(--text); }
 html:not(.tek) .scn-top .set-btn:hover { background: var(--raised2); }

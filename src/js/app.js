@@ -1215,14 +1215,12 @@
   };
   syncCls();
   // Senaryo çubuğu sade (kullanıcı 2026-11-27): üstte yalnız Geri · senaryo adı · Ayarlar.
-  // Bilgi, Paylaş, Düzenle, önceki/sonraki, Tam ekran, Velora'ya dön, Bildir, Hesap Ayarlar penceresinin başında
+  // (önceki/sonraki senaryo 2026-11-28'den beri yine başlığın yanında) Bilgi, Paylaş, Düzenle, Tam ekran, Velora'ya dön, Bildir, Hesap Ayarlar penceresinin başında
   // düğme olarak durur; her biri çubuktaki (gizli) asıl düğmeye basar, böylece davranış tek yerde kalır.
   const SCN_ACTS = [
     ['btnInfo', () => state.infoOpen ? 'Bilgi kartını kapat' : 'Bilgi kartı'],
     ['btnShare', () => 'Paylaş'],
     ['btnEdit', () => 'Düzenle'],
-    ['btnScnPrev', () => 'Önceki senaryo'],
-    ['btnScnNext', () => 'Sonraki senaryo'],
     ['btnFull', b => b.classList.contains('fs-exit') ? 'Tam ekrandan çık' : 'Tam ekran'],
     ['btnVelora', () => "Velora'ya dön"],
     ['btnReport', () => 'Bildir'],
