@@ -890,7 +890,9 @@
   // erişim: misafire kapalı kategoriler (js/access.js → FEATURES)
   // Paylaşılan tek senaryo (?izle=ID): yalnız o senaryo açılır, kilit uygulanmaz (paylaşan izin vermiş sayılır)
   const TEK_ID = document.documentElement.classList.contains('tek') ? new URLSearchParams(location.search).get('izle') : null;
-  const TEK = TEK_ID ? (SCENARIOS.find(x => x.id === TEK_ID && !x.user) || null) : null;
+  // Taktik oluştur ön izlemesi (?izle=onizle): taktik.html bu sayfayı gizli çerçevede önceden yükler, taktiği mesajla verir
+  const PREV = TEK_ID === 'onizle';
+  let TEK = TEK_ID && !PREV ? (SCENARIOS.find(x => x.id === TEK_ID && !x.user) || null) : null;
   const lockedScn = x => !(TEK && x === TEK) && x.lock && window.SailAccess && !SailAccess.can('scn.ileri');
   const norm = t => t.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   function scenarioCard(x) {
@@ -1386,6 +1388,7 @@
   // Kapat: Velora içinde Velora'ya döner; tarayıcıda sekmeyi kapatmayı dener, olmazsa "kapandı" ekranı (geri yolu yok)
   $('btnTekClose').onclick = () => {
     state.playing = false; narrStop(); updatePlayButton();
+    if (PREV) { try { window.parent.postMessage({ type: 'taktik-onizle', event: 'close' }, location.origin); } catch (e) { /* yok */ } return; }
     if (document.documentElement.classList.contains('is-embedded')) {
       try { window.parent.postMessage({ type: 'velora-sailing', event: 'close' }, '*'); } catch (e) { /* yok */ }
       return;
@@ -1401,11 +1404,24 @@
       d.querySelector('#tekAgain').onclick = () => { d.remove(); state.t = 0; state.stepIdx = 0; showStep(0, false); render(); };
     }, 250);
   };
+  if (PREV) {
+    // taktik.html → { type: 'taktik-onizle', doc } : taktiği derle, baştan oynat · { event: 'stop' } : durdur
+    window.addEventListener('message', e => {
+      if (e.origin !== location.origin || e.source !== window.parent) return;
+      const m = e.data || {}; if (m.type !== 'taktik-onizle') return;
+      if (m.event === 'stop') { state.playing = false; narrStop(); quizHide(); updatePlayButton(); return; }
+      if (!m.doc || !window.SailTaktik) return;
+      try { TEK = SailTaktik.compile(m.doc, { id: 'onizle', code: 'Ön izleme' }); } catch (err) { return; }
+      setInfoOpen(true); loadScenario(TEK);
+      if (!state.playing) togglePlay();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') $('btnTekClose').click(); });
+  }
   if (TEK_ID) {
     document.body.classList.add('tek-on');
     if (window.SailTrack) try { SailTrack.log('scenario_link', { id: TEK_ID, ok: !!TEK }); } catch (e) { /* yok */ }
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-    if (!TEK) {                                                   // yanlış / eski bağlantı: yalnız bilgi + Kapat
+    if (!TEK && !PREV) {                                          // yanlış / eski bağlantı: yalnız bilgi + Kapat
       document.body.classList.add('tek-bad');
       const d = document.createElement('div'); d.className = 'tek-done';
       d.innerHTML = '<div class="tek-done-card"><svg class="tek-done-logo"><use href="#i-logo"/></svg><h2>Senaryo bulunamadı</h2><p>Bağlantı eski ya da eksik olabilir. Gönderen kişiden yeni bağlantı iste.</p></div>';
@@ -1416,4 +1432,5 @@
   fitViewBox(); loadScenario(fromHash()); setInfoOpen(true);
   setHome(TEK_ID ? false : !hasScn());
   requestAnimationFrame(ts => { state.lastTs = ts; requestAnimationFrame(tick); });
+  if (PREV) try { window.parent.postMessage({ type: 'taktik-onizle', event: 'ready' }, location.origin); } catch (e) { /* yok */ }
 })();

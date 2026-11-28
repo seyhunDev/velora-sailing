@@ -21,6 +21,17 @@
   if (qs.get('id')) doc = T.get(qs.get('id'));
   if (!doc && qs.get('t')) { doc = T.decode(qs.get('t')); if (doc) { doc.id = T.blank().id; fresh = true; } }   // paylaşılan: kendi kopyan
   if (!doc) { doc = T.blank(); fresh = true; }
+  // Kaydetmek yalnız Kaydet ile (kullanıcı 2026-11-28: "Ön izleme taktiği kaydetmesin"). Kaydedilmemiş hâl kaybolmasın diye
+  // cihazda hesaba göre taslak olarak durur; sayfa yeniden açılınca (aynı taktik ya da boş sayfa) kaldığı yerden sürer.
+  const DRAFT = 'ps.taktik.taslak@' + ((((window.SailAccess && SailAccess.account()) || {}).uid) || 'misafir');
+  const sig = d => JSON.stringify({ ...T.clean(d), updated: 0 });
+  {
+    let dr = null; try { dr = JSON.parse(localStorage.getItem(DRAFT) || 'null'); } catch (e) { /* yok */ }
+    const same = dr && dr.id && (qs.get('id') ? dr.id === qs.get('id') : !qs.get('t') && !qs.get('kod'));
+    if (same && Array.isArray(dr.boats)) { doc = { ...T.blank(), ...dr }; fresh = !T.get(doc.id); }
+  }
+  let savedSig = (() => { const sv = T.get(doc.id); return sv ? sig(sv) : null; })();   // son kaydedilen hâl
+  const dirty = () => !!doc.boats.length && sig(doc) !== savedSig;
   if (qs.get('id') || qs.get('t')) history.replaceState(null, '', location.pathname + (doc && !fresh ? '?id=' + doc.id : ''));
   let sel = null;          // { kind: 'boat'|'mark'|'pin'|'cb', i }
   // rota çizerken seyir: '' serbest (dokunduğun yer), orsa / apaz / genis / pupa (rüzgara göre açıya oturur)
@@ -30,7 +41,7 @@
   let last = JSON.stringify(doc);
   let prev = null;         // önizleme (hesaplanan yollar)
 
-  // ---------- Kayıt (kendiliğinden) ----------
+  // ---------- Kayıt: Kaydet düğmesiyle. Değişiklikler yalnız cihazdaki taslağa yazılır ----------
   let saveTimer = 0;
   function changed(opts) {
     const now = JSON.stringify(doc);
@@ -38,18 +49,41 @@
     last = now;
     prev = null; render();
     clearTimeout(saveTimer);
-    if (!doc.boats.length) { $('tkSaved').textContent = ''; return; }
-    $('tkSaved').textContent = 'Kaydediliyor…';
-    saveTimer = setTimeout(persist, opts && opts.now ? 0 : 500);
+    saveTimer = setTimeout(keepDraft, opts && opts.now ? 0 : 400);
+    saveState();
   }
-  function persist() {
+  function keepDraft() {
     clearTimeout(saveTimer);
+    try { if (dirty()) localStorage.setItem(DRAFT, JSON.stringify(T.clean(doc))); else localStorage.removeItem(DRAFT); } catch (e) { /* yok */ }
+  }
+  function saveState(msg) {
+    const d = dirty();
+    $('tkSave').classList.toggle('dirty', d);
+    $('tkSave').title = d ? 'Kaydet (kaydedilmemiş değişiklik var)' : savedSig ? 'Kaydedildi' : "Kaydet (Taktiklerim'e)";
+    $('tkSaved').textContent = msg || (!doc.boats.length ? '' : d ? (savedSig ? 'Kaydedilmemiş değişiklik' : 'Kaydedilmedi') : 'Kaydedildi');
+  }
+  // Kaydet: cihaza hemen yazılır (eşzamanlı), buluta gönderme user-data.js'de arka planda sürer
+  function persist() {
     if (!doc.boats.length) return false;
     const r = T.save(doc), ok = r === true;
-    if (r === 'limit') { $('tkSaved').textContent = `Kaydedilmedi: en çok ${T.MAX_TACTICS} taktik`; limitNote(); return false; }
-    $('tkSaved').textContent = ok ? 'Kaydedildi' : 'Kaydedilemedi';
+    if (r === 'limit') { saveState(`Kaydedilmedi: en çok ${T.MAX_TACTICS} taktik`); limitNote(); return false; }
+    if (ok) { savedSig = sig(doc); fresh = false; keepDraft(); }
+    saveState(ok ? 'Kaydedildi' : 'Kaydedilemedi');
     if (ok && !location.search.includes(doc.id)) history.replaceState(null, '', location.pathname + '?id=' + doc.id);
     return ok;
+  }
+  // kaydedilmemiş değişiklik varken başka yere geçmeden önce sor: Kaydet / Kaydetme / Vazgeç
+  function guard(next) {
+    if (!dirty()) { next(); return; }
+    openDlg('Kaydedilmemiş değişiklik', `<p class="tk-p">Bu taktikte kaydetmediğin değişiklikler var.</p>
+      <div class="tk-dlg-a tk-dlg-a2"><button class="tb" data-g="no">Kaydetme</button><button class="tb primary" data-g="yes">Kaydet</button></div>`, b => {
+      b.onclick = e => {
+        const g = e.target.closest('[data-g]'); if (!g) return;
+        if (g.dataset.g === 'yes' && !persist()) { closeDlg(); return; }
+        if (g.dataset.g === 'no') { savedSig = sig(doc); try { localStorage.removeItem(DRAFT); } catch (err) { /* yok */ } }
+        closeDlg(); next();
+      };
+    });
   }
 
   // Taktik sınırı (kullanıcı 2026-11-27: sahip dışında en çok 10 kayıtlı taktik)
@@ -209,7 +243,8 @@
     $('tkAddGust').title = (doc.gusts || []).length >= T.MAX_GUSTS ? `En çok ${T.MAX_GUSTS} sağanak` : '';
     $('tkUndo').disabled = !undo.length;
     drawRef();
-    $('tkPlay').disabled = !doc.boats.some(b => b.route.length);
+    $('tkPlay').disabled = $('tkPrev').disabled = !doc.boats.some(b => b.route.length);
+    $('tkSave').disabled = !doc.boats.length;
     if (document.activeElement !== $('tkTitle')) $('tkTitle').value = doc.title;
   }
 
@@ -391,7 +426,7 @@
     if (doc.line) sel = { kind: 'pin' };     // pin ucu seçeneği (şamandıra / tekne) hemen görünsün
     changed();
   };
-  function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); }
+  function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); const sv = T.get(d.id); savedSig = sv ? sig(sv) : null; }
   $('tkUndo').onclick = () => {
     if (!undo.length) return;
     const d = JSON.parse(undo.pop()); last = JSON.stringify(d);
@@ -403,7 +438,8 @@
       <div class="tk-tpl">${T.TEMPLATES.map(t => `<button class="tk-tpl-b" data-tpl="${t.id}"><b>${esc(t.label)}</b><small>${esc(t.desc)}</small></button>`).join('')}</div>`, b => {
     b.onclick = e => {
       const tb = e.target.closest('[data-tpl]'); if (!tb) return;
-      persist(); setDoc(T.fromTemplate(tb.dataset.tpl)); history.replaceState(null, '', location.pathname); closeDlg(); changed({ now: true });
+      const tpl = tb.dataset.tpl;
+      guard(() => { setDoc(T.fromTemplate(tpl)); history.replaceState(null, '', location.pathname); closeDlg(); changed({ now: true }); });
     };
   });
 
@@ -483,11 +519,61 @@
   // ---------- Üst çubuk ----------
   $('tkTitle').addEventListener('input', e => { doc.title = e.target.value; changed(); });
   $('tkTitle').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
-  $('tkPlay').onclick = () => {
-    if (!doc.boats.some(b => b.route.length)) return;
-    if (!persist()) { location.href = './?t=' + T.encode(doc); return; }
-    location.href = './#u-' + doc.id;
+  // ---------- Ön izleme (kullanıcı 2026-11-28) ----------
+  // Eskiden Oynat ana sayfaya geçiyordu: sayfa sıfırdan yüklenirken (bütün senaryolar + taktikler) beyaz ekran kalıyordu.
+  // Şimdi oynatıcı (index.html?izle=onizle, app.js) bu sayfanın içinde gizli bir çerçevede önceden yüklenir; Ön izleme
+  // ekrandaki taktiği ona mesajla verir ve katmanı gösterir. Sayfa değişmez, kayıt beklenmez.
+  const pv = { el: $('tkPv'), fr: null, ready: false, want: null, open: false };
+  function pvLoad() {
+    if (pv.fr) return;
+    const f = document.createElement('iframe');
+    f.title = 'Ön izleme'; f.setAttribute('allow', 'autoplay');
+    const net = qs.get('net');
+    f.src = './?izle=onizle' + (net ? '&net=' + encodeURIComponent(net) : '');
+    pv.el.appendChild(f); pv.fr = f;
+  }
+  function pvSend() {
+    if (!pv.want || !pv.ready) return;
+    try { pv.fr.contentWindow.postMessage({ type: 'taktik-onizle', doc: pv.want }, location.origin); } catch (e) { /* yok */ }
+    pv.want = null; pv.el.classList.remove('wait');
+    try { pv.fr.focus(); } catch (e) { /* yok */ }
+  }
+  function pvClose() {
+    if (!pv.open) return;
+    pv.open = false; pv.want = null;
+    pv.el.classList.remove('on', 'wait'); pv.el.setAttribute('aria-hidden', 'true');
+    try { pv.fr.contentWindow.postMessage({ type: 'taktik-onizle', event: 'stop' }, location.origin); } catch (e) { /* yok */ }
+  }
+  window.addEventListener('message', e => {
+    if (e.origin !== location.origin || !pv.fr || e.source !== pv.fr.contentWindow) return;
+    const m = e.data || {}; if (m.type !== 'taktik-onizle') return;
+    if (m.event === 'ready') { pv.ready = true; pvSend(); }
+    else if (m.event === 'close') pvClose();
+  });
+  function preview(d, how) {
+    if (!d || !d.boats.some(b => b.route.length)) { toast('Önce bir tekneye rota çiz.'); return; }
+    pvLoad();
+    pv.want = T.clean(d); pv.open = true;
+    pv.el.classList.add('on'); pv.el.setAttribute('aria-hidden', 'false');
+    pv.el.classList.toggle('wait', !pv.ready);
+    pvSend();
+    try { if (window.SailTrack) SailTrack.log('taktik_onizle', { id: d.id, how }); } catch (e) { /* yok */ }
+  }
+  // oynatıcı sayfa çizildikten sonra arka planda yüklensin (düzenleyicinin açılışını yavaşlatmasın)
+  (window.requestIdleCallback || (f => setTimeout(f, 300)))(pvLoad, { timeout: 1500 });
+
+  $('tkPrev').onclick = () => preview(doc, 'onizle');                         // kaydetmez
+  $('tkSave').onclick = () => {
+    if (!doc.boats.length) { toast('Önce bir tekne ekle.'); return; }
+    if (persist()) toast('Kaydedildi. Taktiklerim’de.');
   };
+  $('tkPlay').onclick = () => { persist(); preview(doc, 'kaydet'); };     // kaydet ve izle: kayıt cihaza anında, bulut arka planda
+  // Ana sayfa: kaydedilmemiş değişiklik varsa önce sor
+  document.querySelector('.tk-top .back-btn').addEventListener('click', e => {
+    if (!dirty()) return;
+    e.preventDefault(); const href = e.currentTarget.href;
+    guard(() => { location.href = href; });
+  });
   async function shareLink() {
     const url = T.shareUrl(doc), title = doc.title || 'Taktik';
     if (navigator.share) { try { await navigator.share({ title: `${title} · Velora Sailing`, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
@@ -508,7 +594,6 @@
   }
   $('tkShare').onclick = () => {
     if (!doc.boats.length) { toast('Önce bir tekne ekle.'); return; }
-    persist();
     openDlg('Paylaş', `<div class="tk-share">
         <button class="tk-share-b" id="tkShCode"><b>Kodla paylaş</b><small>6 harfli kod oluştur. Sporcuların kodu yazarak açar. Antrenör hesabıyla (Velora girişi).</small></button>
         <button class="tk-share-b" id="tkShLink"><b>Bağlantı gönder</b><small>Taktik bağlantının içinde. Hesap gerekmez.</small></button>
@@ -562,14 +647,13 @@
     });
   };
   $('tkMine').onclick = () => {
-    persist();
     const all = T.list();
     const rows = all.length ? all.map(d => `<div class="tk-row${d.id === doc.id ? ' cur' : ''}" data-id="${esc(d.id)}">
         <span class="tk-row-dots">${d.boats.slice(0, 6).map(b => `<i style="background:${b.color}"></i>`).join('')}</span>
         <span class="tk-row-t"><b>${esc(d.title || 'Adsız taktik')}</b><small>${d.boats.length} tekne · ${new Date(d.updated || Date.now()).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}${d.id === doc.id ? ' · açık' : ''}</small></span>
-        <button class="tb" data-a="open">Aç</button><button class="tb" data-a="play" title="Oynat" aria-label="Oynat"><svg><use href="#i-play"/></svg></button>
+        <button class="tb" data-a="open">Aç</button><button class="tb" data-a="play" title="İzle" aria-label="İzle"><svg><use href="#i-play"/></svg></button>
         <button class="tb danger" data-a="del" title="Sil" aria-label="Sil"><svg><use href="#i-trash"/></svg></button></div>`).join('')
-      : '<p class="tk-p">Henüz kayıtlı taktiğin yok. Bir tekne ekleyince kendiliğinden kaydedilir.</p>';
+      : '<p class="tk-p">Henüz kayıtlı taktiğin yok. <b>Kaydet</b> düğmesiyle kaydettiğin taktikler burada görünür.</p>';
     openDlg('Taktiklerim', `<form class="tk-kod" id="tkKodF"><input class="tk-in" id="tkKodIn" maxlength="6" placeholder="Kod (ör. K7M2QP)" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Taktik kodu"><button class="tb primary">Kodla aç</button></form>
       <p class="tk-p small tk-kod-err" id="tkKodErr"></p>
       <div class="tk-rows">${rows}</div><p class="tk-p small">Taktiklerin bu cihazda saklanır. Ana sayfada <b>Taktiklerim</b> sekmesinde de görünür.</p>
@@ -579,8 +663,8 @@
       b.onclick = e => {
         const a = e.target.closest('[data-a]'), row = e.target.closest('[data-id]'); if (!a || !row) return;
         const id = row.dataset.id;
-        if (a.dataset.a === 'open') { const d = T.get(id); if (d) { setDoc(d); history.replaceState(null, '', location.pathname + '?id=' + id); closeDlg(); changed(); } }
-        else if (a.dataset.a === 'play') location.href = './#u-' + id;
+        if (a.dataset.a === 'open') { const d = T.get(id); if (d) guard(() => { setDoc(d); history.replaceState(null, '', location.pathname + '?id=' + id); closeDlg(); changed({ noUndo: true }); }); }
+        else if (a.dataset.a === 'play') { const d = T.get(id); if (d) { closeDlg(); preview(d, 'liste'); } }
         else if (a.dataset.a === 'del') {
           if (a.dataset.sure !== '1') { a.dataset.sure = '1'; a.innerHTML = 'Silinsin mi?'; return; }
           T.remove(id);
@@ -628,7 +712,7 @@
   $('tkDlgClose').onclick = closeDlg;
   $('tkDlg').addEventListener('click', e => { if (e.target === $('tkDlg')) closeDlg(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { if (!$('tkDlg').classList.contains('hidden')) closeDlg(); else if (sel) { sel = null; render(); } }
+    if (e.key === 'Escape') { if (pv.open) pvClose(); else if (!$('tkDlg').classList.contains('hidden')) closeDlg(); else if (sel) { sel = null; render(); } }
     if ((e.key === 'Delete' || e.key === 'Backspace') && sel && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
       if (sel.kind === 'boat') { const b = doc.boats[sel.i]; if (b.route.length) b.route.pop(); else { doc.boats.splice(sel.i, 1); sel = null; } }
       else if (sel.kind === 'mark') { doc.marks.splice(sel.i, 1); sel = null; }
@@ -645,5 +729,5 @@
   if (window.SailReport) SailReport.source('taktik', () => ({ ozet: `taktik ${doc.id} · ${doc.boats.length} tekne · rüzgar ${doc.wind}°`, doc: T.clean(doc) }));
   if (window.SailTrack) SailTrack.log('taktik', { id: doc.id });
   render();
-  if (!fresh) $('tkSaved').textContent = 'Kaydedildi';
+  saveState();
 })();

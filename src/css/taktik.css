@@ -10,6 +10,18 @@ body.taktik { background: var(--bg); }
 .tk-top .tool-group { display: flex; align-items: center; gap: 4px; }
 .tk-top .tk-play { width: auto; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 0 16px 0 12px; }
 .tk-top .tk-play:hover:not(:disabled) { background: #e0ff70; color: var(--accent-ink); }
+.tk-top .tk-save.dirty { color: var(--text); }
+.tk-top .tk-save { position: relative; }
+.tk-top .tk-save.dirty::after { content: ''; position: absolute; top: 5px; right: 3px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.tk-top .tk-prev { width: auto; gap: 6px; }
+.tk-top .tk-save:not(.dirty) { opacity: .55; }
+/* Ön izleme katmanı: oynatıcı çerçevesi hep yüklü durur, açılınca yalnız görünür olur (sayfa değişmez, beyaz ekran yok) */
+.tk-pv { position: fixed; inset: 0; z-index: 60; background: var(--bg); visibility: hidden; pointer-events: none; }
+.tk-pv.on { visibility: visible; pointer-events: auto; }
+.tk-pv iframe { position: absolute; inset: var(--sat) var(--sar) var(--sab) var(--sal); width: calc(100% - var(--sal) - var(--sar)); height: calc(100% - var(--sat) - var(--sab)); border: 0; display: block; background: var(--bg); }
+.tk-pv-wait { position: absolute; inset: 0; display: none; place-items: center; color: var(--muted); font-size: 14px; }
+.tk-pv.on.wait .tk-pv-wait { display: grid; }
+.tk-pv.on.wait iframe { visibility: hidden; }
 .tk-top .acc-chip { background: var(--raised); border-width: 0; color: var(--text); }
 .tk-title { flex: 0 1 280px; min-width: 90px; height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid transparent; background: var(--raised);
   color: var(--text); font-size: 15px; font-weight: 700; outline: none; }
@@ -90,7 +102,8 @@ body.taktik { background: var(--bg); }
 /* dar ekran ve yatay telefon */
 @media (max-width: 900px) {
   .tk-top .tool .lbl { display: none; }
-  .tk-top .tk-play .lbl { display: inline; }
+  .tk-top :is(.tk-play, .tk-prev) .lbl { display: inline; white-space: nowrap; }
+  .tk-saved { display: none; }                         /* durum Kaydet'in üstündeki noktadan okunur */
   .tk-top .back-btn .lbl { display: none; }
   .tk-top .back-btn { padding: 0 10px; }
   .tk-hint { max-width: calc(100% - 210px); font-size: 12.5px; }
@@ -126,13 +139,13 @@ body.taktik { background: var(--bg); }
 @media (max-width: 480px) {
   .tk-top { gap: 4px; padding-left: calc(8px + var(--sal)); padding-right: calc(8px + var(--sar)); }
   .tk-top .tool-group { gap: 0; }
-  .tk-top .tk-play .lbl { display: none; }
+  .tk-top :is(.tk-play, .tk-prev) .lbl { display: none; }
   .tk-top .tk-play { padding: 0 10px; }
   .tk-title { flex: 1 1 60px; min-width: 44px; padding: 0 8px; }
 }
 .tk-top .tool-group > * { flex-shrink: 0; }
 .tk-top .tk-title { flex-shrink: 1; }
-@media (max-width: 640px), (max-height: 460px) { .tk-top .tk-play { width: auto; padding: 0 12px 0 10px; } }
+@media (max-width: 640px), (max-height: 460px) { .tk-top .tk-play { width: auto; padding: 0 12px 0 10px; } .tk-top .tk-prev { padding: 0 10px 0 8px; } }
 @media (max-width: 480px) { .tk-top .tool { width: 36px; min-width: 36px; padding: 0; } .tk-top .tk-play { width: 44px; padding: 0; } .tk-top .acc-chip { width: 34px; height: 34px; } }
 
 /* seyir ve rol seçimi (seçili tekne kartı) */
@@ -212,3 +225,9 @@ body.taktik { background: var(--bg); }
 .tk-sel.moving { cursor: grabbing; box-shadow: 0 14px 40px rgba(0,0,0,.4); }
 .tk-sel.moving .tk-grip { cursor: grabbing; }
 .tk-sel { z-index: 5; }
+
+/* bildirim ön izleme katmanının da üstünde görünsün */
+.taktik .tk-toast { position: fixed; z-index: 90; }
+/* üç düğme (Ön izleme / Kaydet / Kaydet ve izle) sığsın: kayıt durumu yazısı yerine Kaydet'teki nokta; dikey telefonda tam ekran düğmesi yok */
+@media (max-width: 1300px) { .tk-saved { display: none; } }
+@media (max-width: 480px) { .tk-top .fs-btn { display: none; } .tk-top .tool { width: 34px; min-width: 34px; } }

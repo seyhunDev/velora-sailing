@@ -51,8 +51,11 @@
     soon();
   }
 
+  // Taktik oluştur'un gizli ön izleme çerçevesi (html.onizle): olaylar orada değil, taktik.html'de kaydedilir
+  const QUIET = document.documentElement.classList.contains('onizle');
   function log(type, data) {
     const now = Date.now();
+    if (QUIET) return { type, data };
     const ev = { id: rid(), t: new Date(now).toISOString(), ts: now, type, page: PAGE, vid, sid, role: who.role || 'yeni' };
     if (who.uid) ev.uid = who.uid;
     if (data && Object.keys(data).length) ev.data = data;

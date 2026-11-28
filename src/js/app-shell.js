@@ -23,7 +23,8 @@
   H.classList.toggle('is-embedded', embedded);
   // Paylaşılan tek senaryo bağlantısı (index.html?izle=ID): yalnız o senaryo + Kapat; giriş ekranı, ana sayfa,
   // önceki/sonraki ve diğer düğmeler yok (app.js, access.js, style.css → html.tek)
-  try { if (new URLSearchParams(location.search).get('izle')) H.classList.add('tek'); } catch (e) { /* yok */ }
+  // ?izle=onizle: Taktik oluştur'un içindeki ön izleme oynatıcısı (html.tek.onizle; ziyaret kaydı tutulmaz, track.js)
+  try { const iz = new URLSearchParams(location.search).get('izle'); if (iz) H.classList.add('tek'); if (iz === 'onizle') H.classList.add('onizle'); } catch (e) { /* yok */ }
   H.classList.toggle('is-standalone', !!standalone || embedded);
   // Ziyaret kayıtları gibi uzun sayfalar kendi içinde kaysın diye kabuk istisnası: <body data-shell="page">
   const isPage = () => document.body && document.body.dataset.shell === 'page';

@@ -25,6 +25,8 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="i-back" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4.5h11l3.5 3.5v11.5h-14.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 4.5v4.5h6.5V4.5M8 19.5v-5.5h8v5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-boat" viewBox="0 0 24 24"><path d="M12 3c3 3.5 4 8 3.5 15h-7C8 11 9 6.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-mark" viewBox="0 0 24 24"><circle cx="12" cy="15" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 10.5V3.5l6 2.2-6 2.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="i-line" viewBox="0 0 24 24"><circle cx="4.5" cy="14" r="2.3" fill="currentColor"/><path d="M7.5 14h9" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2.6 2"/><path d="M17.5 10.5h4l-1 7h-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
@@ -49,7 +51,9 @@
       <button class="tool" id="tkNote" title="Açıklama ve zamanlı notlar"><svg><use href="#i-note"/></svg><span class="lbl">Notlar</span></button>
       <button class="tool" id="tkMine" title="Kayıtlı taktiklerim"><svg><use href="#i-list"/></svg><span class="lbl">Taktiklerim</span></button>
       <button class="tool" id="tkShare" title="Bağlantıyla paylaş"><svg><use href="#i-share"/></svg><span class="lbl">Paylaş</span></button>
-      <button class="tool tk-play" id="tkPlay" title="Oynat"><svg><use href="#i-play"/></svg><span class="lbl">Oynat</span></button>
+      <button class="tool tk-prev" id="tkPrev" title="Ön izleme: kaydetmeden oynat"><svg><use href="#i-eye"/></svg><span class="lbl">Ön izleme</span></button>
+      <button class="tool tk-save" id="tkSave" title="Kaydet (Taktiklerim'e)"><svg><use href="#i-save"/></svg><span class="lbl">Kaydet</span></button>
+      <button class="tool tk-play" id="tkPlay" title="Kaydet ve izle"><svg><use href="#i-play"/></svg><span class="lbl">Kaydet ve izle</span></button>
     </div>
   </header>
 
@@ -102,6 +106,8 @@
     </div>
   </div>
   <div class="tk-toast hidden" id="tkToast" role="status"></div>
+  <!-- Ön izleme: oynatıcı (index.html?izle=onizle) sayfa açılınca arka planda hazırlanır, düğmeye basınca anında görünür -->
+  <div class="tk-pv" id="tkPv" aria-hidden="true"><div class="tk-pv-wait" id="tkPvWait">Oynatıcı hazırlanıyor…</div></div>
 
   <script src="js/track.js"></script>
   <script src="js/report.js"></script>
