@@ -158,7 +158,7 @@
 
 ## Kararlar
 - 2026-11-28 · Taktik oluştur'da kayıt yalnız Kaydet ile (kullanıcı); kaydedilmemiş hâl cihazda taslak. Önizleme sayfa değiştirmez, oynatıcı taktik.html içinde önceden yüklü çerçevede (`index.html?izle=onizle`). Oynatıcıyı başka sayfalara gömmek gerekirse aynı yol kullanılır.
-- 2026-11-28 · **Önceki/sonraki senaryo yine üst çubukta (kullanıcı):** senaryo açıkken doğrudan sıradakine geçebilmeli. Üst çubuk: Geri · ‹ ad › · Ayarlar (‹ › başlıkla tek parça, 44 px, alçak ekranda 40 px). Ayarlar penceresindeki önceki/sonraki kutuları kaldırıldı. Sıra = seçici/KATALOG sırası (kategori → konu), kilitliler atlanır; Shift+→/← klavyede de çalışır.
+- 2026-11-28 · **Önceki/sonraki senaryo yine üst çubukta (kullanıcı):** senaryo açıkken doğrudan sıradakine geçebilmeli. Üst çubuk: Geri · ‹ ad › · Ayarlar (‹ › başlıkla tek parça, 44 px, alçak ekranda 40 px). Ayarlar penceresindeki önceki/sonraki kutuları kaldırıldı. Sıra = seçici/KATALOG sırası (kategori → konu), kilitliler atlanır; Shift+→/← klavyede de çalışır. Senaryo açıkken başka senaryoya geçiş (‹ ›, seçici) `goHash` ile adresi değiştirir (replaceState), geçmişe kayıt eklemez; Geri her zaman tek dokunuşla ana sayfaya döner.
 - 2026-11-27 · **Yetki ve veri (kullanıcı):** sahip yalnız Seyhun; her kullanıcı yalnız kendi taktik/kayıt/yarışını görür ve yazar, Firestore kuralı zorlar; sahip herkesinkini okur, kendi hesabını normal kullanıcı gibi kullanır (Yarışlar/Taktiklerim listeleri yalnız kendi verisi; herkesin verisi ziyaret.html → Hesaplar). Veri silinmez (silindi işareti). Sınırlar sahip dışındakilere; taktik sayısı şimdilik 10, ileride paketlere bağlanabilir (`LIMITS.tactics` + kuraldaki 10).
 - 2026-11-27 · Sailing'in Firestore kuralları artık Velora deposunun `firestore.rules` dosyasında (tek kaynak, `pbcopy < firestore.rules` ile hepsi birlikte yayınlanır). Konsola parça parça yapıştırma yok. Kural değiştiren sohbet: `firebase/firestore-sailing.rules` + `gorev-data.js` RULES + Velora PR.
 - 2026-11-27 · Rüzgar dönüşü terimleri: açmak = hedeften uzaklaşmak (header, tramola at), çekmek = hedefe yaklaşmak (lift). C1/P1, KATALOG, Taktik oluştur hazır sahnesi ve dönüş notu, 3D arkadan ders (Açtı / Çekti) buna göre.
@@ -413,6 +413,7 @@
 ### 2026-11-28 · Senaryoda sıradakine geç düğmesi
 - Kullanıcı: senaryo açıkken direkt sıradakine geçebilmeli.
 - Yapılan: v1.243'te gizlenen ‹ › düğmeleri başlığın iki yanında geri açıldı (style.css sade çubuk bölümü), SCN_ACTS'ten çıkarıldı. Masaüstü 1400, iPad 1180, telefon 844 ve 667 yatayda denendi, ileri/geri çalışıyor, taşma yok.
+- Ek (aynı gün): ‹ › ile gezince Geri tek tek geri alıyordu; goHash ile düzeltildi, masaüstü ve telefonda denendi.
 - Sonraki sohbete: senaryo bitince "Sıradaki senaryo" önerisi eklenebilir (istenmedi).
 ### 2026-11-27 · Hesap yetkilerini ve veri ayrımını düzelt
 - Kullanıcı: Velora'dan giren her yeni hesap sahip oluyordu; herkes yalnız kendi verisini görsün (kural da zorlasın), sahip yalnız Seyhun, admin herkesin aktivitesini görsün, eski veriler Seyhun'a, hiçbir şey silinmesin. Sonra: Taktik oluştur'da sınırlar sahip dışındakilere, 10 taktik.

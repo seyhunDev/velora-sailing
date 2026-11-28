@@ -912,7 +912,7 @@
     c.insertAdjacentHTML('beforeend', `<div class="ttl">${esc(ttl)}</div>`);
     c.onclick = () => {
       if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
-      location.hash = x.id; openPicker(false);
+      goHash(x.id); openPicker(false);
     };
     return c;
   }
@@ -933,7 +933,7 @@
       <svg class="row-chev"><use href="#i-next"/></svg>`);
     r.onclick = () => {
       if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
-      location.hash = x.id; openPicker(false);
+      goHash(x.id); openPicker(false);
     };
     return r;
   }
@@ -1046,7 +1046,7 @@
   const havaOk = x => !homeHava || havaOf(x).includes(homeHava);
   let homeCat = 'Start', homeQuery = '', homeAll = null, homeOn = null, fromHome = false;
   let heroIdx = 0, heroTimer = 0, heroPaused = false;
-  const openScn = x => { if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; } location.hash = x.id; openPicker(false); };
+  const openScn = x => { if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; } goHash(x.id); openPicker(false); };
   const durTxt = x => `${Math.floor(x.duration / 60)}:${String(Math.round(x.duration % 60)).padStart(2, '0')}`;
   // öneriler: izlenmemiş, açık senaryolar; her gruptan sırayla (grup içinde katalog sırası), izlenenler en sonda
   function suggestions(n) {
@@ -1278,7 +1278,12 @@
       b.disabled = !n; b.title = n ? `${lbl}: ${n.title}${n.category !== state.scn.category ? ' (' + n.category + ')' : ''}` : lbl;
     }
   }
-  function goScn(dir) { if (TEK_ID) return; const n = scnNeighbor(dir); if (n) location.hash = n.id; }
+  function goScn(dir) { if (TEK_ID) return; const n = scnNeighbor(dir); if (n) goHash(n.id); }
+  // Senaryo açıkken başka senaryoya geçiş geçmişe yeni kayıt eklemez (kullanıcı 2026-11-28): Geri tek dokunuşla ana sayfaya döner
+  function goHash(id) {
+    if (homeOn || TEK_ID) { location.hash = id; return; }
+    history.replaceState(null, '', '#' + id); window.dispatchEvent(new HashChangeEvent('hashchange'));
+  }
   $('btnScnPrev').onclick = () => goScn(-1);
   $('btnScnNext').onclick = () => goScn(1);
   $('pickerSearch').addEventListener('input', e => { query = e.target.value; buildPicker(); });
