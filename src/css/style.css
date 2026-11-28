@@ -1432,3 +1432,19 @@ html:not(.tek) .scn-top .tool-group { margin-left: auto; }
 .card.seen .ttl, .nx-card.seen b, .scn-row.seen .row-t b { opacity: .78; }
 .scn-row.seen .row-thumb::after { content: ''; position: absolute; right: 3px; top: 3px; z-index: 1; width: 16px; height: 16px; border-radius: 99px;
   background: #3fb871 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat; }
+
+/* Kendi taktiklerinde (body.scn-user) yakınlaştırma düğmeleri: sahnenin solunda, ortada (kullanıcı 2026-11-28) */
+.zoom-ctl { display: none; position: absolute; z-index: 5; left: calc(12px + var(--sal)); top: 50%; transform: translateY(-50%); flex-direction: column; gap: 4px; padding: 4px;
+  background: var(--panel, #17171a); border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.45), inset 0 0 0 1px var(--border, #26262b); }
+body.scn-user .zoom-ctl { display: flex; }
+body.scn-user svg#course { touch-action: none; }
+.zc-b { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 11px; background: var(--raised, #1f1f22); color: var(--text, #f4f4f5); cursor: pointer; padding: 0; }
+.zc-b:hover { background: var(--raised2, #2a2a2e); }
+.zc-b svg { width: 20px; height: 20px; }
+/* telefonda: sol altta yatay (marka yazısının yerinde; pusulayla çakışmasın) */
+@media (max-width: 640px), (max-height: 460px) {
+  .zoom-ctl { flex-direction: row; top: auto; transform: none; bottom: 8px; left: calc(8px + var(--sal)); padding: 3px; gap: 2px; }
+  .zc-b { width: 34px; height: 34px; } .zc-b svg { width: 17px; height: 17px; }
+  body.scn-user .brand-corner { display: none; }
+}
+@media (max-width: 640px) { .zoom-ctl { bottom: calc(var(--sheet, 0px) + 8px); } }   /* dikey telefon: alttan açılan kartın üstünde */

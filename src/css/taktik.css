@@ -231,3 +231,8 @@ body.taktik { background: var(--bg); }
 /* üç düğme (Ön izleme / Kaydet / Kaydet ve izle) sığsın: kayıt durumu yazısı yerine Kaydet'teki nokta; dikey telefonda tam ekran düğmesi yok */
 @media (max-width: 1300px) { .tk-saved { display: none; } }
 @media (max-width: 480px) { .tk-top .fs-btn { display: none; } .tk-top .tool { width: 34px; min-width: 34px; } }
+
+/* yakınlaştırma düğmeleri: sahnenin sağında, ortada */
+.tk-zoom { position: absolute; z-index: 4; right: calc(10px + var(--sar)); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; padding: 4px;
+  background: var(--panel); border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.45), inset 0 0 0 1px var(--border); }
+@media (max-width: 640px), (max-height: 460px) { .tk-zoom { right: calc(6px + var(--sar)); padding: 3px; gap: 2px; } }

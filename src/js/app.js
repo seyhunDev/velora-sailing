@@ -74,7 +74,11 @@
   // yalnız kaydırma yapılır: zoom oynayıp göz yormasın.
   const CAM = { dt: 0.5, floor: 0.5, minScale: 0.85, maxScale: 1.3, pad: 64, padTop: 70, minBox: 340, back: 2, ahead: 4 };
   let camCur = null, camFull = null, camWins = [];
-  function camOn() { return state.zoom == null ? phoneMq.matches : state.zoom; }
+  // Taktiklerim (kendi taktiğin, ön izleme dahil): kamera her cihazda tekneleri izler, tekneler açıldıkça uzaklaşır;
+  // elle yakınlaştırma (uz: tekerlek, iki parmak, +/−) kameranın seçtiği yakınlığın üstüne çarpan (kullanıcı 2026-11-28)
+  let uz = 1;
+  const follow = () => !!(state.scn && state.scn.user);
+  function camOn() { if (state.zoom == null && follow()) return true; return state.zoom == null ? phoneMq.matches : state.zoom; }
   function boxOf(t0, t1, full) {
     const scn = state.scn, b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     const add = (x, y) => { if (x < b.x0) b.x0 = x; if (x > b.x1) b.x1 = x; if (y < b.y0) b.y0 = y; if (y > b.y1) b.y1 = y; };
@@ -108,6 +112,10 @@
       else if (cr.left > sr.left + W * 0.4) a.w = Math.max(160, cr.left - sr.left - 6);   // sağdaki kart
     }
     if (H > W) { a.y = 80; a.h = Math.max(100, a.h - 80); }                       // dikey ekran: pusula/sayaç için üstte pay
+    if (follow()) {                                                                // soldaki dikey yakınlaştırma düğmeleri (telefonda köşede yatay: alan kesilmez)
+      const zr = $('zoomCtl').getBoundingClientRect(), sr = svg.getBoundingClientRect();
+      if (zr.width && zr.height > zr.width) { const cut = zr.right - sr.left + 6; a.x += cut; a.w = Math.max(120, a.w - cut); }
+    }
     return a;
   }
   function camTarget(box, a, kFix) {
@@ -119,7 +127,15 @@
   function camView(snap, dt) {
     const svg = $('course'), W = svg.clientWidth || 1, H = svg.clientHeight || 1, a = camArea();
     let tg = camTarget(camFull, a);
-    if (tg.k < CAM.minScale && camWins.length) {
+    if (follow() && camWins.length) {
+      // izleyen kamera: ±2 sn içindeki pencereleri sığdıracak yakınlık (yumuşak), en yakın = parkurun tamamı ya da tekne ≈ 42 px
+      const i0 = Math.max(0, Math.floor((state.t - 2) / CAM.dt)), i1 = Math.min(camWins.length - 1, Math.ceil((state.t + 2) / CAM.dt));
+      let k = Math.max(Math.min(a.w / COURSE.w, a.h / COURSE.h), CAM.minScale);
+      for (let i = i0; i <= i1; i++) k = Math.min(k, camTarget(camWins[i], a).k);
+      k = Math.max(0.12, Math.min(4, k * uz));
+      const win = camTarget(boxOf(Math.max(0, state.t - 1), Math.min(state.scn.duration, state.t + 2)), a, k);
+      tg = { k, cx: win.cx, cy: win.cy };
+    } else if (tg.k < CAM.minScale && camWins.length) {
       // yakınlık: ±3 sn içindeki pencerelerin hepsini sığdıracak kadar (yavaş değişir), en az tüm senaryo kadar;
       // merkez dersin teknelerinin o anki çevresi; senaryo kutusunun dışına boşuna taşmasın
       const i0 = Math.max(0, Math.floor((state.t - 3) / CAM.dt)), i1 = Math.min(camWins.length - 1, Math.ceil((state.t + 3) / CAM.dt));
@@ -137,11 +153,29 @@
     state.vb = { x: cx - (a.x + a.w / 2) / k, y: cy - (a.y + a.h / 2) / k, w, h };
     svg.setAttribute('viewBox', `${state.vb.x.toFixed(1)} ${state.vb.y.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
   }
+  // elle yakınlaştırma (yalnız izleyen kamerada): tekerlek, iki parmak, +/− ve Kendiliğinden
+  function setUz(v) { uz = Math.max(0.35, Math.min(4, v)); render({ snap: !state.playing }); }
+  $('zIn').onclick = () => setUz(uz * 1.35);
+  $('zOut').onclick = () => setUz(uz / 1.35);
+  $('zFit').onclick = () => setUz(1);
+  $('course').addEventListener('wheel', e => {
+    if (!follow()) return;
+    e.preventDefault(); setUz(uz * Math.exp(-Math.max(-60, Math.min(60, e.deltaY)) * (e.ctrlKey ? 0.012 : 0.004)));
+  }, { passive: false });
+  { const tp = new Map(); let p0 = null;
+    const dist = () => { const a = [...tp.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; };
+    const st = $('course');
+    st.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch' || !follow()) return; tp.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (tp.size === 2) p0 = { d: dist(), uz }; });
+    st.addEventListener('pointermove', e => { if (!tp.has(e.pointerId)) return; tp.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (p0 && tp.size === 2) setUz(p0.uz * dist() / p0.d); });
+    const up = e => { tp.delete(e.pointerId); if (tp.size < 2) p0 = null; };
+    st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  }
   function updateView(snap, dt) { if (state.scn && camOn()) camView(snap, dt); else fitViewBox(); }
 
   // ---------- Senaryo yükleme ----------
   function loadScenario(scn) {
-    state.scn = scn; state.t = 0; state.playing = false; state.stepIdx = 0;
+    state.scn = scn; state.t = 0; state.playing = false; state.stepIdx = 0; uz = 1;
+    document.body.classList.toggle('scn-user', !!scn.user);
     state.watchNew = true;                                          // izleme sayacı yeniden (watchTick)
     quizReset(); quizHide();
     state.boats = scn.boats.map(b => ({ ...b }));
@@ -416,14 +450,18 @@
     const d = E.fwd(w + 180), px = E.fwd(w + 90);
     const cx0 = vb.x + vb.w / 2, cy0 = vb.y + vb.h / 2;
     const R = Math.hypot(vb.w, vb.h) / 2 + 100;         // alanı kaplayacak yarıçap
-    const spacing = 95, n = Math.ceil(2 * R / spacing), len = 70;
-    for (let i = 0; i < n; i++) {
-      const lateral = -R + i * spacing + 40;
-      const along = ((state.t * 45 + i * 137) % (2 * R)) - R;
+    // kısa, soluk rüzgar okları (kullanıcı 2026-11-28; sağanaklar ileride koyu gösterilecek), rüzgarla akar
+    const spacing = 110, n = Math.ceil(2 * R / spacing), len = 26, hd = 6, rows = 3, sw = 1.6 * (state.ls || 1);
+    let dd = '';
+    for (let i = 0; i < n; i++) for (let r = 0; r < rows; r++) {
+      const lateral = -R + i * spacing + 40 + (r % 2) * spacing / 2;
+      const along = ((state.t * 45 + i * 137 + r * 2 * R / rows) % (2 * R)) - R;
       const cx = cx0 + px.x * lateral + d.x * along, cy = cy0 + px.y * lateral + d.y * along;
-      el('line', { x1: cx - d.x * len / 2, y1: cy - d.y * len / 2, x2: cx + d.x * len / 2, y2: cy + d.y * len / 2,
-        stroke: 'rgba(255,255,255,0.16)', 'stroke-width': 2, 'stroke-linecap': 'round' }, g);
+      const tx = cx + d.x * len / 2, ty = cy + d.y * len / 2;
+      dd += `M${(cx - d.x * len / 2).toFixed(1)} ${(cy - d.y * len / 2).toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}` +
+        `M${(tx - d.x * hd + px.x * hd * .8).toFixed(1)} ${(ty - d.y * hd + px.y * hd * .8).toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}L${(tx - d.x * hd - px.x * hd * .8).toFixed(1)} ${(ty - d.y * hd - px.y * hd * .8).toFixed(1)}`;
     }
+    el('path', { d: dd, fill: 'none', stroke: 'rgba(255,255,255,0.09)', 'stroke-width': sw, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
   }
 
   function drawOverlays(w) {
@@ -554,7 +592,7 @@
   function hudScale() {
     const upp = state.vb.w / ($('course').clientWidth || state.vb.w);
     const ph = camOn() && phoneMq.matches;                  // telefonda gösterge biraz küçük (sahneye yer kalsın)
-    return Math.max(ph ? 0.55 : 0.8, Math.min(1.6, upp * (ph ? 0.68 : 0.95)));
+    return Math.max(ph ? 0.55 : 0.8, Math.min(follow() ? 6 : 1.6, upp * (ph ? 0.68 : 0.95)));   // izleyen kamera çok uzaklaşabilir: gösterge küçülmesin
   }
   // gösterge kartının ölçüleri (gösterge birimiyle): saat yoksa yalnız pusula (100), varsa saat sütunu eklenir
   function hudLayout() {
@@ -624,7 +662,7 @@
     if (camOn()) camView(!state.playing || opts.snap, opts.dt);
     // yakın görünümde sahne küçük ölçekle sığdıysa tekne etiketleri ve notlar biraz büyür (okunabilsin)
     const upp = state.vb.w / ($('course').clientWidth || state.vb.w);
-    state.ls = camOn() ? Math.max(1, Math.min(1.45, upp * 0.9)) : 1;
+    state.ls = camOn() ? Math.max(1, Math.min(follow() ? 3 : 1.45, upp * 0.9)) : 1;
     $('course').style.setProperty('--ls', state.ls.toFixed(3));
     const w = E.windAt(scn.wind, state.t);
     if (cbNode) cbNode.setAttribute('transform', E.committeeBoatTransform(scn.line.boat.x, scn.line.boat.y, w));

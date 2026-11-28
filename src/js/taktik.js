@@ -12,7 +12,9 @@
   };
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const W = 1000, H = 680, PAD = 24;
-  const clampX = x => Math.max(PAD, Math.min(W - PAD, x)), clampY = y => Math.max(PAD, Math.min(H - PAD, y));
+  // Çizim alanı parkurun (1000×680) dışına taşabilir: uzaklaştırınca uzun rota çizilir (kullanıcı 2026-11-28)
+  const WORLD = { x0: -1000, x1: 2000, y0: -2000, y1: 1400 };
+  const clampX = x => Math.max(WORLD.x0 + PAD, Math.min(WORLD.x1 - PAD, x)), clampY = y => Math.max(WORLD.y0 + PAD, Math.min(WORLD.y1 - PAD, y));
   const svg = $('tkSvg');
 
   // ---------- Taslak ----------
@@ -98,7 +100,7 @@
   let ui = 1;
   function measure() {
     const r = svg.getBoundingClientRect();
-    const k = Math.min(r.width / W, r.height / H) || 1;          // 1 SVG birimi kaç ekran pikseli
+    const k = Math.min(r.width / view.w, r.height / view.h) || 1;   // 1 SVG birimi kaç ekran pikseli
     ui = Math.max(1, Math.min(2.4, 0.75 / k));
   }
   function toSvg(e) {
@@ -107,17 +109,57 @@
     return { x: q.x, y: q.y };
   }
 
+  // ---------- Yakınlaştır / uzaklaştır / kaydır (kullanıcı 2026-11-28) ----------
+  // Görünüm = SVG viewBox (oranı hep 1000:680). Tekerlek ya da iki parmak: parmakların altındaki nokta yerinde kalır.
+  // Boş suda sürükle = kaydır (dokunma yine rota noktası koyar). +/− ve Sığdır düğmeleri sahnenin sağ altında.
+  const FIT = { x: 0, y: 0, w: W, h: H }, ZMIN = 260, ZMAX = 3000;
+  let view = { ...FIT };
+  function applyView() { svg.setAttribute('viewBox', `${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} ${view.h.toFixed(1)}`); render(); placeSel(); }
+  // P (sahne noktası) ekranda m (piksel) konumunda dursun, genişlik w olsun
+  function viewAt(P, m, w) {
+    w = Math.max(ZMIN, Math.min(ZMAX, w)); const h = w * H / W;
+    const r = svg.getBoundingClientRect(), s = Math.min(r.width / w, r.height / h) || 1;
+    let cx = P.x - (m.clientX - r.left - r.width / 2) / s, cy = P.y - (m.clientY - r.top - r.height / 2) / s;
+    cx = Math.max(WORLD.x0, Math.min(WORLD.x1, cx)); cy = Math.max(WORLD.y0, Math.min(WORLD.y1, cy));
+    return { x: cx - w / 2, y: cy - h / 2, w, h };
+  }
+  function zoomBy(f) {
+    const r = svg.getBoundingClientRect(), m = { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 };
+    view = viewAt(toSvg(m), m, view.w * f); applyView();
+  }
+  // Sığdır: parkur + bütün tekneler, rotalar, şamandıralar
+  function fitAll(noRender) {
+    const b = { x0: 0, y0: 0, x1: W, y1: H }, add = p => { b.x0 = Math.min(b.x0, p.x - 50); b.x1 = Math.max(b.x1, p.x + 50); b.y0 = Math.min(b.y0, p.y - 60); b.y1 = Math.max(b.y1, p.y + 50); };
+    doc.boats.forEach(bt => { add(bt); bt.route.forEach(add); }); doc.marks.forEach(add); (doc.gusts || []).forEach(add);
+    if (doc.line) { add(doc.line.pin); add(doc.line.boat); }
+    if (prev && prev.tracks) for (const tr of Object.values(prev.tracks)) if (Array.isArray(tr)) for (let i = 0; i < tr.length; i += 10) add(tr[i]);
+    if (b.x0 >= -60 && b.y0 >= -80 && b.x1 <= W + 60 && b.y1 <= H + 60) { view = { ...FIT }; if (!noRender) applyView(); else svg.setAttribute('viewBox', `0 0 ${W} ${H}`); return; }   // hepsi parkurda
+    const bw = b.x1 - b.x0, bh = b.y1 - b.y0;                    // pay: üstte rüzgar kartı, altta araç çubuğu
+    b.x0 -= bw * .06; b.x1 += bw * .06; b.y0 -= bh * .08; b.y1 += bh * .16;
+    let w = Math.max(b.x1 - b.x0, (b.y1 - b.y0) * W / H); w = Math.min(ZMAX, w);
+    view = { x: (b.x0 + b.x1) / 2 - w / 2, y: (b.y0 + b.y1) / 2 - w * H / W / 2, w, h: w * H / W };
+    if (!noRender) applyView(); else svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+  }
+
   // ---------- Çizim ----------
   function drawWind() {
     const g = $('tkWind'); g.innerHTML = '';
     const w = doc.wind, d = E.fwd(w + 180), px = E.fwd(w + 90);
-    const R = 700, sp = 95, len = 70;
-    for (let i = 0; i * sp < 2 * R; i++) for (let j = 0; j * 160 < 2 * R; j++) {
-      const lat = -R + i * sp + (j % 2) * 45, along = -R + j * 160;
-      const cx = 500 + px.x * lat + d.x * along, cy = 340 + px.y * lat + d.y * along;
-      if (cx < -40 || cx > W + 40 || cy < -40 || cy > H + 40) continue;
-      el('line', { x1: cx - d.x * len / 2, y1: cy - d.y * len / 2, x2: cx + d.x * len / 2, y2: cy + d.y * len / 2, stroke: 'rgba(255,255,255,.12)', 'stroke-width': 2, 'stroke-linecap': 'round' }, g);
+    // kısa, soluk rüzgar okları (kullanıcı 2026-11-28; sağanaklar ileride koyu gösterilecek); görünen alanı kaplar
+    const sp = 110, step = 150, len = 26, hd = 6, cx0 = view.x + view.w / 2, cy0 = view.y + view.h / 2;
+    const R = Math.hypot(view.w, view.h) / 2 + 150, mg = 60;
+    let dd = '';
+    for (let i = 0; i * sp < 2 * R; i++) for (let j = 0; j * step < 2 * R; j++) {
+      const lat = -R + i * sp + (j % 2) * 55, along = -R + j * step;
+      // ızgara dünyaya bağlı kalsın (kaydırınca oklar kaymasın): merkez, aralığın katına yuvarlanır
+      const ox = Math.round((cx0 - 500) / (sp * 2)) * sp * 2, oy = Math.round((cy0 - 340) / (step * 2)) * step * 2;
+      const cx = 500 + ox + px.x * lat + d.x * along, cy = 340 + oy + px.y * lat + d.y * along;
+      if (cx < view.x - mg || cx > view.x + view.w + mg || cy < view.y - mg || cy > view.y + view.h + mg) continue;
+      const tx = cx + d.x * len / 2, ty = cy + d.y * len / 2;
+      dd += `M${(cx - d.x * len / 2).toFixed(1)} ${(cy - d.y * len / 2).toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}` +
+        `M${(tx - d.x * hd + px.x * hd * .8).toFixed(1)} ${(ty - d.y * hd + px.y * hd * .8).toFixed(1)}L${tx.toFixed(1)} ${ty.toFixed(1)}L${(tx - d.x * hd - px.x * hd * .8).toFixed(1)} ${(ty - d.y * hd - px.y * hd * .8).toFixed(1)}`;
     }
+    el('path', { d: dd, fill: 'none', stroke: 'rgba(255,255,255,.09)', 'stroke-width': 1.6 * ui, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
     $('tkWindArrow').setAttribute('transform', `rotate(${w})`);
     $('tkWindDeg').textContent = `${Math.round(E.norm360(w))}°`;
     const sh = doc.shift;
@@ -426,7 +468,7 @@
     if (doc.line) sel = { kind: 'pin' };     // pin ucu seçeneği (şamandıra / tekne) hemen görünsün
     changed();
   };
-  function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); const sv = T.get(d.id); savedSig = sv ? sig(sv) : null; }
+  function setDoc(d) { doc = d; sel = null; undo.length = 0; last = JSON.stringify(doc); const sv = T.get(d.id); savedSig = sv ? sig(sv) : null; prev = null; fitAll(true); }
   $('tkUndo').onclick = () => {
     if (!undo.length) return;
     const d = JSON.parse(undo.pop()); last = JSON.stringify(d);
@@ -460,9 +502,20 @@
   $('tkWindR').onclick = () => rotWind(10);
 
   // ---------- Sürükle / dokun ----------
-  let drag = null;
+  let drag = null, pinch = null;
+  const touches = new Map();          // iki parmak: yakınlaştır + kaydır
+  const mid = () => { const a = [...touches.values()]; return { clientX: (a[0].clientX + a[1].clientX) / 2, clientY: (a[0].clientY + a[1].clientY) / 2, d: Math.hypot(a[0].clientX - a[1].clientX, a[0].clientY - a[1].clientY) || 1 }; };
   svg.addEventListener('pointerdown', e => {
     if (e.button > 0) return;
+    touches.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (touches.size === 2) {                                   // ikinci parmak: sürüklemeyi bırak, sıkıştırmaya geç
+      if (drag && drag.moved && drag.o) changed();
+      drag = null;
+      const m = mid(); pinch = { P: toSvg(m), d0: m.d, w0: view.w };
+      try { svg.setPointerCapture(e.pointerId); } catch (er) { /* yok */ }
+      e.preventDefault(); return;
+    }
+    if (touches.size > 2) return;
     const g = e.target.closest('[data-k]'), p = toSvg(e);
     drag = { g, k: g ? g.dataset.k : 'water', i: g ? +g.dataset.i : -1, j: g ? +g.dataset.j : -1, x0: e.clientX, y0: e.clientY, p0: p, moved: false, id: e.pointerId };
     if (drag.k === 'boat') drag.o = { x: doc.boats[drag.i].x, y: doc.boats[drag.i].y };
@@ -475,9 +528,12 @@
     e.preventDefault();
   });
   svg.addEventListener('pointermove', e => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+    if (pinch && touches.size >= 2) { const m = mid(); view = viewAt(pinch.P, m, pinch.w0 * pinch.d0 / m.d); applyView(); return; }
     if (!drag || e.pointerId !== drag.id) return;
     if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return;
     drag.moved = true;
+    if (drag.k === 'water') { view = viewAt(drag.p0, e, view.w); applyView(); return; }   // boş suda sürükle: kaydır
     if (!drag.o) return;
     const p = toSvg(e), x = clampX(drag.o.x + p.x - drag.p0.x), y = clampY(drag.o.y + p.y - drag.p0.y);
     if (drag.k === 'boat') { const b = doc.boats[drag.i]; b.x = x; b.y = y; T.resnap(b, doc.wind); if (!sel || sel.i !== drag.i || sel.kind !== 'boat') sel = { kind: 'boat', i: drag.i }; }
@@ -489,6 +545,8 @@
     prev = null; render();
   });
   const endDrag = e => {
+    touches.delete(e.pointerId);
+    if (pinch) { if (touches.size < 2) pinch = null; return; }
     if (!drag || e.pointerId !== drag.id) return;
     const d = drag; drag = null;
     if (d.moved) { if (d.o) changed(); return; }
@@ -514,7 +572,15 @@
     changed();
   }
   svg.addEventListener('pointerup', endDrag);
-  svg.addEventListener('pointercancel', e => { if (drag && e.pointerId === drag.id) { drag = null; render(); } });
+  svg.addEventListener('pointercancel', e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; if (drag && e.pointerId === drag.id) { drag = null; render(); } });
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const f = Math.exp(Math.max(-60, Math.min(60, e.deltaY)) * (e.ctrlKey ? 0.012 : 0.004));   // ctrl = dokunmatik yüzeyde iki parmak
+    view = viewAt(toSvg(e), e, view.w * f); applyView();
+  }, { passive: false });
+  $('tkZIn').onclick = () => zoomBy(1 / 1.35);
+  $('tkZOut').onclick = () => zoomBy(1.35);
+  $('tkZFit').onclick = () => fitAll();
 
   // ---------- Üst çubuk ----------
   $('tkTitle').addEventListener('input', e => { doc.title = e.target.value; changed(); });
@@ -730,4 +796,5 @@
   if (window.SailTrack) SailTrack.log('taktik', { id: doc.id });
   render();
   saveState();
+  fitAll();
 })();
