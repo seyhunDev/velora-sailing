@@ -406,6 +406,8 @@
 | T1-T2 | İT1, İT1b | ✅ | Donanım dersi; metin kontrolü. |
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-28 · Taktik oluştur: renk daireleri tam yuvarlak
+- Kullanıcı: tekne kartındaki renk seçim daireleri yanlardan basıktı. 12 renk tek satıra sığmayınca flex onları daraltıyordu; artık daralmaz, sığmayan alt satıra geçer (`.tk-col` flex: 0 0 auto, `.tk-colors` wrap). Masaüstü/iPad 28×28, telefon 24×24 ölçüldü.
 ### 2026-11-28 · Taktik oluşturda ön izleme ve kaydetmeyi ayır
 - Kullanıcı: Play → "Ön izleme"; ön izleme kaydetmesin, ayrı Kaydet (+ Kaydet ve izle); açılırken boş ekran ve bekleme olmasın.
 - Yapılan: bkz. Güncel durum "Taktik oluştur: Ön izleme / Kaydet ayrı". Masaüstü 1400×800, iPad dikey/yatay, telefon yatay/dikey denendi: önizleme 0,15 sn'de oynuyor, üst çubuk taşmıyor; `npm run check` temiz.
