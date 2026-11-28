@@ -306,7 +306,10 @@
         <div class="tk-seg" role="group" aria-label="Seyir">${[['', 'Serbest'], ...Object.entries(T.SAILS).map(([k, v]) => [k, v.label])].map(([k, l]) => `<button data-sail="${k}" class="${k === sail ? 'on' : ''}">${l}</button>`).join('')}</div>
         <p class="tk-sel-p">${n ? `<b>${n}</b> nokta. ` : ''}<b>Suya dokun:</b> ${sail ? `tekne ${T.SAILS[sail].label.toLocaleLowerCase('tr')} açısıyla gider.` : 'tekne oraya gider.'}${n ? ' İnce ayar için noktayı sürükle.' : ''}</p>
         <div class="tk-lbl">Rolü</div>
-        <div class="tk-seg" role="group" aria-label="Rolü">${[['', 'Yok'], ['hak', 'Hak sahibi'], ['yol', 'Yol verir']].map(([k, l]) => `<button data-role="${k}" class="${(b.role || '') === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <div class="tk-seg" role="group" aria-label="Rolü">${[['', 'Otomatik'], ['hak', 'Hak sahibi'], ['yol', 'Yol verir']].map(([k, l]) => `<button data-role="${k}" class="${(b.role || '') === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <div class="tk-lbl">Karşılaşınca</div>
+        <div class="tk-seg" role="group" aria-label="Karşılaşınca">${[['', 'Kurala uyar'], ['1', 'Yol vermez']].map(([k, l]) => `<button data-ign="${k}" class="${!!b.ignore === !!k ? 'on' : ''}">${l}</button>`).join('')}</div>
+        <p class="tk-sel-p">${b.ignore ? 'Yol vermesi gerekse de rotasından çıkmaz: <b>temas</b> gösterilir.' : 'Yol vermesi gerekirse kurala göre kendisi kaçar (arkadan geçer ya da açılır).'}</p>
         <div class="tk-sel-a">
           <button class="tb" data-a="undo" ${n ? '' : 'disabled'}><svg><use href="#i-undo"/></svg>Son nokta</button>
           <button class="tb" data-a="clear" ${n ? '' : 'disabled'}>Rotayı sil</button>
@@ -378,6 +381,8 @@
     if (pb && doc.line) { if (pb.dataset.pinb) doc.line.pinBoat = true; else delete doc.line.pinBoat; changed(); return; }
     const gr = near('[data-gr]');
     if (gr && sel && sel.kind === 'gust') { doc.gusts[sel.i].r = +gr.dataset.gr; changed(); return; }
+    const ig = near('[data-ign]');
+    if (ig && sel && sel.kind === 'boat') { if (ig.dataset.ign) doc.boats[sel.i].ignore = true; else delete doc.boats[sel.i].ignore; changed(); return; }
     const rb = near('[data-role]');
     if (rb && sel && sel.kind === 'boat') { doc.boats[sel.i].role = rb.dataset.role; changed(); return; }
     const col = near('[data-col]');

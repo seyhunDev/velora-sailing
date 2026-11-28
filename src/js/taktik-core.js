@@ -129,7 +129,7 @@
       line: d.line && d.line.pin && d.line.boat ? { pin: pt(d.line.pin), boat: pt(d.line.boat), ...(d.line.pinBoat ? { pinBoat: true } : {}) } : null,
       boats: (d.boats || []).slice(0, MAX_BOATS).map((b, i) => ({
         id: String(b.id || LETTERS[i]).slice(0, 2), name: String(b.name || '').slice(0, 20), color: /^#[0-9a-f]{6}$/i.test(b.color) ? b.color : COLORS[i % COLORS.length],
-        ...pt(b), role: ROLES.includes(b.role) ? b.role : '',
+        ...pt(b), role: ROLES.includes(b.role) ? b.role : '', ...(b.ignore ? { ignore: true } : {}),
         route: (b.route || []).slice(0, MAX_PTS).map(p => SAILS[p.m] ? { ...pt(p), m: p.m, s: p.s < 0 ? -1 : 1 } : pt(p))
       })),
       updated: d.updated || 0
@@ -200,7 +200,23 @@
   // taslak → senaryo (oynatıcı biçimi). opts.code: kartta görünen kod (B1 …)
   function compile(doc, opts) {
     opts = opts || {};
-    const d = clean(doc), w = d.wind;
+    // Yol verme (kullanıcı 2026-11-28): temas olacaksa yol vermesi gereken tekne kurala göre kendiliğinden kaçar
+    // (avoid → rotaya görünmez ara nokta). "Kurala uymaz" (b.ignore) işaretli tekne kaçmaz: temas gösterilir.
+    if (!opts.raw) {
+      const src = clean(doc), r = avoid(src), scn = compile(r.d, { ...opts, raw: true });
+      scn.doc = src; scn.avoids = r.done;
+      // rol "Otomatik" (boş): karşılaştığı ilk teknede kurala göre Yol verir / Hak sahibi rozeti
+      // kaçış yapıldıysa kural adımına ne yaptığını ekle (adımlar refEvents'ten kurulur)
+      for (const a of r.done) {
+        const ev = (scn.refEvents || []).find(e => e.give === a.boat && e.pair && e.pair.includes(a.from)); if (!ev) continue;
+        const nm = id => { const b = scn.boats.find(x => x.id === id); return b ? b.name : id; };
+        const add = a.rule === 11 || a.rule === 12 ? ` ${nm(a.boat)} açıldı ve hak sahibinden (${nm(a.from)}) uzak durdu.` : ` ${nm(a.boat)} bordaladı ve hak sahibinin (${nm(a.from)}) kıçından geçti.`;
+        ev.text += add; const st = scn.steps.find(x => x.t === ev.t && x.title === ev.title); if (st) st.text = ev.text;
+      }
+      for (const ev of scn.refEvents || []) if (ev.give && ev.pair) for (const id of ev.pair) { const b = scn.boats.find(x => x.id === id); if (b && !b.role) b.role = id === ev.give ? 'yol' : 'hak'; }
+      return scn;
+    }
+    const d = doc.raw ? doc : clean(doc), w = d.wind;
     // rüzgar dönüşü: shift.t saniyesinde başlar, 3 sn'de tamamlanır (motor yumuşak geçirir)
     const wind = d.shift ? [{ t: 0, from: w }, { t: d.shift.t, from: w }, { t: d.shift.t + 3, from: w + d.shift.d }] : w;
     const scn = {
@@ -217,7 +233,7 @@
       const lg = legs(b, w), h = startHeading(b, w, lg);
       tackPts.push(...lg.tacks.map(p => ({ ...p, color: b.color })));
       const segs = lg.pts.length ? lg.pts.map(p => p.ch ? { mode: 'closehauled', tack: p.ch, dur: Math.round(p.dist / BASE * 100) / 100, turn: p.turn } : { mode: 'goto', x: p.x, y: p.y }) : [{ mode: 'hold', h, dur: 1, speed: 0 }];
-      return { id: b.id || LETTERS[i], name: b.name || `Tekne ${b.id || LETTERS[i]}`, color: b.color, role: b.role || undefined, start: { x: b.x, y: b.y, h }, v0: lg.pts.length ? BASE * 0.9 : 0, segs };
+      return { id: b.id || LETTERS[i], name: b.name || `Tekne ${b.id || LETTERS[i]}`, color: b.color, role: b.role || undefined, start: { x: b.x, y: b.y, h }, v0: lg.pts.length ? BASE * 0.9 : 0, segs, ignore: !!b.ignore };
     });
     // süre: en son varan tekne + 2 sn; erken varanlar son rotasıyla yavaşça devam eder
     let end = 0;
@@ -301,6 +317,63 @@
     12: (y, h) => [`Kural 12`, `İkisi aynı kontrada. Arkadaki ${y}, öndeki ${h} için yol vermeli. Bu Kural 12.`],
     13: (y, h) => [`Kural 13`, `${y} tramola atıyor. Tramola bitene kadar ${h} için yol vermeli. Bu Kural 13.`]
   };
+  // ---------- Kendiliğinden yol verme ----------
+  // İlk temasta yol vermesi gereken tekneye (kural hakemine göre) kurala uygun bir ara nokta eklenir ve yeniden hesaplanır:
+  //   K10 / K13 (iskele kontra, tramola atan): hak sahibinin KIÇINDAN geçer (bordalar)
+  //   K11 / K12 (rüzgarüstü, arkadaki): hak sahibinden YANA açılır
+  // Temas kalmayana kadar en çok 6 kez; çözülemeyen ya da "kurala uymaz" tekneli temas olduğu gibi kalır.
+  function minGap(scn, tracks, i, j) {
+    let g = Infinity, at = 0;
+    for (let t = 0; t <= scn.duration + 1e-6; t += 0.1) {
+      const a = E.sampleTrack(tracks[i], t), b = E.sampleTrack(tracks[j], t);
+      if (Math.hypot(a.x - b.x, a.y - b.y) > 120) continue;
+      const v = hullGap(a, b); if (v < g) { g = v; at = t; }
+    }
+    return { g, t: at };
+  }
+  const SAFE = 22, LEN = 50;                   // SAFE: geçerken gövdeler arası en az pay (≈ yarım boy; görünüşte de üst üste binmesin) · LEN: tekne boyu
+  function avoid(src) {
+    let d = { ...src, raw: true, boats: src.boats.map(b => ({ ...b, route: b.route.slice() })) };
+    const done = [], skip = new Set();
+    if (!global.SailRules || d.boats.length < 2) return { d, done };
+    for (let it = 0; it < 6; it++) {
+      const scn = compile(d, { raw: true }), tr = scn.tracks;
+      const hit = referee(scn, tr).find(e => e.contact && e.cGive != null && !skip.has(e.ci + '-' + e.cj));
+      if (!hit) break;
+      const gi = hit.cGive, oi = gi === hit.ci ? hit.cj : hit.ci, key = hit.ci + '-' + hit.cj;
+      if (d.boats[gi].ignore) { skip.add(key); continue; }
+      const gap0 = minGap(scn, tr, gi, oi), tc = gap0.t;
+      const G = E.sampleTrack(tr[gi], tc), S = E.sampleTrack(tr[oi], tc), fS = E.fwd(S.h);
+      // ara noktanın gireceği bacak: temas anındaki konuma en yakın rota parçası
+      const b = d.boats[gi], pts = [{ x: b.x, y: b.y }, ...b.route];
+      let j = b.route.length, best = Infinity;
+      for (let k = 1; k < pts.length; k++) {
+        const A = pts[k - 1], B = pts[k], L = Math.hypot(B.x - A.x, B.y - A.y) || 1;
+        const u = Math.max(0, Math.min(1, ((G.x - A.x) * (B.x - A.x) + (G.y - A.y) * (B.y - A.y)) / (L * L)));
+        const dd = Math.hypot(A.x + (B.x - A.x) * u - G.x, A.y + (B.y - A.y) * u - G.y);
+        if (dd < best) { best = dd; j = k - 1; }
+      }
+      if (best > 60) j = b.route.length;                // rota bitmiş, son yönüyle gidiyor
+      const astern = hit.cRule === 10 || hit.cRule === 13 || hit.cRule == null;
+      let side = { x: G.x - S.x - fS.x * ((G.x - S.x) * fS.x + (G.y - S.y) * fS.y), y: G.y - S.y - fS.y * ((G.x - S.x) * fS.x + (G.y - S.y) * fS.y) };
+      const sl = Math.hypot(side.x, side.y); side = sl > 1 ? { x: side.x / sl, y: side.y / sl } : E.fwd(S.h + 90);
+      const cands = [];
+      for (const k of [1.4, 2, 2.8, 3.8, 5]) {
+        if (astern) cands.push({ x: S.x - fS.x * k * LEN, y: S.y - fS.y * k * LEN }, { x: S.x - fS.x * k * LEN + side.x * LEN * .6, y: S.y - fS.y * k * LEN + side.y * LEN * .6 });
+        else cands.push({ x: G.x + side.x * k * LEN * .8, y: G.y + side.y * k * LEN * .8 }, { x: G.x + side.x * k * LEN * .8 - fS.x * LEN, y: G.y + side.y * k * LEN * .8 - fS.y * LEN });
+      }
+      let ok = null;
+      for (const P of cands) {
+        const nd = { ...d, boats: d.boats.map((x, q) => q === gi ? { ...x, route: [...x.route.slice(0, j), { x: r1(P.x), y: r1(P.y) }, ...x.route.slice(j)] } : x) };
+        const s2 = compile(nd, { raw: true });
+        if (minGap(s2, s2.tracks, gi, oi).g > SAFE) { ok = nd; break; }
+      }
+      if (!ok) { skip.add(key); continue; }
+      d = ok; done.push({ boat: d.boats[gi].id, from: d.boats[oi].id, rule: hit.cRule });
+    }
+    return { d, done };
+  }
+
   function referee(scn, tracks) {
     const R = global.SailRules, out = [], boats = scn.boats, n = boats.length;
     if (!R || n < 2) return out;
@@ -334,7 +407,7 @@
         if (!o.contact && d < 2 * (HULL.half + HULL.r) && hullGap(a, b) <= 0) {
           o.contact = true;
           const y = o.give != null ? name(o.give) : null;
-          out.push({ t: Math.round(t * 10) / 10, title: 'Temas!', text: y ? `${y} yol vermedi ve iki tekne birbirine değdi. ${y} rotasını değiştirmeli: bordalamalı ya da daha erken tramola atmalı.` : 'Tekneler birbirine değdi.', contact: true, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+          out.push({ t: Math.round(t * 10) / 10, title: 'Temas!', text: y ? `${y} yol vermedi ve iki tekne birbirine değdi. ${y} rotasını değiştirmeli: bordalamalı ya da daha erken tramola atmalı.` : 'Tekneler birbirine değdi.', contact: true, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, ci: i, cj: j, cGive: o.give, cRule: o.rule });
         }
       }
     }
