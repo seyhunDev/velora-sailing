@@ -1448,3 +1448,26 @@ body.scn-user svg#course { touch-action: none; }
   body.scn-user .brand-corner { display: none; }
 }
 @media (max-width: 640px) { .zoom-ctl { bottom: calc(var(--sheet, 0px) + 8px); } }   /* dikey telefon: alttan açılan kartın üstünde */
+
+/* Yeni eklenenler (kullanıcı 2026-11-28): ana sayfada en üst satır + her listede limon "Yeni" rozeti; Tamam ✕ → görüldü */
+.nx-yeni { position: relative; transition: opacity .25s, transform .25s; }
+.nx-yeni.gone { opacity: 0; transform: translateY(-8px); }
+.nx-yeni .nx-rh { align-items: center; }
+.nx-yeni .nx-rh h3 { display: inline-flex; align-items: center; gap: 9px; }
+.nx-yeni .nx-rh h3::before { content: ''; flex: none; width: 10px; height: 10px; border-radius: 99px; background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(212,255,58,.55); animation: yenipulse 2s ease-out infinite; }
+@keyframes yenipulse { 70% { box-shadow: 0 0 0 9px rgba(212,255,58,0); } 100% { box-shadow: 0 0 0 0 rgba(212,255,58,0); } }
+@media (prefers-reduced-motion: reduce) { .nx-yeni .nx-rh h3::before { animation: none; } }
+.nx-more.nx-ok { gap: 6px; height: 34px; padding: 0 12px 0 14px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); }
+.nx-more.nx-ok:hover { background: var(--accent); filter: brightness(1.06); }
+.nx-more.nx-ok svg { width: 15px; height: 15px; }
+.nx-yb { position: absolute; z-index: 1; right: 8px; top: 8px; height: 22px; padding: 0 7px; border-radius: 7px; font-size: 12px; font-weight: 800; line-height: 22px;
+  color: var(--accent-ink); background: var(--accent); }
+.nx-yb ~ .nx-lvl { top: 36px; }
+.nx-feat .nx-thumb { align-content: center; justify-items: start; gap: 8px; padding: 14px 16px; background: var(--raised); color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--border-strong); }
+.nx-feat .nx-thumb > svg { width: 26px; height: 26px; }
+.nx-ft { font-size: 14px; font-weight: 500; line-height: 1.35; color: var(--text2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card .thumb .now.yeni { color: var(--accent-ink); background: var(--accent); }
+.row-tag.yeni { margin-right: 6px; }
+@media (max-width: 700px), (max-height: 500px) { .nx-ft { font-size: 12.5px; -webkit-line-clamp: 2; } .nx-feat .nx-thumb { padding: 10px 12px; gap: 5px; } .nx-feat .nx-thumb > svg { width: 20px; height: 20px; } }

@@ -2371,5 +2371,21 @@
   const nth = {};
   for (const x of S) { const L = GROUPS[x.category]; nth[L] = (nth[L] || 0) + 1; x.code = L + nth[L]; x.title = x.code + ' · ' + x.name; }
 
+  /* ---------- YENİ EKLENENLER (kullanıcı 2026-11-28): ana sayfada en üstte "Yeni eklenenler" satırı ----------
+     Yeni ders ya da özellik ekleyen sohbet buraya BİR satır ekler (en yeni üstte):
+       { t: 'YYYY-AA-GG', id: '<senaryo id>' }                                   → senaryo kartı, her listede "Yeni" rozeti
+       { t: 'YYYY-AA-GG', k: '<kısa anahtar>', ad: 'Başlık', metin: 'Tek cümle', git: 'taktik.html' }  → özellik kartı (git isteğe bağlı)
+     Kişi "Tamam ✕"e basınca o an görünenler görülmüş sayılır (localStorage ps.yeni.v1, kişiye göre); izlenen senaryo da yeni değildir.
+     YENI_GUN günden eski satırlar kendiliğinden yeni sayılmaz (silmeye gerek yok, istenirse temizlenir). */
+  const YENILER = [
+    { t: '2026-11-28', k: 'taktik-kacis', ad: 'Taktik oluştur: tekneler yol veriyor', metin: 'Yol vermesi gereken tekne kendiliğinden kaçar, kuralı da yazar.', git: 'taktik.html' },
+    { t: '2026-11-28', k: 'sonraki-senaryo', ad: 'Sıradaki senaryoya geç', metin: 'Senaryo açıkken başlığın yanındaki ‹ › ile öncekine ya da sonrakine geç.' },
+    { t: '2026-11-27', id: 'a10-pin-tack-start' },
+    { t: '2026-11-27', id: 'a9c-lift-hold' },
+    { t: '2026-11-27', id: 'ia14-committee-slip-in' },
+    { t: '2026-11-27', id: 'ia15-committee-escape' },
+    { t: '2026-11-27', k: 'izlendi', ad: 'İzlediklerin işaretli', metin: 'İzlediğin senaryoda yeşil İzlendi rozeti var; izlemediklerin hep başta.' },
+  ];
+  global.SAIL_YENI = { list: YENILER.filter(y => !y.id || S.some(x => x.id === y.id)), days: 30 };
   global.SCENARIOS = S;
 })(typeof window !== 'undefined' ? window : globalThis);

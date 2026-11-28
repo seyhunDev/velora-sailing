@@ -945,7 +945,7 @@
     const th = window.SailThumbs ? SailThumbs.make(x) : document.createElement('div');
     th.classList.add('thumb');
     th.insertAdjacentHTML('beforeend', `<span class="code-badge">${esc(code)}</span>` +
-      (active ? '<span class="now">Açık</span>' : '') + (locked ? '<span class="lock">Kaydol</span>' : '') + seenBadge(x, 'seen-tag') + progBar(x));
+      (active ? '<span class="now">Açık</span>' : '') + (locked ? '<span class="lock">Kaydol</span>' : !active && isYeni(x) ? '<span class="now yeni">Yeni</span>' : '') + seenBadge(x, 'seen-tag') + progBar(x));
     c.appendChild(th); c.classList.toggle('seen', !x.user && isSeen(x.id));
     c.insertAdjacentHTML('beforeend', `<div class="ttl">${esc(ttl)}</div>`);
     c.onclick = () => {
@@ -967,7 +967,7 @@
     const mins = Math.floor(x.duration / 60), secs = Math.round(x.duration % 60);
     r.insertAdjacentHTML('beforeend', `<span class="row-t"><b><span class="row-code">${esc(code)}</span>${esc(ttl)}${x.ileri ? '<span class="row-lvl">İleri</span>' : ''}</b>
       <small>${esc(x.short || firstSentence(x.summary))}</small></span>
-      <span class="row-r">${seenBadge(x, 'row-tag seen')}${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
+      <span class="row-r">${seenBadge(x, 'row-tag seen')}${isYeni(x) ? '<span class="row-tag yeni">Yeni</span>' : ''}${locked ? '<span class="row-tag lock">Kaydol</span>' : active ? '<span class="row-tag">Açık</span>' : `<span class="row-dur">${mins}:${String(secs).padStart(2, '0')}</span>`}</span>
       <svg class="row-chev"><use href="#i-next"/></svg>`);
     r.onclick = () => {
       if (lockedScn(x)) { SailAccess.guard('scn.ileri'); return; }
@@ -1075,6 +1075,27 @@
     if (p >= watchRun.saved + 0.05 || (p >= SEEN_P && watchRun.saved < SEEN_P) || (p >= 1 && watchRun.saved < 1)) { watchSave(scn.id, p); watchRun.saved = Math.max(watchRun.saved, p); }
   }
   const seenBadge = (x, cls) => !x.user && isSeen(x.id) ? `<span class="${cls}"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>İzlendi</span>` : '';
+  // Yeni eklenenler (kullanıcı 2026-11-28): scenarios.js YENILER. "Tamam ✕" → o an görünenler görüldü (kişiye göre, bu cihazda
+  // localStorage 'ps.yeni.v1' = { kişi: { anahtar: ms } }). İzlenen senaryo da yeni değildir; YENI_GUN'den eski satır yeni sayılmaz.
+  const YENI = 'ps.yeni.v1';
+  const yeniKey = y => y.id || 'f:' + y.k;
+  function yeniAll() { try { const a = JSON.parse(localStorage.getItem(YENI)); return a && typeof a === 'object' ? a : {}; } catch (e) { return {}; } }
+  const yeniMine = () => { const m = yeniAll()[watchWho()]; return m && typeof m === 'object' ? m : {}; };
+  function yeniList() {
+    const Y = window.SAIL_YENI; if (!Y || !Y.list) return [];
+    const me = yeniMine(), old = Date.now() - (Y.days || 30) * 864e5;
+    return Y.list.filter(y => !me[yeniKey(y)] && !(Date.parse(y.t) < old) && !(y.id && isSeen(y.id)));
+  }
+  const isYeni = x => !x.user && yeniList().some(y => y.id === x.id);
+  function yeniDone(items) {
+    try { const all = yeniAll(), me = all[watchWho()] || (all[watchWho()] = {}), now = Date.now(); items.forEach(y => { me[yeniKey(y)] = now; }); localStorage.setItem(YENI, JSON.stringify(all)); } catch (e) { /* yok */ }
+  }
+  // özellik kartı: ikon + ad + tek cümle; git varsa oraya gider
+  function yeniCard(y) {
+    const c = document.createElement(y.git ? 'a' : 'div'); c.className = 'nx-card nx-feat'; if (y.git) c.href = y.git;
+    c.innerHTML = `<span class="nx-thumb"><span class="nx-yb">Yeni</span><svg viewBox="0 0 24 24"><path d="M12 3.5l2.3 5.2 5.7.5-4.3 3.8 1.3 5.5L12 15.6l-5 2.9 1.3-5.5L4 9.2l5.7-.5z" fill="currentColor"/></svg><span class="nx-ft">${esc(y.metin)}</span></span><b>${esc(y.ad)}</b><small>${y.git ? 'Dene' : 'Yeni özellik'}</small>`;
+    return c;
+  }
   // Hava şartı (ileride senaryo verisine girilecek): x.hava = 'hafif' | 'orta' | 'sert' (birkaç tane olabilir: dizi), x.maxKn = en çok rüzgar (knot).
   // Hiçbir senaryoda veri yoksa süzgeç çipleri görünmez.
   const HAVA = [['hafif', 'Hafif'], ['orta', 'Orta'], ['sert', 'Sert']];
@@ -1097,7 +1118,12 @@
     for (let i = 0; out.length < n && per.some(a => a[i]); i++) for (const a of per) if (a[i] && out.length < n) out.push(a[i]);
     return out;
   }
-  const heroList = () => { const s = suggestions(6); return s.length ? s : SCENARIOS.filter(x => !x.user && !lockedScn(x)).slice(0, 6); };
+  // öne çıkan: önce yeni eklenen (açık) senaryolar, sonra öneriler
+  const heroList = () => {
+    const s = suggestions(6), y = SCENARIOS.filter(x => isYeni(x) && !lockedScn(x) && havaOk(x));
+    const out = [...y, ...s.filter(x => !y.includes(x))].slice(0, 6);
+    return out.length ? out : SCENARIOS.filter(x => !x.user && !lockedScn(x)).slice(0, 6);
+  };
   function heroSlide(x, n, i) {
     const [code, ttl] = splitTitle(x.title);
     const s = document.createElement('div'); s.className = 'nx-slide';
@@ -1134,7 +1160,7 @@
     const c = document.createElement('button'); c.type = 'button'; c.className = 'nx-card'; c.classList.toggle('locked', locked);
     const th = window.SailThumbs ? SailThumbs.make(x, { still: true }) : document.createElement('div');
     th.classList.add('nx-thumb');
-    th.insertAdjacentHTML('beforeend', `<span class="nx-badge">${esc(code)}</span>${seenBadge(x, 'nx-seen')}${x.ileri ? '<span class="nx-lvl">İleri</span>' : ''}${locked ? '<span class="nx-lock">Kaydol</span>' : `<span class="nx-time">${durTxt(x)}</span>`}<span class="nx-hov"><svg><use href="#i-play"/></svg></span>${progBar(x)}`);
+    th.insertAdjacentHTML('beforeend', `<span class="nx-badge">${esc(code)}</span>${seenBadge(x, 'nx-seen')}${isYeni(x) ? '<span class="nx-yb">Yeni</span>' : ''}${x.ileri ? '<span class="nx-lvl">İleri</span>' : ''}${locked ? '<span class="nx-lock">Kaydol</span>' : `<span class="nx-time">${durTxt(x)}</span>`}<span class="nx-hov"><svg><use href="#i-play"/></svg></span>${progBar(x)}`);
     c.appendChild(th); c.classList.toggle('seen', !x.user && isSeen(x.id));
     c.insertAdjacentHTML('beforeend', `<b>${esc(ttl)}</b><small>${esc(x.topic || x.category)}${havaTxt(x) ? ' · ' + esc(havaTxt(x)) : ''}</small>`);
     c.title = x.short || firstSentence(x.summary);
@@ -1180,6 +1206,19 @@
     }
     $('nxHero').innerHTML = ''; showHero(heroIdx); makeArt();
     const rows = $('nxRows'); rows.innerHTML = '';
+    // Yeni eklenenler: en üstte; Tamam ✕ → görüldü, satır kalkar, sonra her şey eski düzeninde (izlenmeyenler başta)
+    const yeni = yeniList();
+    if (yeni.length) {
+      const scs = yeni.filter(y => y.id).map(y => SCENARIOS.find(x => x.id === y.id)).filter(x => x && havaOk(x));
+      const sec = nxRow('Yeni eklenenler', scs, null, null, ['Tamam', () => { yeniDone(yeni); sec.classList.add('gone'); setTimeout(buildHome, 260); }]);
+      sec.classList.add('nx-yeni');
+      const tr = sec.querySelector('.nx-track');
+      yeni.filter(y => !y.id).forEach(y => tr.appendChild(yeniCard(y)));
+      sec.querySelector('.nx-n').textContent = tr.children.length;
+      const ok = sec.querySelector('[data-tool]'); ok.classList.add('nx-ok'); ok.setAttribute('aria-label', 'Tamam, gördüm');
+      ok.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>');
+      rows.appendChild(sec);
+    }
     // Taktiklerim: kullanıcı taktik oluşturduysa satırların en üstünde, Taktik oluştur kartının hemen altında (kullanıcı 2026-11-24)
     if (window.SailTaktik) {
       const mine = SCENARIOS.filter(x => x.category === SailTaktik.CAT);
