@@ -156,6 +156,7 @@
 - [ ] **Kullanıcı senaryoları (sonraki aşama):** Firebase Auth + Firestore, link ile paylaşım, Firebase Hosting. Simülatör yarış kayıtları için biçim hazır: `SailRecords` girdisi (`setup` + `ops` + `summary`) aynen Firestore belgesi olabilir.
 
 ## Kararlar
+- 2026-11-28 · **Önceki/sonraki senaryo yine üst çubukta (kullanıcı):** senaryo açıkken doğrudan sıradakine geçebilmeli. Üst çubuk: Geri · ‹ ad › · Ayarlar (‹ › başlıkla tek parça, 44 px, alçak ekranda 40 px). Ayarlar penceresindeki önceki/sonraki kutuları kaldırıldı. Sıra = seçici/KATALOG sırası (kategori → konu), kilitliler atlanır; Shift+→/← klavyede de çalışır.
 - 2026-11-27 · **Yetki ve veri (kullanıcı):** sahip yalnız Seyhun; her kullanıcı yalnız kendi taktik/kayıt/yarışını görür ve yazar, Firestore kuralı zorlar; sahip herkesinkini okur, kendi hesabını normal kullanıcı gibi kullanır (Yarışlar/Taktiklerim listeleri yalnız kendi verisi; herkesin verisi ziyaret.html → Hesaplar). Veri silinmez (silindi işareti). Sınırlar sahip dışındakilere; taktik sayısı şimdilik 10, ileride paketlere bağlanabilir (`LIMITS.tactics` + kuraldaki 10).
 - 2026-11-27 · Sailing'in Firestore kuralları artık Velora deposunun `firestore.rules` dosyasında (tek kaynak, `pbcopy < firestore.rules` ile hepsi birlikte yayınlanır). Konsola parça parça yapıştırma yok. Kural değiştiren sohbet: `firebase/firestore-sailing.rules` + `gorev-data.js` RULES + Velora PR.
 - 2026-11-27 · Rüzgar dönüşü terimleri: açmak = hedeften uzaklaşmak (header, tramola at), çekmek = hedefe yaklaşmak (lift). C1/P1, KATALOG, Taktik oluştur hazır sahnesi ve dönüş notu, 3D arkadan ders (Açtı / Çekti) buna göre.
@@ -403,6 +404,10 @@
 | T1-T2 | İT1, İT1b | ✅ | Donanım dersi; metin kontrolü. |
 
 ## Oturum günlüğü (en yeni üstte)
+### 2026-11-28 · Senaryoda sıradakine geç düğmesi
+- Kullanıcı: senaryo açıkken direkt sıradakine geçebilmeli.
+- Yapılan: v1.243'te gizlenen ‹ › düğmeleri başlığın iki yanında geri açıldı (style.css sade çubuk bölümü), SCN_ACTS'ten çıkarıldı. Masaüstü 1400, iPad 1180, telefon 844 ve 667 yatayda denendi, ileri/geri çalışıyor, taşma yok.
+- Sonraki sohbete: senaryo bitince "Sıradaki senaryo" önerisi eklenebilir (istenmedi).
 ### 2026-11-27 · Hesap yetkilerini ve veri ayrımını düzelt
 - Kullanıcı: Velora'dan giren her yeni hesap sahip oluyordu; herkes yalnız kendi verisini görsün (kural da zorlasın), sahip yalnız Seyhun, admin herkesin aktivitesini görsün, eski veriler Seyhun'a, hiçbir şey silinmesin. Sonra: Taktik oluştur'da sınırlar sahip dışındakilere, 10 taktik.
 - Yapılan: bkz. Güncel durum "Hesaplar ve veri ayrımı". Velora PR #1681 (kurallar). Emülatörde 51 kural testi + tarayıcıda 36 uçtan uca kontrol (iki hesap, aynı cihazda hesap değişimi, başka cihaza eşitleme, eski veri, sınırlar) geçti.
