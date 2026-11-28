@@ -149,5 +149,5 @@
     });
   }
 
-  global.SailUserData = { OWNER_UID, KINDS, list, get, put, remove, sync, uid, state: k => state[k] || (fire() ? 'bulut' : 'yerel') };
+  global.SailUserData = { OWNER_UID, KINDS, list, get, put, remove, sync, flush: k => flush(k), fire, uid, state: k => state[k] || (fire() ? 'bulut' : 'yerel') };
 })(typeof window !== 'undefined' ? window : globalThis);

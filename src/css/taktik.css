@@ -236,3 +236,4 @@ body.taktik { background: var(--bg); }
 .tk-zoom { position: absolute; z-index: 4; right: calc(10px + var(--sar)); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; padding: 4px;
   background: var(--panel); border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.45), inset 0 0 0 1px var(--border); }
 @media (max-width: 640px), (max-height: 460px) { .tk-zoom { right: calc(6px + var(--sar)); padding: 3px; gap: 2px; } }
+.tk-pub { margin-top: 14px; padding-top: 2px; border-top: 1px solid var(--border); } /* Herkese açık (2026-11-28) */

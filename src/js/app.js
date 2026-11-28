@@ -202,7 +202,7 @@
     const ed = $('btnEdit');
     if (ed) {
       ed.classList.toggle('hidden', !scn.user || !!TEK_ID);
-      if (scn.user && window.SailTaktik) ed.href = scn.id.startsWith('s-') ? 'taktik.html?t=' + SailTaktik.encode(scn.doc) : 'taktik.html?id=' + encodeURIComponent(scn.doc.id);
+      if (scn.user && window.SailTaktik) ed.href = /^[sp]-/.test(scn.id) ? 'taktik.html?t=' + SailTaktik.encode(scn.doc) : 'taktik.html?id=' + encodeURIComponent(scn.doc.id);
     }
     $('btnShare').classList.toggle('hidden', !!scn.user);          // kendi taktiğin Taktik oluştur'dan paylaşılır
     document.querySelectorAll('.card').forEach(c => c.classList.toggle('active', c.dataset.id === scn.id));
@@ -1186,6 +1186,8 @@
       const add = document.createElement('a'); add.className = 'nx-card nx-new'; add.href = 'taktik.html';
       add.innerHTML = '<span class="nx-thumb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><b>Yeni taktik</b><small>Tekne koy, rota çiz</small>';
       if (mine.length) rows.appendChild(nxRow(SailTaktik.CAT, mine, SailTaktik.CAT, add));
+      const pubs = SCENARIOS.filter(x => x.category === SailTaktik.PUBCAT);   // başkalarının herkese açtığı taktikler
+      if (pubs.length) rows.appendChild(nxRow(SailTaktik.PUBCAT, pubs, SailTaktik.PUBCAT));
     }
     // hava süzgeci: yalnız en az bir senaryoda hava verisi varsa
     const hasHava = SCENARIOS.some(x => havaOf(x).length);
@@ -1198,7 +1200,7 @@
     const sug = suggestions(12);
     if (sug.length) rows.appendChild(nxRow('Senin için', sug, null));
     // konu satırları: izlenenler sona
-    const groups = CATS.filter(c => c !== (window.SailTaktik && SailTaktik.CAT));
+    const groups = CATS.filter(c => !(window.SailTaktik && (c === SailTaktik.CAT || c === SailTaktik.PUBCAT)));
     for (const c of groups) {
       const xs = SCENARIOS.filter(x => x.category === c && havaOk(x));
       if (xs.length) rows.appendChild(nxRow(c, seenLast(xs), c));
@@ -1398,6 +1400,26 @@
     if (!$('picker').classList.contains('hidden')) buildPicker();
     if (homeOn) { buildHome(); mineSub(); }
   });
+  // Herkesin taktikleri (kullanıcı 2026-11-28): giriş yapınca buluttan yüklenir, ana sayfada Taktiklerim'in altında satır
+  let pubLoading = false;
+  async function loadPublic() {
+    const T = window.SailTaktik;
+    if (!T || !T.pub || TEK_ID || pubLoading || !T.pub.ready()) return;
+    pubLoading = true;
+    try {
+      const items = await T.pub.list(60);
+      T.pub.inject(SCENARIOS, items, window.SailUserData && SailUserData.uid());
+      const has = SCENARIOS.some(x => x.category === T.PUBCAT), i = CATS.indexOf(T.PUBCAT);
+      if (has && i < 0) CATS.push(T.PUBCAT); else if (!has && i >= 0) CATS.splice(i, 1);
+      const want = location.hash.slice(1);
+      if (want.startsWith('p-') && (!state.scn || state.scn.id !== want)) { const sc = SCENARIOS.find(x => x.id === want); if (sc) { loadScenario(sc); if (homeOn) { fromHome = true; setHome(false); } } }
+      if (!$('picker').classList.contains('hidden')) buildPicker();
+      if (homeOn) buildHome();
+    } catch (e) { /* kural yayında değil ya da bağlantı yok: satır görünmez */ }
+    pubLoading = false;
+  }
+  document.addEventListener('sail-access', () => setTimeout(loadPublic, 1500));
+  document.addEventListener('velora-ready', () => { if (window.VeloraAuth.onUser) VeloraAuth.onUser(() => setTimeout(loadPublic, 800)); });
   const ds = document.body.dataset;
   $('versionLabel').textContent = ds.version ? `Sürüm ${ds.ver || ds.version} · ${ds.version} · ${ds.built}` : 'Geliştirme sürümü';
   // Bildirim gönder (report.js): hangi senaryo, hangi an

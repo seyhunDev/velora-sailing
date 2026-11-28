@@ -103,12 +103,18 @@
   function save(doc) {
     if (!canAdd(doc.id)) return 'limit';
     doc.updated = Date.now();
-    if (UD()) { try { UD().put('tactics', clean(doc)); return true; } catch (e) { return false; } }
+    if (UD()) {
+      try { UD().put('tactics', clean(doc)); } catch (e) { return false; }
+      if (doc.pub) pub.publish(doc).catch(() => {});        // herkese açıksa kopyası da güncellenir
+      return true;
+    }
     const a = list().filter(d => d.id !== doc.id);
     a.unshift(clean(doc));
     try { localStorage.setItem(KEY, JSON.stringify(a)); return true; } catch (e) { return false; }
   }
   function remove(id) {
+    const was = get(id);
+    if (was && was.pub) pub.unpublish(id).catch(() => {});  // silinen taktik herkese açık listeden de kalkar
     if (UD()) { UD().remove('tactics', id); return; }
     try { localStorage.setItem(KEY, JSON.stringify(list().filter(d => d.id !== id))); } catch (e) { /* yok */ }
   }
@@ -122,6 +128,7 @@
         .map(n => ({ t: Math.max(0, Math.min(120, Math.round((+n.t || 0) * 2) / 2)), text: String(n.text).trim().slice(0, 200) })).sort((a, b) => a.t - b.t),
       ref: d.ref !== false, quiz: !!d.quiz,
       src: /^[A-Z0-9]{6}$/.test(d.src || '') ? d.src : undefined, by: d.by ? String(d.by).slice(0, 40) : undefined,
+      pub: d.pub ? true : undefined, showName: d.showName ? true : undefined,   // herkese açık / adım görünsün (yalnız sahibinin kaydında)
       shift: d.shift && +d.shift.d ? { t: Math.max(0, Math.min(60, Math.round(+d.shift.t || 0))), d: Math.max(-40, Math.min(40, Math.round(+d.shift.d))) } : null,
       gusts: (d.gusts || []).slice(0, MAX_GUSTS).map(g => ({ ...pt(g), r: Math.max(50, Math.min(180, r1(+g.r || 90))) })),
       wind: r1(E.norm360(+d.wind || 0)), kn: Math.max(4, Math.min(20, r1(+d.kn || 8))),
@@ -137,15 +144,17 @@
   }
 
   // ---------- Paylaşım: taslak adreste (base64url JSON) ----------
+  // kopyalar herkese açık değildir: yayın kararı yalnız taktiği oluşturanın
+  const publess = d => { delete d.pub; delete d.showName; return d; };
   function encode(doc) {
-    const c = clean(doc); delete c.updated;
+    const c = publess(clean(doc)); delete c.updated;
     const s = unescape(encodeURIComponent(JSON.stringify(c)));
     return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   }
   function decode(code) {
     try {
       const s = atob(String(code).replace(/-/g, '+').replace(/_/g, '/'));
-      return clean(JSON.parse(decodeURIComponent(escape(s))));
+      return publess(clean(JSON.parse(decodeURIComponent(escape(s)))));
     } catch (e) { return null; }
   }
   function shareUrl(doc) {
@@ -475,7 +484,7 @@
       const t = await b.getTask(code);
       if (!t) throw Object.assign(new Error('yok'), { code: 'not-found' });
       if (t.kind !== 'taktik') throw Object.assign(new Error('yaris'), { code: 'is-race' });
-      const d = clean(JSON.parse(t.setup));
+      const d = publess(clean(JSON.parse(t.setup)));
       const old = list().find(x => x.src === code);
       d.id = old ? old.id : uid(); d.src = code;
       if (!canAdd(d.id)) throw Object.assign(new Error('sınır'), { code: 'limit' });
@@ -491,9 +500,49 @@
     }
   };
 
+  // ---------- Herkese açık taktikler (kullanıcı 2026-11-28) ----------
+  // Taktiği oluşturan karar verir: Herkese açık (doc.pub) ve Adım görünsün (doc.showName). Kopya Firestore sailPublic/{uid}_{id}
+  // = { v, owner, tid, by (ad ya da null), t, title, data (JSON) }; giriş yapan herkes okur, yalnız sahibi yazar / kaldırır,
+  // site sahibi kaldırabilir. Kural: tid sahibin duran taktiklerinde (tac) olmalı. Ana sayfada "Herkesin taktikleri".
+  const PUBCAT = 'Herkesin taktikleri';
+  const pub = {
+    ready: () => !!(UD() && UD().fire && UD().fire()),
+    async publish(doc) {
+      const F = UD() && UD().fire && UD().fire(); if (!F) throw Object.assign(new Error('giriş'), { code: 'no-cloud' });
+      await UD().flush('tactics');                              // önce taktik ve tac listesi buluta (kural buna bakar)
+      const a = (global.SailAccess && SailAccess.account()) || {};
+      const d = publess(clean(doc)); delete d.updated; delete d.src;
+      const by = doc.showName ? String(a.name || '').trim().slice(0, 40) || null : null;
+      await F.fs.setDoc(F.fs.doc(F.db, 'sailPublic', F.u + '_' + d.id), { v: 1, owner: F.u, tid: d.id, by, t: Date.now(), title: d.title.slice(0, 60), data: JSON.stringify(d) });
+    },
+    async unpublish(id) {
+      const F = UD() && UD().fire && UD().fire(); if (!F) return;
+      await F.fs.deleteDoc(F.fs.doc(F.db, 'sailPublic', F.u + '_' + id));
+    },
+    // en yeni max taktik: [{ key, owner, by, t, doc }]
+    async list(max = 60) {
+      const F = UD() && UD().fire && UD().fire(); if (!F) return [];
+      const q = await F.fs.getDocs(F.fs.query(F.fs.collection(F.db, 'sailPublic'), F.fs.orderBy('t', 'desc'), F.fs.limit(max)));
+      const out = [];
+      q.forEach(x => { const v = x.data(); try { const d = publess(clean(JSON.parse(v.data))); out.push({ key: x.id, owner: v.owner, by: v.by || null, t: v.t, doc: d }); } catch (e) { /* bozuk */ } });
+      return out;
+    },
+    // senaryo listesine: başkalarının açık taktikleri (kendininkiler zaten Taktiklerim'de)
+    inject(S, items, me) {
+      for (let i = S.length - 1; i >= 0; i--) if (S[i].category === PUBCAT) S.splice(i, 1);
+      items.filter(x => x.owner !== me).forEach((x, i) => {
+        const d = { ...x.doc, by: x.by || undefined };
+        S.push(compile(d, { id: 'p-' + x.key, code: `H${i + 1}`, topic: x.by ? `Hazırlayan: ${x.by}` : 'Hazırlayan: gizli' }));
+        const sc = S[S.length - 1]; sc.category = PUBCAT; sc.pub = true; if (!x.doc.text) sc.summary = x.by ? `${x.by} hazırladı ve herkese açtı.` : 'Bir Velora Sailing kullanıcısı hazırladı ve herkese açtı.';
+      });
+      return S;
+    },
+  };
+
   const api = { cloud,  TEMPLATES, fromTemplate, referee, SAILS, ROLES, snap, resnap, sailHeading, KEY, CAT, COLORS, LETTERS, blank, list, get, save, remove, clean, reinject, encode, decode, shareUrl, compile, preview, inject, legs, bearing, LIMITS, HARD, lim, canAdd };
   // ekleme düğmeleri bu değerlere bakar: role göre (sahip için HARD)
   for (const [k, f] of Object.entries({ MAX_BOATS: 'boats', MAX_MARKS: 'marks', MAX_PTS: 'pts', MAX_NOTES: 'notes', MAX_GUSTS: 'gusts', MAX_TACTICS: 'tactics' }))
     Object.defineProperty(api, k, { get: () => lim(f), enumerable: true });
   global.SailTaktik = api;
+  api.pub = pub; api.PUBCAT = PUBCAT;
 })(typeof window !== 'undefined' ? window : globalThis);

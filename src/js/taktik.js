@@ -668,8 +668,30 @@
     openDlg('Paylaş', `<div class="tk-share">
         <button class="tk-share-b" id="tkShCode"><b>Kodla paylaş</b><small>6 harfli kod oluştur. Sporcuların kodu yazarak açar. Antrenör hesabıyla (Velora girişi).</small></button>
         <button class="tk-share-b" id="tkShLink"><b>Bağlantı gönder</b><small>Taktik bağlantının içinde. Hesap gerekmez.</small></button>
+      </div>
+      <div class="tk-pub${T.pub && T.pub.ready() ? '' : ' hidden'}">
+        <label class="tk-sw tk-sw2"><input type="checkbox" id="tkPubOn" ${doc.pub ? 'checked' : ''}><span><b>Herkese açık</b>: Velora Sailing'e giren herkes ana sayfada <b>Herkesin taktikleri</b>'nde görür ve oynatır. Kapatınca listeden kalkar.</span></label>
+        <label class="tk-sw tk-sw2"><input type="checkbox" id="tkPubName" ${doc.showName ? 'checked' : ''} ${doc.pub ? '' : 'disabled'}><span><b>Adım görünsün</b>: kartta "Hazırlayan: ${esc(((window.SailAccess && SailAccess.account()) || {}).name || 'adın')}" yazar. Kapalıysa "Hazırlayan: gizli".</span></label>
+        <p class="tk-p small" id="tkPubMsg"></p>
       </div><p class="tk-p small" id="tkShErr"></p>`, b => {
       b.querySelector('#tkShLink').onclick = shareLink;
+      // Herkese açık (kullanıcı 2026-11-28): karar taktiği oluşturanın; değişince taktik kaydedilir, açık kopya güncellenir / kalkar
+      const on = b.querySelector('#tkPubOn'), nm = b.querySelector('#tkPubName'), msg = b.querySelector('#tkPubMsg');
+      if (on) {
+        const apply = async () => {
+          const was = !!doc.pub;
+          doc.pub = on.checked || undefined; doc.showName = (on.checked && nm.checked) || undefined;
+          nm.disabled = !on.checked;
+          if (!persist()) { msg.textContent = 'Taktik kaydedilemediği için herkese açılamadı.'; on.checked = was; doc.pub = was || undefined; return; }
+          msg.textContent = on.checked ? 'Herkese açılıyor…' : 'Listeden kaldırılıyor…';
+          try {
+            if (on.checked) await T.pub.publish(doc); else if (was) await T.pub.unpublish(doc.id);
+            msg.textContent = on.checked ? (doc.showName ? 'Herkese açık, adınla.' : 'Herkese açık, adın gizli.') : 'Artık yalnız sende.';
+            try { if (window.SailTrack) SailTrack.log('taktik_pub', { on: !!on.checked, name: !!doc.showName }); } catch (e) { /* yok */ }
+          } catch (e) { msg.textContent = (window.SailTaskData && SailTaskData.isDenied(e)) ? 'Herkese açılamadı: Firestore kuralı izin vermedi.' : 'Herkese açılamadı. İnternetini kontrol et.'; }
+        };
+        on.onchange = apply; nm.onchange = apply;
+      }
       const btn = b.querySelector('#tkShCode');
       btn.onclick = async () => {
         if (btn.disabled) return;
